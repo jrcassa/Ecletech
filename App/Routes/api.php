@@ -51,6 +51,10 @@ $roteador->grupo([
     $rotasFrota = require __DIR__ . '/frota.php';
     $rotasFrota($roteador);
 
+    // Inclui rotas de administradores
+    $rotasAdministrador = require __DIR__ . '/administrador.php';
+    $rotasAdministrador($roteador);
+
     // Rota de health check
     $roteador->get('/health', function() {
         return [
