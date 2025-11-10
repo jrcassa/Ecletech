@@ -12,9 +12,44 @@ class MiddlewareCsrf
 {
     private TokenCsrf $csrf;
 
+    /**
+     * Rotas excluídas da validação CSRF
+     * Estas rotas não requerem token CSRF pois são acessadas antes da autenticação
+     */
+    private array $rotasExcluidas = [
+        '/auth/login',
+        '/auth/csrf-token',
+        '/register',
+        '/verify-email',
+        '/forgot-password',
+        '/reset-password'
+    ];
+
     public function __construct()
     {
         $this->csrf = new TokenCsrf();
+    }
+
+    /**
+     * Verifica se a rota atual está excluída da validação CSRF
+     */
+    private function rotaExcluida(): bool
+    {
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+
+        // Remove query string
+        $path = parse_url($requestUri, PHP_URL_PATH);
+
+        // Remove o prefixo /public_html/api se existir
+        $path = preg_replace('#^/public_html/api#', '', $path);
+
+        foreach ($this->rotasExcluidas as $rotaExcluida) {
+            if (str_contains($path, $rotaExcluida)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -28,6 +63,11 @@ class MiddlewareCsrf
         }
 
         if (!$this->csrf->estaHabilitado()) {
+            return true;
+        }
+
+        // Verifica se a rota está excluída da validação CSRF
+        if ($this->rotaExcluida()) {
             return true;
         }
 
