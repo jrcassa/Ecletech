@@ -28,12 +28,6 @@ const AuthAPI = {
             throw new Error(response.erro || 'Erro ao fazer login');
 
         } catch (error) {
-            if (error.status === 403 && error.data?.email_nao_verificado) {
-                localStorage.setItem('email_pendente', email);
-                window.location.href = 'verificar-email-pendente.html';
-                throw error;
-            }
-
             if (error.data && error.data.erro) {
                 API.showError(error.data.erro);
             } else if (error.message) {
@@ -41,10 +35,6 @@ const AuthAPI = {
             }
             throw error;
         }
-    },
-
-    loginWithGoogle() {
-        window.location.href = API.baseURL + '/auth/google';
     },
 
     async register(dados) {
@@ -61,13 +51,7 @@ const AuthAPI = {
             const response = await API.post('/register', dados);
 
             if (response.sucesso) {
-                localStorage.setItem('email_pendente', dados.email);
-                API.showSuccess('Conta criada! Verifique seu email.');
-
-                setTimeout(() => {
-                    window.location.href = './verificar-email-pendente.html';
-                }, 1500);
-
+                API.showSuccess('Conta criada com sucesso!');
                 return response;
             }
 
@@ -80,94 +64,6 @@ const AuthAPI = {
                 API.showError(error.message);
             }
             throw error;
-        }
-    },
-
-    async reenviarValidacao(email) {
-        try {
-            const response = await API.post('/resend-verification', { email });
-
-            if (response.sucesso) {
-                API.showSuccess('Email de validação reenviado!');
-                return response;
-            }
-
-            throw new Error(response.erro || 'Erro ao reenviar email');
-
-        } catch (error) {
-            if (error.data && error.data.erro) {
-                API.showError(error.data.erro);
-            } else if (error.message) {
-                API.showError(error.message);
-            }
-            throw error;
-        }
-    },
-
-    async validarEmail(token) {
-        try {
-            const response = await API.get(`/verify-email?token=${token}`);
-
-            if (response.sucesso) {
-                API.showSuccess('Email verificado com sucesso!');
-                return response;
-            }
-
-            throw new Error(response.erro || 'Erro ao validar email');
-
-        } catch (error) {
-            if (error.data && error.data.erro) {
-                API.showError(error.data.erro);
-            } else if (error.message) {
-                API.showError(error.message);
-            }
-            throw error;
-        }
-    },
-
-    async verificarEmailValidado() {
-        try {
-            const response = await API.get('/me');
-
-            if (response.sucesso) {
-                const user = response.dados?.usuario ||
-                            response.dados?.user ||
-                            response.dados ||
-                            response.usuario ||
-                            response.user;
-
-                if (user) {
-                    API.setUser(user);
-
-                    if (user.email_validado != 1) {
-                        const email = user.email;
-                        API.deleteToken();
-                        API.deleteUser();
-                        API.deleteCsrfToken();
-                        localStorage.setItem('email_pendente', email);
-                        window.location.href = 'verificar-email-pendente.html';
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            return false;
-
-        } catch (error) {
-            if (error.status === 403 || (error.data && error.data.email_nao_verificado)) {
-                const user = API.getUser();
-                const email = user?.email;
-                API.deleteToken();
-                API.deleteUser();
-                API.deleteCsrfToken();
-                if (email) {
-                    localStorage.setItem('email_pendente', email);
-                }
-                window.location.href = 'verificar-email-pendente.html';
-                return false;
-            }
-            return false;
         }
     },
 
@@ -270,11 +166,6 @@ const AuthAPI = {
 
         await API.ensureCsrfToken();
 
-        const emailValidado = await this.verificarEmailValidado();
-        if (!emailValidado) {
-            return false;
-        }
-
         return true;
     },
 
@@ -286,16 +177,5 @@ const AuthAPI = {
         return false;
     }
 };
-
-// Verificar autenticação em páginas protegidas
-if (!window.location.pathname.includes('auth') &&
-    !window.location.pathname.includes('validar-email') &&
-    !window.location.pathname.includes('verificar-email-pendente') &&
-    !window.location.pathname.includes('forgot-password') &&
-    !window.location.pathname.includes('reset-password')) {
-    if (AuthAPI.isAuthenticated()) {
-        AuthAPI.verificarEmailValidado();
-    }
-}
 
 window.AuthAPI = AuthAPI;
