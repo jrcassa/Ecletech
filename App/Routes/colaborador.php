@@ -8,29 +8,29 @@ use App\Middleware\MiddlewareAcl;
  * Requerem autenticação + permissões específicas (ACL)
  */
 
-return function($roteador) {
-    $roteador->grupo([
+return function($router) {
+    $router->grupo([
         'prefixo' => 'colaboradores',
         'middleware' => ['auth', 'admin']
-    ], function($roteador) {
+    ], function($router) {
         // Listar colaboradores - requer permissão de visualização
-        $roteador->get('/', [ControllerColaborador::class, 'listar'])
+        $router->get('/', [ControllerColaborador::class, 'listar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.visualizar'));
 
         // Buscar colaborador por ID - requer permissão de visualização
-        $roteador->get('/{id}', [ControllerColaborador::class, 'buscar'])
+        $router->get('/{id}', [ControllerColaborador::class, 'buscar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.visualizar'));
 
         // Criar colaborador - requer permissão de criação
-        $roteador->post('/', [ControllerColaborador::class, 'criar'])
+        $router->post('/', [ControllerColaborador::class, 'criar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.criar'));
 
         // Atualizar colaborador - requer permissão de edição
-        $roteador->put('/{id}', [ControllerColaborador::class, 'atualizar'])
+        $router->put('/{id}', [ControllerColaborador::class, 'atualizar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.editar'));
 
         // Deletar colaborador - requer permissão de exclusão
-        $roteador->delete('/{id}', [ControllerColaborador::class, 'deletar'])
+        $router->delete('/{id}', [ControllerColaborador::class, 'deletar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.deletar'));
     });
 };

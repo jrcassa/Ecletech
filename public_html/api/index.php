@@ -77,10 +77,10 @@ try {
     });
 
     // Carrega as rotas
-    $roteador = require __DIR__ . '/../../app/routes/api.php';
+    $router = require __DIR__ . '/../../app/routes/api.php';
 
     // Despacha a requisição
-    $roteador->despachar();
+    $router->despachar();
 
 } catch (\Exception $e) {
     // Log do erro
