@@ -12,7 +12,7 @@ O sistema utiliza tokens JWT (JSON Web Tokens) para autenticação:
 
 - **Geração de Token**: `app/core/JWT.php`
 - **Autenticação**: `app/core/Autenticacao.php`
-- **Middleware de Autenticação**: `app/middleware/IntermediarioAutenticacao.php`
+- **Middleware de Autenticação**: `app/middleware/MiddlewareAutenticacao.php`
 
 ### 2. Sistema de Permissões
 
@@ -29,7 +29,7 @@ Permissões específicas para ações no sistema (ex: "usuarios.visualizar", "ad
 
 ### 3. Middleware ACL
 
-O middleware ACL (`app/middleware/IntermediarioAcl.php`) permite validar permissões específicas em cada rota.
+O middleware ACL (`app/middleware/MiddlewareAcl.php`) permite validar permissões específicas em cada rota.
 
 ## Como Usar
 
@@ -74,13 +74,13 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 #### No Controlador
 
 ```php
-use App\Middleware\IntermediarioAcl;
+use App\Middleware\MiddlewareAcl;
 
 class MeuControlador
 {
     public function minhaAcao(): void
     {
-        $acl = new IntermediarioAcl();
+        $acl = new MiddlewareAcl();
 
         // Verificar uma permissão
         if ($acl->verificarPermissao('usuarios.editar')) {
@@ -132,26 +132,26 @@ O middleware ACL pode ser aplicado de duas formas:
 **Forma 1: Encadeado com método ->middleware()** (Recomendado)
 
 ```php
-use App\Middleware\IntermediarioAcl;
+use App\Middleware\MiddlewareAcl;
 
 // Rota que requer uma permissão específica
 $roteador->get('/usuarios', [ControladorUsuario::class, 'listar'])
-    ->middleware(IntermediarioAcl::requer('usuarios.visualizar'));
+    ->middleware(MiddlewareAcl::requer('usuarios.visualizar'));
 
 // Rota que requer múltiplas permissões (AND - todas necessárias)
 $roteador->post('/usuarios', [ControladorUsuario::class, 'criar'])
-    ->middleware(IntermediarioAcl::requer(['usuarios.criar', 'usuarios.visualizar'], 'AND'));
+    ->middleware(MiddlewareAcl::requer(['usuarios.criar', 'usuarios.visualizar'], 'AND'));
 
 // Rota que requer qualquer uma das permissões (OR)
 $roteador->put('/usuarios/{id}', [ControladorUsuario::class, 'atualizar'])
-    ->middleware(IntermediarioAcl::requer(['usuarios.editar', 'admins.editar'], 'OR'));
+    ->middleware(MiddlewareAcl::requer(['usuarios.editar', 'admins.editar'], 'OR'));
 ```
 
 **Exemplo Real das Rotas de Administradores:**
 
 ```php
 use App\Controllers\ControllerAdministrador;
-use App\Middleware\IntermediarioAcl;
+use App\Middleware\MiddlewareAcl;
 
 return function($roteador) {
     $roteador->grupo([
@@ -160,19 +160,19 @@ return function($roteador) {
     ], function($roteador) {
         // Listar - requer permissão de visualização
         $roteador->get('/', [ControllerAdministrador::class, 'listar'])
-            ->middleware(IntermediarioAcl::requer('admins.visualizar'));
+            ->middleware(MiddlewareAcl::requer('admins.visualizar'));
 
         // Criar - requer permissão de criação
         $roteador->post('/', [ControllerAdministrador::class, 'criar'])
-            ->middleware(IntermediarioAcl::requer('admins.criar'));
+            ->middleware(MiddlewareAcl::requer('admins.criar'));
 
         // Atualizar - requer permissão de edição
         $roteador->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
-            ->middleware(IntermediarioAcl::requer('admins.editar'));
+            ->middleware(MiddlewareAcl::requer('admins.editar'));
 
         // Deletar - requer permissão de exclusão
         $roteador->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
-            ->middleware(IntermediarioAcl::requer('admins.deletar'));
+            ->middleware(MiddlewareAcl::requer('admins.deletar'));
     });
 };
 ```

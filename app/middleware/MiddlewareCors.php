@@ -7,7 +7,7 @@ use App\Core\Configuracao;
 /**
  * Middleware para gerenciar CORS
  */
-class IntermediarioCors
+class MiddlewareCors
 {
     private Configuracao $config;
 

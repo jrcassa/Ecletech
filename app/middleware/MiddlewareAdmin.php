@@ -9,7 +9,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Middleware para verificar permissões de administrador
  */
-class IntermediarioAdmin
+class MiddlewareAdmin
 {
     private Autenticacao $auth;
     private BancoDados $db;

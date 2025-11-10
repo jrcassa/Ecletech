@@ -7,7 +7,7 @@ use App\Helpers\AuxiliarSanitizacao;
 /**
  * Middleware para sanitização contra XSS
  */
-class IntermediarioSanitizadorXss
+class MiddlewareSanitizadorXss
 {
     /**
      * Processa a requisição

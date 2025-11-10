@@ -8,7 +8,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Middleware para autenticação
  */
-class IntermediarioAutenticacao
+class MiddlewareAutenticacao
 {
     private Autenticacao $auth;
 
