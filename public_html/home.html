@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Ecletech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-card h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .user-info-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info-card h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item label {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .info-item .value {
+            color: #333;
+            font-size: 16px;
+            word-break: break-word;
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-container {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .json-viewer {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .json-key {
+            color: #e06c75;
+        }
+
+        .json-string {
+            color: #98c379;
+        }
+
+        .json-number {
+            color: #d19a66;
+        }
+
+        .json-boolean {
+            color: #56b6c2;
+        }
+
+        .json-null {
+            color: #c678dd;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Ecletech</h1>
+        <button class="btn-logout" id="logoutBtn">Sair</button>
+    </header>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h2 id="welcomeMessage">Bem-vindo!</h2>
+            <p>Aqui estão as informações da sua conta</p>
+        </div>
+
+        <div id="loadingContainer" class="loading-container">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="errorContainer" class="error-container" style="display: none;">
+            <p id="errorMessage"></p>
+        </div>
+
+        <div id="userInfoCard" class="user-info-card" style="display: none;">
+            <h3>Dados do Usuário</h3>
+            <div id="infoGrid" class="info-grid"></div>
+        </div>
+
+        <div class="user-info-card" id="rawDataCard" style="display: none; margin-top: 30px;">
+            <h3>Dados Brutos (JSON)</h3>
+            <pre id="rawData" class="json-viewer"></pre>
+        </div>
+    </div>
+
+    <script src="API.js"></script>
+    <script src="Auth.js"></script>
+    <script>
+        const loadingContainer = document.getElementById('loadingContainer');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const userInfoCard = document.getElementById('userInfoCard');
+        const infoGrid = document.getElementById('infoGrid');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const rawDataCard = document.getElementById('rawDataCard');
+        const rawData = document.getElementById('rawData');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        function showError(message) {
+            loadingContainer.style.display = 'none';
+            errorContainer.style.display = 'block';
+            errorMessage.textContent = message;
+            userInfoCard.style.display = 'none';
+            rawDataCard.style.display = 'none';
+        }
+
+        function showUserData(user) {
+            loadingContainer.style.display = 'none';
+            errorContainer.style.display = 'none';
+            userInfoCard.style.display = 'block';
+            rawDataCard.style.display = 'block';
+
+            // Atualizar mensagem de boas-vindas
+            const nome = user.nome || user.name || user.email?.split('@')[0] || 'Usuário';
+            welcomeMessage.textContent = `Bem-vindo, ${nome}!`;
+
+            // Criar grade de informações
+            infoGrid.innerHTML = '';
+
+            // Campos principais
+            const campos = [
+                { key: 'id', label: 'ID' },
+                { key: 'nome', label: 'Nome' },
+                { key: 'email', label: 'E-mail' },
+                { key: 'telefone', label: 'Telefone' },
+                { key: 'cpf', label: 'CPF' },
+                { key: 'idioma', label: 'Idioma' },
+                { key: 'email_validado', label: 'Email Validado', type: 'boolean' },
+                { key: 'ativo', label: 'Ativo', type: 'boolean' },
+                { key: 'tipo_usuario', label: 'Tipo de Usuário' },
+                { key: 'data_criacao', label: 'Data de Criação', type: 'date' },
+                { key: 'data_atualizacao', label: 'Última Atualização', type: 'date' }
+            ];
+
+            campos.forEach(campo => {
+                if (user[campo.key] !== undefined && user[campo.key] !== null) {
+                    const item = document.createElement('div');
+                    item.className = 'info-item';
+
+                    const label = document.createElement('label');
+                    label.textContent = campo.label;
+
+                    const value = document.createElement('div');
+                    value.className = 'value';
+
+                    if (campo.type === 'boolean') {
+                        const badge = document.createElement('span');
+                        badge.className = `badge ${user[campo.key] == 1 ? 'badge-success' : 'badge-warning'}`;
+                        badge.textContent = user[campo.key] == 1 ? 'Sim' : 'Não';
+                        value.appendChild(badge);
+                    } else if (campo.type === 'date') {
+                        const date = new Date(user[campo.key]);
+                        value.textContent = date.toLocaleString('pt-BR');
+                    } else {
+                        value.textContent = user[campo.key];
+                    }
+
+                    item.appendChild(label);
+                    item.appendChild(value);
+                    infoGrid.appendChild(item);
+                }
+            });
+
+            // Adicionar campos extras que não estão na lista
+            Object.keys(user).forEach(key => {
+                if (!campos.find(c => c.key === key)) {
+                    const item = document.createElement('div');
+                    item.className = 'info-item';
+
+                    const label = document.createElement('label');
+                    label.textContent = key.replace(/_/g, ' ').toUpperCase();
+
+                    const value = document.createElement('div');
+                    value.className = 'value';
+
+                    const val = user[key];
+                    if (typeof val === 'object' && val !== null) {
+                        value.textContent = JSON.stringify(val, null, 2);
+                    } else {
+                        value.textContent = val;
+                    }
+
+                    item.appendChild(label);
+                    item.appendChild(value);
+                    infoGrid.appendChild(item);
+                }
+            });
+
+            // Exibir JSON completo
+            rawData.textContent = JSON.stringify(user, null, 2);
+        }
+
+        async function loadUserData() {
+            try {
+                // Verificar autenticação
+                if (!AuthAPI.isAuthenticated()) {
+                    window.location.href = './auth.html';
+                    return;
+                }
+
+                // Buscar dados do usuário
+                const user = await AuthAPI.getMe();
+
+                if (user) {
+                    showUserData(user);
+                } else {
+                    showError('Não foi possível carregar os dados do usuário.');
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showError('Erro ao carregar dados do usuário. Por favor, tente novamente.');
+            }
+        }
+
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        // Carregar dados ao iniciar a página
+        loadUserData();
+    </script>
+</body>
+</html>
