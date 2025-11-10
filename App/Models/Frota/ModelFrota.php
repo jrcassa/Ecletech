@@ -25,7 +25,7 @@ class ModelFrota
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM frota WHERE id = ? AND deletado_em IS NULL",
+            "SELECT * FROM frotas WHERE id = ? AND deletado_em IS NULL",
             [$id]
         );
     }
@@ -36,7 +36,7 @@ class ModelFrota
     public function buscarPorPlaca(string $placa): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM frota WHERE placa = ? AND deletado_em IS NULL",
+            "SELECT * FROM frotas WHERE placa = ? AND deletado_em IS NULL",
             [$placa]
         );
     }
@@ -47,7 +47,7 @@ class ModelFrota
     public function buscarPorChassi(string $chassi): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM frota WHERE chassi = ? AND deletado_em IS NULL",
+            "SELECT * FROM frotas WHERE chassi = ? AND deletado_em IS NULL",
             [$chassi]
         );
     }
@@ -58,7 +58,7 @@ class ModelFrota
     public function buscarPorRenavam(string $renavam): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM frota WHERE renavam = ? AND deletado_em IS NULL",
+            "SELECT * FROM frotas WHERE renavam = ? AND deletado_em IS NULL",
             [$renavam]
         );
     }
@@ -68,7 +68,7 @@ class ModelFrota
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT * FROM frota WHERE deletado_em IS NULL";
+        $sql = "SELECT * FROM frotas WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -135,7 +135,7 @@ class ModelFrota
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM frota WHERE deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM frotas WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -209,7 +209,7 @@ class ModelFrota
             }
         }
 
-        $id = $this->db->inserir('frota', $dadosInsert);
+        $id = $this->db->inserir('frotas', $dadosInsert);
 
         // Registra auditoria
         $this->auditoria->registrar(
@@ -253,7 +253,7 @@ class ModelFrota
             }
         }
 
-        $resultado = $this->db->atualizar('frota', $dadosUpdate, ['id' => $id]);
+        $resultado = $this->db->atualizar('frotas', $dadosUpdate, ['id' => $id]);
 
         // Registra auditoria
         if ($resultado) {
@@ -282,7 +282,7 @@ class ModelFrota
         }
 
         $resultado = $this->db->atualizar(
-            'frota',
+            'frotas',
             [
                 'deletado_em' => date('Y-m-d H:i:s'),
                 'ativo' => 0
@@ -311,7 +311,7 @@ class ModelFrota
     public function restaurar(int $id, ?int $usuarioId = null): bool
     {
         $resultado = $this->db->atualizar(
-            'frota',
+            'frotas',
             [
                 'deletado_em' => null,
                 'ativo' => 1
@@ -339,7 +339,7 @@ class ModelFrota
      */
     public function placaExiste(string $placa, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM frota WHERE placa = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM frotas WHERE placa = ? AND deletado_em IS NULL";
         $parametros = [$placa];
 
         if ($excluirId) {
@@ -356,7 +356,7 @@ class ModelFrota
      */
     public function chassiExiste(string $chassi, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM frota WHERE chassi = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM frotas WHERE chassi = ? AND deletado_em IS NULL";
         $parametros = [$chassi];
 
         if ($excluirId) {
@@ -373,7 +373,7 @@ class ModelFrota
      */
     public function renavamExiste(string $renavam, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM frota WHERE renavam = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM frotas WHERE renavam = ? AND deletado_em IS NULL";
         $parametros = [$renavam];
 
         if ($excluirId) {
@@ -396,7 +396,7 @@ class ModelFrota
         }
 
         $resultado = $this->db->atualizar(
-            'frota',
+            'frotas',
             [
                 'quilometragem' => $quilometragem,
                 'atualizado_em' => date('Y-m-d H:i:s')
@@ -429,7 +429,7 @@ class ModelFrota
         }
 
         $resultado = $this->db->atualizar(
-            'frota',
+            'frotas',
             [
                 'status' => $status,
                 'atualizado_em' => date('Y-m-d H:i:s')
@@ -460,25 +460,25 @@ class ModelFrota
 
         // Total de veículos ativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM frota WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM frotas WHERE ativo = 1 AND deletado_em IS NULL"
         );
         $stats['total_ativos'] = (int) $resultado['total'];
 
         // Total por tipo
         $resultado = $this->db->buscarTodos(
-            "SELECT tipo, COUNT(*) as total FROM frota WHERE ativo = 1 AND deletado_em IS NULL GROUP BY tipo"
+            "SELECT tipo, COUNT(*) as total FROM frotas WHERE ativo = 1 AND deletado_em IS NULL GROUP BY tipo"
         );
         $stats['por_tipo'] = $resultado;
 
         // Total por status
         $resultado = $this->db->buscarTodos(
-            "SELECT status, COUNT(*) as total FROM frota WHERE ativo = 1 AND deletado_em IS NULL GROUP BY status"
+            "SELECT status, COUNT(*) as total FROM frotas WHERE ativo = 1 AND deletado_em IS NULL GROUP BY status"
         );
         $stats['por_status'] = $resultado;
 
         // Veículos em manutenção
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM frota WHERE status = 'manutencao' AND ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM frotas WHERE status = 'manutencao' AND ativo = 1 AND deletado_em IS NULL"
         );
         $stats['em_manutencao'] = (int) $resultado['total'];
 

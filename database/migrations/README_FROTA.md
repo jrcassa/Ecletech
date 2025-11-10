@@ -7,7 +7,7 @@ A API de Frota permite gerenciar veículos da frota da empresa, incluindo cadast
 ## Estrutura da Tabela
 
 ```sql
-frota (
+frotas (
     id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nome                VARCHAR(100) NOT NULL,
     tipo                ENUM('motocicleta', 'automovel', 'caminhonete', 'caminhao', 'onibus', 'van'),
@@ -547,7 +547,7 @@ use App\Models\Frota\ModelFrota;
 
 $model = new ModelFrota();
 
-// Listar veículos
+// Listar veículos (tabela: frotas)
 $veiculos = $model->listar(['status' => 'ativo', 'tipo' => 'automovel']);
 
 // Buscar por ID
