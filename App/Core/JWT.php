@@ -175,6 +175,35 @@ class JWT
     }
 
     /**
+     * Extrai o token do cookie
+     *
+     * @param string $nomeCookie Nome do cookie (padrão: 'auth_token')
+     * @return string|null Token extraído ou null se não encontrado
+     */
+    public static function extrairDoCookie(string $nomeCookie = 'auth_token'): ?string
+    {
+        return $_COOKIE[$nomeCookie] ?? null;
+    }
+
+    /**
+     * Extrai o token do cookie ou do cabeçalho (cookie tem prioridade)
+     *
+     * @return string|null Token extraído ou null se não encontrado
+     */
+    public static function extrair(): ?string
+    {
+        // Tenta primeiro extrair do cookie (prioridade)
+        $token = self::extrairDoCookie();
+
+        // Se não encontrar no cookie, tenta no cabeçalho
+        if (!$token) {
+            $token = self::extrairDoCabecalho();
+        }
+
+        return $token;
+    }
+
+    /**
      * Obtém o tempo de expiração do token
      *
      * @param string $token Token JWT

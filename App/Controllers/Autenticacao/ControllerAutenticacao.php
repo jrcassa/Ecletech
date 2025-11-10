@@ -44,6 +44,12 @@ class ControllerAutenticacao
 
         try {
             $resultado = $this->auth->login($dados['email'], $dados['senha']);
+
+            // Configura o JWT como cookie httpOnly
+            if (isset($resultado['access_token'])) {
+                $this->configurarCookieJwt($resultado['access_token'], $resultado['expires_in'] ?? 3600);
+            }
+
             AuxiliarResposta::sucesso($resultado, 'Login realizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 401);
@@ -56,8 +62,12 @@ class ControllerAutenticacao
     public function logout(): void
     {
         try {
-            $token = \App\Core\JWT::extrairDoCabecalho();
+            $token = \App\Core\JWT::extrair();
             $this->auth->logout($token);
+
+            // Limpa o cookie JWT
+            $this->limparCookieJwt();
+
             AuxiliarResposta::sucesso(null, 'Logout realizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
@@ -162,5 +172,46 @@ class ControllerAutenticacao
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Configura o cookie JWT com httpOnly e Secure
+     */
+    private function configurarCookieJwt(string $token, int $expiresIn): void
+    {
+        $cookieName = 'auth_token';
+        $expirationTime = time() + $expiresIn;
+
+        // Configurações de segurança do cookie
+        $options = [
+            'expires' => $expirationTime,
+            'path' => '/',
+            'domain' => '', // Deixe vazio para o domínio atual
+            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // true se HTTPS
+            'httponly' => true, // Impede acesso via JavaScript
+            'samesite' => 'Lax' // Proteção contra CSRF
+        ];
+
+        setcookie($cookieName, $token, $options);
+    }
+
+    /**
+     * Limpa o cookie JWT
+     */
+    private function limparCookieJwt(): void
+    {
+        $cookieName = 'auth_token';
+
+        // Define o cookie com tempo de expiração no passado
+        $options = [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ];
+
+        setcookie($cookieName, '', $options);
     }
 }

@@ -170,7 +170,8 @@ class Autenticacao
      */
     public function validarToken(?string $token = null): ?array
     {
-        $token = $token ?? JWT::extrairDoCabecalho();
+        // Extrai do cookie ou cabeçalho (cookie tem prioridade)
+        $token = $token ?? JWT::extrair();
 
         if (!$token) {
             return null;
