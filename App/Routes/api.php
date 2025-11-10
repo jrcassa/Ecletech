@@ -28,7 +28,7 @@ $roteador->registrarMiddleware('xss', MiddlewareSanitizadorXss::class);
 
 // Aplica middlewares globais a todas as rotas
 $roteador->grupo([
-    'middleware' => ['cors', 'security', 'xss', 'ratelimit']
+    'middleware' => ['cors', 'security', 'xss', 'ratelimit', 'csrf']
 ], function($roteador) {
 
     // Inclui rotas de autenticação
