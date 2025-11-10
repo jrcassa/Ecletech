@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Models\ModelAdministradorPermission;
+use App\Models\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -11,11 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerPermissao
 {
-    private ModelAdministradorPermission $model;
+    private ModelColaboradorPermission $model;
 
     public function __construct()
     {
-        $this->model = new ModelAdministradorPermission();
+        $this->model = new ModelColaboradorPermission();
     }
 
     /**

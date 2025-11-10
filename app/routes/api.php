@@ -35,9 +35,9 @@ $roteador->grupo([
     $rotasAutenticacao = require __DIR__ . '/autenticacao.php';
     $rotasAutenticacao($roteador);
 
-    // Inclui rotas de administradores
-    $rotasAdministrador = require __DIR__ . '/administrador.php';
-    $rotasAdministrador($roteador);
+    // Inclui rotas de colaboradores
+    $rotasColaborador = require __DIR__ . '/colaborador.php';
+    $rotasColaborador($roteador);
 
     // Inclui rotas de roles
     $rotasRole = require __DIR__ . '/role.php';

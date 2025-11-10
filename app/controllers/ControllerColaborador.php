@@ -4,28 +4,28 @@ namespace App\Controllers;
 
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;
-use App\Models\ModelAdministrador;
+use App\Models\ModelColaborador;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Controlador para gerenciar administradores
+ * Controlador para gerenciar colaboradores
  */
-class ControllerAdministrador
+class ControllerColaborador
 {
-    private ModelAdministrador $model;
+    private ModelColaborador $model;
     private GerenciadorUsuario $gerenciadorUsuario;
     private Autenticacao $auth;
 
     public function __construct()
     {
-        $this->model = new ModelAdministrador();
+        $this->model = new ModelColaborador();
         $this->gerenciadorUsuario = new GerenciadorUsuario();
         $this->auth = new Autenticacao();
     }
 
     /**
-     * Lista todos os administradores
+     * Lista todos os colaboradores
      */
     public function listar(): void
     {
@@ -52,44 +52,44 @@ class ControllerAdministrador
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = ($pagina - 1) * $porPagina;
 
-            $administradores = $this->model->listar($filtros);
+            $colaboradores = $this->model->listar($filtros);
             $total = $this->model->contar($filtros);
 
             // Remove senhas dos resultados
-            foreach ($administradores as &$admin) {
+            foreach ($colaboradores as &$admin) {
                 unset($admin['senha']);
             }
 
-            AuxiliarResposta::paginado($administradores, $total, $pagina, $porPagina);
+            AuxiliarResposta::paginado($colaboradores, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }
     }
 
     /**
-     * Busca um administrador por ID
+     * Busca um colaborador por ID
      */
     public function buscar(string $id): void
     {
         try {
-            $administrador = $this->model->buscarPorId((int) $id);
+            $colaborador = $this->model->buscarPorId((int) $id);
 
-            if (!$administrador) {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+            if (!$colaborador) {
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Remove a senha
-            unset($administrador['senha']);
+            unset($colaborador['senha']);
 
-            AuxiliarResposta::sucesso($administrador, 'Administrador encontrado');
+            AuxiliarResposta::sucesso($colaborador, 'Colaborador encontrado');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }
     }
 
     /**
-     * Cria um novo administrador
+     * Cria um novo colaborador
      */
     public function criar(): void
     {
@@ -119,36 +119,36 @@ class ControllerAdministrador
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['usuario_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Cria o administrador
+            // Cria o colaborador
             $id = $this->gerenciadorUsuario->criar($dados);
 
-            $administrador = $this->model->buscarPorId($id);
-            unset($administrador['senha']);
+            $colaborador = $this->model->buscarPorId($id);
+            unset($colaborador['senha']);
 
-            AuxiliarResposta::criado($administrador, 'Administrador criado com sucesso');
+            AuxiliarResposta::criado($colaborador, 'Colaborador criado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Atualiza um administrador
+     * Atualiza um colaborador
      */
     public function atualizar(string $id): void
     {
         $dados = AuxiliarResposta::obterDados();
-        $administradorId = (int) $id;
+        $colaboradorId = (int) $id;
 
         try {
-            $administrador = $this->model->buscarPorId($administradorId);
+            $colaborador = $this->model->buscarPorId($colaboradorId);
 
-            if (!$administrador) {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+            if (!$colaborador) {
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Verifica se o email já existe (para outro usuário)
-            if (isset($dados['email']) && $this->model->emailExiste($dados['email'], $administradorId)) {
+            if (isset($dados['email']) && $this->model->emailExiste($dados['email'], $colaboradorId)) {
                 AuxiliarResposta::conflito('Email já cadastrado');
                 return;
             }
@@ -156,41 +156,41 @@ class ControllerAdministrador
             // Obtém usuário autenticado
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
 
-            // Atualiza o administrador
-            $this->gerenciadorUsuario->atualizar($administradorId, $dados);
+            // Atualiza o colaborador
+            $this->gerenciadorUsuario->atualizar($colaboradorId, $dados);
 
-            $administradorAtualizado = $this->model->buscarPorId($administradorId);
-            unset($administradorAtualizado['senha']);
+            $colaboradorAtualizado = $this->model->buscarPorId($colaboradorId);
+            unset($colaboradorAtualizado['senha']);
 
-            AuxiliarResposta::sucesso($administradorAtualizado, 'Administrador atualizado com sucesso');
+            AuxiliarResposta::sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Deleta um administrador
+     * Deleta um colaborador
      */
     public function deletar(string $id): void
     {
-        $administradorId = (int) $id;
+        $colaboradorId = (int) $id;
 
         try {
             // Obtém usuário autenticado
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
 
             // Não permite deletar a si mesmo
-            if ($usuarioAutenticado && $usuarioAutenticado['id'] == $administradorId) {
+            if ($usuarioAutenticado && $usuarioAutenticado['id'] == $colaboradorId) {
                 AuxiliarResposta::erro('Não é possível deletar seu próprio usuário', 400);
                 return;
             }
 
-            $resultado = $this->gerenciadorUsuario->deletar($administradorId);
+            $resultado = $this->gerenciadorUsuario->deletar($colaboradorId);
 
             if ($resultado) {
-                AuxiliarResposta::sucesso(null, 'Administrador deletado com sucesso');
+                AuxiliarResposta::sucesso(null, 'Colaborador deletado com sucesso');
             } else {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);

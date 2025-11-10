@@ -43,7 +43,7 @@ class GerenciadorUsuario
         ];
 
         // Insere o usuário
-        return $this->db->inserir('administradores', $dadosInsercao);
+        return $this->db->inserir('colaboradores', $dadosInsercao);
     }
 
     /**
@@ -87,7 +87,7 @@ class GerenciadorUsuario
 
         if (!empty($dadosAtualizacao)) {
             $dadosAtualizacao['atualizado_em'] = date('Y-m-d H:i:s');
-            $this->db->atualizar('administradores', $dadosAtualizacao, 'id = ?', [$id]);
+            $this->db->atualizar('colaboradores', $dadosAtualizacao, 'id = ?', [$id]);
         }
 
         return true;
@@ -99,7 +99,7 @@ class GerenciadorUsuario
     public function deletar(int $id): bool
     {
         return $this->db->atualizar(
-            'administradores',
+            'colaboradores',
             ['ativo' => 0, 'deletado_em' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
@@ -112,7 +112,7 @@ class GerenciadorUsuario
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM administradores WHERE id = ?",
+            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE id = ?",
             [$id]
         );
     }
@@ -123,7 +123,7 @@ class GerenciadorUsuario
     public function buscarPorEmail(string $email): ?array
     {
         return $this->db->buscarUm(
-            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM administradores WHERE email = ?",
+            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE email = ?",
             [$email]
         );
     }
@@ -133,7 +133,7 @@ class GerenciadorUsuario
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM administradores WHERE 1=1";
+        $sql = "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['ativo'])) {
@@ -175,7 +175,7 @@ class GerenciadorUsuario
     {
         // Busca o usuário com a senha
         $usuario = $this->db->buscarUm(
-            "SELECT senha FROM administradores WHERE id = ?",
+            "SELECT senha FROM colaboradores WHERE id = ?",
             [$id]
         );
 
@@ -194,7 +194,7 @@ class GerenciadorUsuario
         // Atualiza a senha
         $senhaHash = $this->hashSenha($novaSenha);
         return $this->db->atualizar(
-            'administradores',
+            'colaboradores',
             ['senha' => $senhaHash, 'atualizado_em' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
@@ -267,7 +267,7 @@ class GerenciadorUsuario
     private function emailExiste(string $email): bool
     {
         $usuario = $this->db->buscarUm(
-            "SELECT id FROM administradores WHERE email = ?",
+            "SELECT id FROM colaboradores WHERE email = ?",
             [$email]
         );
 
@@ -279,7 +279,7 @@ class GerenciadorUsuario
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM administradores WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM colaboradores WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['ativo'])) {

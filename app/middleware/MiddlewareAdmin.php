@@ -47,7 +47,7 @@ class MiddlewareAdmin
     private function verificarPermissaoAdmin(int $nivelId): bool
     {
         $nivel = $this->db->buscarUm(
-            "SELECT * FROM administrador_niveis WHERE id = ? AND ativo = 1",
+            "SELECT * FROM colaborador_niveis WHERE id = ? AND ativo = 1",
             [$nivelId]
         );
 
@@ -73,9 +73,9 @@ class MiddlewareAdmin
         // Busca as permissões do usuário através de suas roles
         $permissoes = $this->db->buscarTodos("
             SELECT p.codigo
-            FROM administrador_permissions p
-            INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
-            INNER JOIN administrador_roles r ON r.id = rp.role_id
+            FROM colaborador_permissions p
+            INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
+            INNER JOIN colaborador_roles r ON r.id = rp.role_id
             WHERE r.nivel_id = ? AND r.ativo = 1 AND p.ativo = 1
         ", [$usuario['nivel_id']]);
 
