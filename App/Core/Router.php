@@ -148,6 +148,12 @@ class Router
         $metodo = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+        // Remove o prefixo base da aplicação se existir
+        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
+        if ($scriptName !== '/' && strpos($uri, $scriptName) === 0) {
+            $uri = substr($uri, strlen($scriptName));
+        }
+
         // Remove trailing slash, exceto para a raiz
         $uri = $uri === '/' ? '/' : rtrim($uri, '/');
 
