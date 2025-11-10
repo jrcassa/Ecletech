@@ -242,4 +242,113 @@ class ModelAdministrador
             [$nivelId]
         );
     }
+
+    /**
+     * Obtém todas as permissões de um administrador
+     */
+    public function obterPermissoes(int $id): array
+    {
+        $admin = $this->buscarPorId($id);
+
+        if (!$admin) {
+            return [];
+        }
+
+        $permissoes = $this->db->buscarTodos("
+            SELECT DISTINCT p.id, p.nome, p.codigo, p.descricao, p.modulo
+            FROM administrador_permissions p
+            INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
+            INNER JOIN administrador_roles r ON r.id = rp.role_id
+            WHERE r.nivel_id = ? AND r.ativo = 1 AND p.ativo = 1
+            ORDER BY p.modulo, p.nome
+        ", [$admin['nivel_id']]);
+
+        return $permissoes;
+    }
+
+    /**
+     * Obtém os códigos das permissões de um administrador
+     */
+    public function obterCodigosPermissoes(int $id): array
+    {
+        $permissoes = $this->obterPermissoes($id);
+        return array_column($permissoes, 'codigo');
+    }
+
+    /**
+     * Verifica se um administrador tem uma permissão específica
+     */
+    public function temPermissao(int $id, string $permissao): bool
+    {
+        $codigos = $this->obterCodigosPermissoes($id);
+        return in_array($permissao, $codigos);
+    }
+
+    /**
+     * Verifica se um administrador tem todas as permissões especificadas
+     */
+    public function temPermissoes(int $id, array $permissoes): bool
+    {
+        $codigos = $this->obterCodigosPermissoes($id);
+
+        foreach ($permissoes as $permissao) {
+            if (!in_array($permissao, $codigos)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifica se um administrador tem pelo menos uma das permissões
+     */
+    public function temAlgumaPermissao(int $id, array $permissoes): bool
+    {
+        $codigos = $this->obterCodigosPermissoes($id);
+
+        foreach ($permissoes as $permissao) {
+            if (in_array($permissao, $codigos)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtém as roles de um administrador
+     */
+    public function obterRoles(int $id): array
+    {
+        $admin = $this->buscarPorId($id);
+
+        if (!$admin) {
+            return [];
+        }
+
+        return $this->db->buscarTodos("
+            SELECT r.id, r.nome, r.codigo, r.descricao
+            FROM administrador_roles r
+            WHERE r.nivel_id = ? AND r.ativo = 1
+            ORDER BY r.nome
+        ", [$admin['nivel_id']]);
+    }
+
+    /**
+     * Obtém informações completas do administrador incluindo permissões
+     */
+    public function buscarComPermissoes(int $id): ?array
+    {
+        $admin = $this->buscarPorId($id);
+
+        if (!$admin) {
+            return null;
+        }
+
+        $admin['permissoes'] = $this->obterPermissoes($id);
+        $admin['roles'] = $this->obterRoles($id);
+
+        return $admin;
+    }
 }

@@ -3,8 +3,11 @@
 use App\Core\Roteador;
 use App\Controllers\ControladorAutenticacao;
 use App\Controllers\ControladorAdministrador;
+use App\Controllers\ControladorPermissao;
+use App\Controllers\ControladorRole;
 use App\Middleware\IntermediarioAutenticacao;
 use App\Middleware\IntermediarioAdmin;
+use App\Middleware\IntermediarioAcl;
 use App\Middleware\IntermediarioCors;
 use App\Middleware\IntermediarioCsrf;
 use App\Middleware\IntermediarioLimiteRequisicao;
@@ -22,6 +25,7 @@ $roteador->registrarMiddleware('cors', IntermediarioCors::class);
 $roteador->registrarMiddleware('csrf', IntermediarioCsrf::class);
 $roteador->registrarMiddleware('auth', IntermediarioAutenticacao::class);
 $roteador->registrarMiddleware('admin', IntermediarioAdmin::class);
+$roteador->registrarMiddleware('acl', IntermediarioAcl::class);
 $roteador->registrarMiddleware('ratelimit', IntermediarioLimiteRequisicao::class);
 $roteador->registrarMiddleware('security', IntermediarioCabecalhosSeguranca::class);
 $roteador->registrarMiddleware('xss', IntermediarioSanitizadorXss::class);
@@ -49,6 +53,7 @@ $roteador->grupo([
     });
 
     // Rotas de administradores (requerem autenticação + permissão admin)
+    // Mantendo middleware 'admin' para garantir nível de admin
     $roteador->grupo([
         'prefixo' => 'administradores',
         'middleware' => ['auth', 'admin']
@@ -58,6 +63,27 @@ $roteador->grupo([
         $roteador->post('/', [ControladorAdministrador::class, 'criar']);
         $roteador->put('/{id}', [ControladorAdministrador::class, 'atualizar']);
         $roteador->delete('/{id}', [ControladorAdministrador::class, 'deletar']);
+    });
+
+    // Rotas de roles (funções) - requerem autenticação + permissões específicas via ACL
+    $roteador->grupo([
+        'prefixo' => 'roles',
+        'middleware' => ['auth', 'admin']
+    ], function($roteador) {
+        $roteador->get('/', [ControladorRole::class, 'listar']);
+        $roteador->get('/{id}', [ControladorRole::class, 'buscar']);
+        $roteador->get('/{id}/permissoes', [ControladorRole::class, 'obterPermissoes']);
+        $roteador->post('/{id}/permissoes', [ControladorRole::class, 'atribuirPermissoes']);
+    });
+
+    // Rotas de permissões - requerem autenticação + permissões específicas via ACL
+    $roteador->grupo([
+        'prefixo' => 'permissoes',
+        'middleware' => ['auth', 'admin']
+    ], function($roteador) {
+        $roteador->get('/', [ControladorPermissao::class, 'listar']);
+        $roteador->get('/{id}', [ControladorPermissao::class, 'buscar']);
+        $roteador->get('/modulos/listar', [ControladorPermissao::class, 'listarPorModulo']);
     });
 
     // Rota de health check
