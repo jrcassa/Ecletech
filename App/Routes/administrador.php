@@ -14,33 +14,33 @@ use App\Middleware\MiddlewareAcl;
  * - administradores.deletar: Deletar administradores
  */
 
-return function($roteador) {
-    $roteador->grupo([
+return function($router) {
+    $router->grupo([
         'prefixo' => 'administradores',
         'middleware' => ['auth', 'admin']
-    ], function($roteador) {
+    ], function($router) {
         // Verifica permissões do usuário atual
         // Não requer permissão específica, apenas autenticação
-        $roteador->get('/permissoes', [ControllerAdministrador::class, 'verificarPermissoes']);
+        $router->get('/permissoes', [ControllerAdministrador::class, 'verificarPermissoes']);
 
         // Listar administradores - requer permissão de visualização
-        $roteador->get('/', [ControllerAdministrador::class, 'listar'])
+        $router->get('/', [ControllerAdministrador::class, 'listar'])
             ->middleware(MiddlewareAcl::requer('administradores.visualizar'));
 
         // Buscar administrador por ID - requer permissão de visualização
-        $roteador->get('/{id}', [ControllerAdministrador::class, 'buscar'])
+        $router->get('/{id}', [ControllerAdministrador::class, 'buscar'])
             ->middleware(MiddlewareAcl::requer('administradores.visualizar'));
 
         // Criar administrador - requer permissão de criação
-        $roteador->post('/', [ControllerAdministrador::class, 'criar'])
+        $router->post('/', [ControllerAdministrador::class, 'criar'])
             ->middleware(MiddlewareAcl::requer('administradores.criar'));
 
         // Atualizar administrador - requer permissão de edição
-        $roteador->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
+        $router->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
             ->middleware(MiddlewareAcl::requer('administradores.editar'));
 
         // Deletar administrador - requer permissão de exclusão
-        $roteador->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
+        $router->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
             ->middleware(MiddlewareAcl::requer('administradores.deletar'));
     });
 };

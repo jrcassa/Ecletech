@@ -5,7 +5,7 @@ namespace App\Core;
 /**
  * Classe para gerenciar rotas da aplicação
  */
-class Roteador
+class Router
 {
     private array $rotas = [];
     private array $middleware = [];

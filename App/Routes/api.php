@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\Roteador;
+use App\Core\Router;
 use App\Middleware\MiddlewareAutenticacao;
 use App\Middleware\MiddlewareAdmin;
 use App\Middleware\MiddlewareAcl;
@@ -14,49 +14,49 @@ use App\Middleware\MiddlewareSanitizadorXss;
  * Configuração de rotas da API
  */
 
-$roteador = new Roteador();
+$router = new Router();
 
 // Registra middlewares globais
-$roteador->registrarMiddleware('cors', MiddlewareCors::class);
-$roteador->registrarMiddleware('csrf', MiddlewareCsrf::class);
-$roteador->registrarMiddleware('auth', MiddlewareAutenticacao::class);
-$roteador->registrarMiddleware('admin', MiddlewareAdmin::class);
-$roteador->registrarMiddleware('acl', MiddlewareAcl::class);
-$roteador->registrarMiddleware('ratelimit', MiddlewareLimiteRequisicao::class);
-$roteador->registrarMiddleware('security', MiddlewareCabecalhosSeguranca::class);
-$roteador->registrarMiddleware('xss', MiddlewareSanitizadorXss::class);
+$router->registrarMiddleware('cors', MiddlewareCors::class);
+$router->registrarMiddleware('csrf', MiddlewareCsrf::class);
+$router->registrarMiddleware('auth', MiddlewareAutenticacao::class);
+$router->registrarMiddleware('admin', MiddlewareAdmin::class);
+$router->registrarMiddleware('acl', MiddlewareAcl::class);
+$router->registrarMiddleware('ratelimit', MiddlewareLimiteRequisicao::class);
+$router->registrarMiddleware('security', MiddlewareCabecalhosSeguranca::class);
+$router->registrarMiddleware('xss', MiddlewareSanitizadorXss::class);
 
 // Aplica middlewares globais a todas as rotas
-$roteador->grupo([
+$router->grupo([
     'middleware' => ['cors', 'security', 'xss', 'ratelimit', 'csrf']
-], function($roteador) {
+], function($router) {
 
     // Inclui rotas de autenticação
     $rotasAutenticacao = require __DIR__ . '/autenticacao.php';
-    $rotasAutenticacao($roteador);
+    $rotasAutenticacao($router);
 
     // Inclui rotas de colaboradores
     $rotasColaborador = require __DIR__ . '/colaborador.php';
-    $rotasColaborador($roteador);
+    $rotasColaborador($router);
 
     // Inclui rotas de roles
     $rotasRole = require __DIR__ . '/role.php';
-    $rotasRole($roteador);
+    $rotasRole($router);
 
     // Inclui rotas de permissões
     $rotasPermissao = require __DIR__ . '/permissao.php';
-    $rotasPermissao($roteador);
+    $rotasPermissao($router);
 
     // Inclui rotas de frota
     $rotasFrota = require __DIR__ . '/frota.php';
-    $rotasFrota($roteador);
+    $rotasFrota($router);
 
     // Inclui rotas de administradores
     $rotasAdministrador = require __DIR__ . '/administrador.php';
-    $rotasAdministrador($roteador);
+    $rotasAdministrador($router);
 
     // Rota de health check
-    $roteador->get('/health', function() {
+    $router->get('/health', function() {
         return [
             'status' => 'ok',
             'timestamp' => date('Y-m-d H:i:s'),
@@ -65,7 +65,7 @@ $roteador->grupo([
     });
 
     // Rota raiz da API
-    $roteador->get('/', function() {
+    $router->get('/', function() {
         return [
             'nome' => 'Ecletech API',
             'versao' => '1.0.0',
@@ -75,4 +75,4 @@ $roteador->grupo([
     });
 });
 
-return $roteador;
+return $router;
