@@ -213,9 +213,9 @@ class ModelFrota
 
         // Registra auditoria
         $this->auditoria->registrar(
+            'criar',
             'frota',
             $id,
-            'criar',
             null,
             $dadosInsert,
             $dados['usuario_id'] ?? null
@@ -253,14 +253,14 @@ class ModelFrota
             }
         }
 
-        $resultado = $this->db->atualizar('frotas', $dadosUpdate, ['id' => $id]);
+        $resultado = $this->db->atualizar('frotas', $dadosUpdate, 'id = ?', [$id]);
 
         // Registra auditoria
         if ($resultado) {
             $this->auditoria->registrar(
+                'atualizar',
                 'frota',
                 $id,
-                'atualizar',
                 $dadosAtuais,
                 $dadosUpdate,
                 $usuarioId
@@ -287,15 +287,16 @@ class ModelFrota
                 'deletado_em' => date('Y-m-d H:i:s'),
                 'ativo' => 0
             ],
-            ['id' => $id]
+            'id = ?',
+            [$id]
         );
 
         // Registra auditoria
         if ($resultado) {
             $this->auditoria->registrar(
+                'deletar',
                 'frota',
                 $id,
-                'deletar',
                 $dadosAtuais,
                 ['deletado_em' => date('Y-m-d H:i:s')],
                 $usuarioId
@@ -316,15 +317,16 @@ class ModelFrota
                 'deletado_em' => null,
                 'ativo' => 1
             ],
-            ['id' => $id]
+            'id = ?',
+            [$id]
         );
 
         // Registra auditoria
         if ($resultado) {
             $this->auditoria->registrar(
+                'restaurar',
                 'frota',
                 $id,
-                'restaurar',
                 ['deletado_em' => date('Y-m-d H:i:s')],
                 ['deletado_em' => null],
                 $usuarioId
@@ -401,14 +403,15 @@ class ModelFrota
                 'quilometragem' => $quilometragem,
                 'atualizado_em' => date('Y-m-d H:i:s')
             ],
-            ['id' => $id]
+            'id = ?',
+            [$id]
         );
 
         if ($resultado) {
             $this->auditoria->registrar(
+                'atualizar_quilometragem',
                 'frota',
                 $id,
-                'atualizar_quilometragem',
                 ['quilometragem' => $dadosAtuais['quilometragem']],
                 ['quilometragem' => $quilometragem],
                 $usuarioId
@@ -434,14 +437,15 @@ class ModelFrota
                 'status' => $status,
                 'atualizado_em' => date('Y-m-d H:i:s')
             ],
-            ['id' => $id]
+            'id = ?',
+            [$id]
         );
 
         if ($resultado) {
             $this->auditoria->registrar(
+                'atualizar_status',
                 'frota',
                 $id,
-                'atualizar_status',
                 ['status' => $dadosAtuais['status']],
                 ['status' => $status],
                 $usuarioId
