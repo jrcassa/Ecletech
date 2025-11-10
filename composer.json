@@ -1,0 +1,28 @@
+{
+    "name": "ecletech/api",
+    "description": "API RESTful moderna com PHP puro, focada em segurança e performance",
+    "type": "project",
+    "keywords": ["api", "rest", "php", "jwt", "security"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ecletech",
+            "email": "dev@ecletech.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

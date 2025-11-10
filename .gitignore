@@ -1,0 +1,44 @@
+# Arquivo de configuração com dados sensíveis
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Cache
+cache/
+*.cache
+
+# Arquivos temporários
+tmp/
+temp/
+*.tmp
+
+# Vendor (se usar Composer no futuro)
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Uploads (exemplo)
+uploads/
+storage/
+
+# Node modules (se adicionar front-end)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+dist/
+build/
