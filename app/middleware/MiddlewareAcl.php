@@ -14,7 +14,7 @@ use App\Helpers\AuxiliarResposta;
  * - Permite verificar uma ou múltiplas permissões
  * - Suporta lógica AND (todas as permissões) ou OR (qualquer permissão)
  */
-class IntermediarioAcl
+class MiddlewareAcl
 {
     private Autenticacao $auth;
     private BancoDados $db;

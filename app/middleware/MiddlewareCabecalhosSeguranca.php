@@ -5,7 +5,7 @@ namespace App\Middleware;
 /**
  * Middleware para adicionar cabeçalhos de segurança
  */
-class IntermediarioCabecalhosSeguranca
+class MiddlewareCabecalhosSeguranca
 {
     /**
      * Processa a requisição

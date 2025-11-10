@@ -8,7 +8,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Middleware para limitar requisições (Rate Limiting)
  */
-class IntermediarioLimiteRequisicao
+class MiddlewareLimiteRequisicao
 {
     private LimitadorRequisicao $limitador;
 

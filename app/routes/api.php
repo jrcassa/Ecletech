@@ -1,14 +1,14 @@
 <?php
 
 use App\Core\Roteador;
-use App\Middleware\IntermediarioAutenticacao;
-use App\Middleware\IntermediarioAdmin;
-use App\Middleware\IntermediarioAcl;
-use App\Middleware\IntermediarioCors;
-use App\Middleware\IntermediarioCsrf;
-use App\Middleware\IntermediarioLimiteRequisicao;
-use App\Middleware\IntermediarioCabecalhosSeguranca;
-use App\Middleware\IntermediarioSanitizadorXss;
+use App\Middleware\MiddlewareAutenticacao;
+use App\Middleware\MiddlewareAdmin;
+use App\Middleware\MiddlewareAcl;
+use App\Middleware\MiddlewareCors;
+use App\Middleware\MiddlewareCsrf;
+use App\Middleware\MiddlewareLimiteRequisicao;
+use App\Middleware\MiddlewareCabecalhosSeguranca;
+use App\Middleware\MiddlewareSanitizadorXss;
 
 /**
  * Configuração de rotas da API
@@ -17,14 +17,14 @@ use App\Middleware\IntermediarioSanitizadorXss;
 $roteador = new Roteador();
 
 // Registra middlewares globais
-$roteador->registrarMiddleware('cors', IntermediarioCors::class);
-$roteador->registrarMiddleware('csrf', IntermediarioCsrf::class);
-$roteador->registrarMiddleware('auth', IntermediarioAutenticacao::class);
-$roteador->registrarMiddleware('admin', IntermediarioAdmin::class);
-$roteador->registrarMiddleware('acl', IntermediarioAcl::class);
-$roteador->registrarMiddleware('ratelimit', IntermediarioLimiteRequisicao::class);
-$roteador->registrarMiddleware('security', IntermediarioCabecalhosSeguranca::class);
-$roteador->registrarMiddleware('xss', IntermediarioSanitizadorXss::class);
+$roteador->registrarMiddleware('cors', MiddlewareCors::class);
+$roteador->registrarMiddleware('csrf', MiddlewareCsrf::class);
+$roteador->registrarMiddleware('auth', MiddlewareAutenticacao::class);
+$roteador->registrarMiddleware('admin', MiddlewareAdmin::class);
+$roteador->registrarMiddleware('acl', MiddlewareAcl::class);
+$roteador->registrarMiddleware('ratelimit', MiddlewareLimiteRequisicao::class);
+$roteador->registrarMiddleware('security', MiddlewareCabecalhosSeguranca::class);
+$roteador->registrarMiddleware('xss', MiddlewareSanitizadorXss::class);
 
 // Aplica middlewares globais a todas as rotas
 $roteador->grupo([

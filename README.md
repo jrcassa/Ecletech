@@ -40,13 +40,13 @@ Ecletech/
 │   │   ├── AuxiliarSanitizacao.php
 │   │   └── AuxiliarValidacao.php
 │   ├── middleware/           # Middlewares
-│   │   ├── IntermediarioAdmin.php
-│   │   ├── IntermediarioAutenticacao.php
-│   │   ├── IntermediarioCabecalhosSeguranca.php
-│   │   ├── IntermediarioCors.php
-│   │   ├── IntermediarioCsrf.php
-│   │   ├── IntermediarioLimiteRequisicao.php
-│   │   └── IntermediarioSanitizadorXss.php
+│   │   ├── MiddlewareAdmin.php
+│   │   ├── MiddlewareAutenticacao.php
+│   │   ├── MiddlewareCabecalhosSeguranca.php
+│   │   ├── MiddlewareCors.php
+│   │   ├── MiddlewareCsrf.php
+│   │   ├── MiddlewareLimiteRequisicao.php
+│   │   └── MiddlewareSanitizadorXss.php
 │   ├── models/               # Models de dados
 │   │   ├── ModelAdministrador.php
 │   │   ├── ModelAdministradorNivel.php
@@ -333,7 +333,7 @@ A API implementa um sistema completo de permissões com três níveis:
 ### Exemplo de Verificação de Permissão
 
 ```php
-$middleware = new IntermediarioAdmin();
+$middleware = new MiddlewareAdmin();
 if ($middleware->verificarPermissao('usuarios.criar')) {
     // Usuário tem permissão para criar usuários
 }

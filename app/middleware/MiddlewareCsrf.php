@@ -8,7 +8,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Middleware para validação de token CSRF
  */
-class IntermediarioCsrf
+class MiddlewareCsrf
 {
     private TokenCsrf $csrf;
 

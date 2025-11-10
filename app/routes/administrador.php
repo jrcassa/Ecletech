@@ -1,7 +1,7 @@
 <?php
 
 use App\Controllers\ControllerAdministrador;
-use App\Middleware\IntermediarioAcl;
+use App\Middleware\MiddlewareAcl;
 
 /**
  * Rotas de administradores
@@ -15,22 +15,22 @@ return function($roteador) {
     ], function($roteador) {
         // Listar administradores - requer permissão de visualização
         $roteador->get('/', [ControllerAdministrador::class, 'listar'])
-            ->middleware(IntermediarioAcl::requer('admins.visualizar'));
+            ->middleware(MiddlewareAcl::requer('admins.visualizar'));
 
         // Buscar administrador por ID - requer permissão de visualização
         $roteador->get('/{id}', [ControllerAdministrador::class, 'buscar'])
-            ->middleware(IntermediarioAcl::requer('admins.visualizar'));
+            ->middleware(MiddlewareAcl::requer('admins.visualizar'));
 
         // Criar administrador - requer permissão de criação
         $roteador->post('/', [ControllerAdministrador::class, 'criar'])
-            ->middleware(IntermediarioAcl::requer('admins.criar'));
+            ->middleware(MiddlewareAcl::requer('admins.criar'));
 
         // Atualizar administrador - requer permissão de edição
         $roteador->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
-            ->middleware(IntermediarioAcl::requer('admins.editar'));
+            ->middleware(MiddlewareAcl::requer('admins.editar'));
 
         // Deletar administrador - requer permissão de exclusão
         $roteador->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
-            ->middleware(IntermediarioAcl::requer('admins.deletar'));
+            ->middleware(MiddlewareAcl::requer('admins.deletar'));
     });
 };
