@@ -4,7 +4,7 @@
 -- Data: 2025-11-10
 -- =====================================================
 
-CREATE TABLE IF NOT EXISTS `frota` (
+CREATE TABLE IF NOT EXISTS `frotas` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL COMMENT 'Nome/identificação do veículo',
   `tipo` ENUM('motocicleta', 'automovel', 'caminhonete', 'caminhao', 'onibus', 'van') NOT NULL COMMENT 'Tipo do veículo',
