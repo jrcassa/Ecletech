@@ -9,7 +9,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controlador para gerenciar permissões
  */
-class ControladorPermissao
+class ControllerPermissao
 {
     private ModelAdministradorPermission $model;
 
