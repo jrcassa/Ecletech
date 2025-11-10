@@ -2,30 +2,24 @@
 
 namespace App\Core;
 
+use App\Models\RateLimit\ModelRateLimit;
+
 /**
  * Classe para limitar requisições (Rate Limiting)
  */
 class LimitadorRequisicao
 {
     private Configuracao $config;
+    private ModelRateLimit $model;
     private int $maxRequisicoes;
     private int $janelaTempo;
-    private array $armazenamento = [];
 
     public function __construct()
     {
         $this->config = Configuracao::obterInstancia();
+        $this->model = new ModelRateLimit();
         $this->maxRequisicoes = $this->config->obter('rate_limit.max_requisicoes', 100);
         $this->janelaTempo = $this->config->obter('rate_limit.janela_tempo', 60);
-
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        // Carrega o armazenamento da sessão
-        if (isset($_SESSION['rate_limit'])) {
-            $this->armazenamento = $_SESSION['rate_limit'];
-        }
     }
 
     /**
@@ -33,27 +27,21 @@ class LimitadorRequisicao
      */
     public function verificar(string $identificador): bool
     {
-        $agora = time();
         $chave = $this->gerarChave($identificador);
 
-        // Inicializa o registro se não existir
-        if (!isset($this->armazenamento[$chave])) {
-            $this->armazenamento[$chave] = [
-                'requisicoes' => [],
-                'bloqueado_ate' => 0
-            ];
-        }
-
         // Verifica se está bloqueado
-        if ($this->armazenamento[$chave]['bloqueado_ate'] > $agora) {
+        if ($this->model->estaBloqueado($chave)) {
             return false;
         }
 
         // Remove requisições antigas
-        $this->limparRequisicoesAntigas($chave, $agora);
+        $this->model->limparRequisicoesAntigas($chave, $this->janelaTempo);
+
+        // Conta requisições na janela de tempo
+        $totalRequisicoes = $this->model->contarRequisicoes($chave, $this->janelaTempo);
 
         // Verifica se excedeu o limite
-        if (count($this->armazenamento[$chave]['requisicoes']) >= $this->maxRequisicoes) {
+        if ($totalRequisicoes >= $this->maxRequisicoes) {
             return false;
         }
 
@@ -68,17 +56,7 @@ class LimitadorRequisicao
         $agora = time();
         $chave = $this->gerarChave($identificador);
 
-        if (!isset($this->armazenamento[$chave])) {
-            $this->armazenamento[$chave] = [
-                'requisicoes' => [],
-                'bloqueado_ate' => 0
-            ];
-        }
-
-        $this->armazenamento[$chave]['requisicoes'][] = $agora;
-
-        // Salva na sessão
-        $_SESSION['rate_limit'] = $this->armazenamento;
+        $this->model->registrarRequisicao($chave, $agora);
     }
 
     /**
@@ -87,16 +65,7 @@ class LimitadorRequisicao
     public function bloquear(string $identificador, int $tempo = 900): void
     {
         $chave = $this->gerarChave($identificador);
-
-        if (!isset($this->armazenamento[$chave])) {
-            $this->armazenamento[$chave] = [
-                'requisicoes' => [],
-                'bloqueado_ate' => 0
-            ];
-        }
-
-        $this->armazenamento[$chave]['bloqueado_ate'] = time() + $tempo;
-        $_SESSION['rate_limit'] = $this->armazenamento;
+        $this->model->bloquear($chave, $tempo);
     }
 
     /**
@@ -105,11 +74,7 @@ class LimitadorRequisicao
     public function desbloquear(string $identificador): void
     {
         $chave = $this->gerarChave($identificador);
-
-        if (isset($this->armazenamento[$chave])) {
-            $this->armazenamento[$chave]['bloqueado_ate'] = 0;
-            $_SESSION['rate_limit'] = $this->armazenamento;
-        }
+        $this->model->desbloquear($chave);
     }
 
     /**
@@ -118,12 +83,7 @@ class LimitadorRequisicao
     public function estaBloqueado(string $identificador): bool
     {
         $chave = $this->gerarChave($identificador);
-
-        if (!isset($this->armazenamento[$chave])) {
-            return false;
-        }
-
-        return $this->armazenamento[$chave]['bloqueado_ate'] > time();
+        return $this->model->estaBloqueado($chave);
     }
 
     /**
@@ -133,13 +93,12 @@ class LimitadorRequisicao
     {
         $chave = $this->gerarChave($identificador);
 
-        if (!isset($this->armazenamento[$chave])) {
-            return $this->maxRequisicoes;
-        }
+        // Remove requisições antigas
+        $this->model->limparRequisicoesAntigas($chave, $this->janelaTempo);
 
-        $this->limparRequisicoesAntigas($chave, time());
+        // Conta requisições usadas
+        $usadas = $this->model->contarRequisicoes($chave, $this->janelaTempo);
 
-        $usadas = count($this->armazenamento[$chave]['requisicoes']);
         return max(0, $this->maxRequisicoes - $usadas);
     }
 
@@ -150,33 +109,16 @@ class LimitadorRequisicao
     {
         $chave = $this->gerarChave($identificador);
 
-        if (!isset($this->armazenamento[$chave]) || empty($this->armazenamento[$chave]['requisicoes'])) {
+        $requisicoes = $this->model->obterRequisicoes($chave, $this->janelaTempo);
+
+        if (empty($requisicoes)) {
             return 0;
         }
 
-        $primeiraRequisicao = min($this->armazenamento[$chave]['requisicoes']);
+        $primeiraRequisicao = min(array_column($requisicoes, 'timestamp'));
         $tempoReset = $primeiraRequisicao + $this->janelaTempo;
 
         return max(0, $tempoReset - time());
-    }
-
-    /**
-     * Limpa requisições antigas
-     */
-    private function limparRequisicoesAntigas(string $chave, int $agora): void
-    {
-        if (!isset($this->armazenamento[$chave]['requisicoes'])) {
-            return;
-        }
-
-        $limiteInferior = $agora - $this->janelaTempo;
-
-        $this->armazenamento[$chave]['requisicoes'] = array_filter(
-            $this->armazenamento[$chave]['requisicoes'],
-            fn($tempo) => $tempo > $limiteInferior
-        );
-
-        $_SESSION['rate_limit'] = $this->armazenamento;
     }
 
     /**
@@ -188,12 +130,11 @@ class LimitadorRequisicao
     }
 
     /**
-     * Limpa todos os registros
+     * Limpa todos os registros antigos (manutenção)
      */
-    public function limpar(): void
+    public function limpar(int $dias = 7): int
     {
-        $this->armazenamento = [];
-        $_SESSION['rate_limit'] = [];
+        return $this->model->limparTodosRegistrosAntigos($dias);
     }
 
     /**
