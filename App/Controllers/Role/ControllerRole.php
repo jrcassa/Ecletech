@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Role;
 
-use App\Models\ModelColaboradorRole;
-use App\Models\ModelColaboradorPermission;
+use App\Models\Colaborador\ModelColaboradorRole;
+use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 use App\Core\BancoDados;

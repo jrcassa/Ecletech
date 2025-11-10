@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\ControllerRole;
+use App\Controllers\Role\ControllerRole;
 use App\Middleware\MiddlewareAcl;
 
 /**

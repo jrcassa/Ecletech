@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Autenticacao;
 
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;

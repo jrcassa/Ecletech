@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Colaborador;
 
 use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;

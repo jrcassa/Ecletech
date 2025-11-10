@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\ControllerColaborador;
+use App\Controllers\Colaborador\ControllerColaborador;
 use App\Middleware\MiddlewareAcl;
 
 /**
