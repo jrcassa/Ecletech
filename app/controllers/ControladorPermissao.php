@@ -42,7 +42,7 @@ class ControladorPermissao
 
             AuxiliarResposta::sucesso($permissoes);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
@@ -61,7 +61,7 @@ class ControladorPermissao
 
             AuxiliarResposta::sucesso($permissao);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
@@ -84,7 +84,7 @@ class ControladorPermissao
 
             AuxiliarResposta::sucesso($agrupadas);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 }
