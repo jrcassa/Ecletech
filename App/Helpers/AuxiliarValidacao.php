@@ -134,6 +134,77 @@ class AuxiliarValidacao
     }
 
     /**
+     * Valida placa de veículo brasileira (Mercosul ou antiga)
+     * Formato Mercosul: ABC1D23
+     * Formato Antigo: ABC-1234 ou ABC1234
+     */
+    public static function placa(string $placa): bool
+    {
+        $placa = strtoupper(preg_replace('/[^A-Z0-9]/', '', $placa));
+
+        // Formato Mercosul: ABC1D23 (3 letras + 1 número + 1 letra + 2 números)
+        if (preg_match('/^[A-Z]{3}[0-9][A-Z][0-9]{2}$/', $placa)) {
+            return true;
+        }
+
+        // Formato Antigo: ABC1234 (3 letras + 4 números)
+        if (preg_match('/^[A-Z]{3}[0-9]{4}$/', $placa)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Valida chassi (VIN - Vehicle Identification Number)
+     * Deve ter exatamente 17 caracteres alfanuméricos
+     */
+    public static function chassi(string $chassi): bool
+    {
+        $chassi = strtoupper(preg_replace('/[^A-Z0-9]/', '', $chassi));
+
+        // Deve ter 17 caracteres
+        if (strlen($chassi) !== 17) {
+            return false;
+        }
+
+        // Não pode conter as letras I, O ou Q (podem ser confundidas com números)
+        if (preg_match('/[IOQ]/', $chassi)) {
+            return false;
+        }
+
+        // Deve conter apenas letras e números
+        return preg_match('/^[A-HJ-NPR-Z0-9]{17}$/', $chassi) === 1;
+    }
+
+    /**
+     * Valida RENAVAM (Registro Nacional de Veículos Automotores)
+     * Deve ter exatamente 11 dígitos
+     */
+    public static function renavam(string $renavam): bool
+    {
+        $renavam = preg_replace('/[^0-9]/', '', $renavam);
+
+        // Deve ter exatamente 11 dígitos
+        if (strlen($renavam) !== 11) {
+            return false;
+        }
+
+        // Validação do dígito verificador
+        $sequencia = '3298765432';
+        $soma = 0;
+
+        for ($i = 0; $i < 10; $i++) {
+            $soma += intval($renavam[$i]) * intval($sequencia[$i]);
+        }
+
+        $digito = $soma % 11;
+        $digito = $digito === 0 || $digito === 1 ? 0 : 11 - $digito;
+
+        return intval($renavam[10]) === $digito;
+    }
+
+    /**
      * Valida data (formato YYYY-MM-DD)
      */
     public static function data(string $data): bool
@@ -301,6 +372,9 @@ class AuxiliarValidacao
                     'cnpj' => self::cnpj($valor ?? ''),
                     'telefone' => self::telefone($valor ?? ''),
                     'cep' => self::cep($valor ?? ''),
+                    'placa' => self::placa($valor ?? ''),
+                    'chassi' => self::chassi($valor ?? ''),
+                    'renavam' => self::renavam($valor ?? ''),
                     'data' => self::data($valor ?? ''),
                     'numero' => self::numero($valor),
                     'inteiro' => self::inteiro($valor),
@@ -334,6 +408,9 @@ class AuxiliarValidacao
             'cnpj' => "O campo {$campo} deve ser um CNPJ válido",
             'telefone' => "O campo {$campo} deve ser um telefone válido",
             'cep' => "O campo {$campo} deve ser um CEP válido",
+            'placa' => "O campo {$campo} deve ser uma placa válida (formato Mercosul ou antigo)",
+            'chassi' => "O campo {$campo} deve ser um chassi válido (17 caracteres)",
+            'renavam' => "O campo {$campo} deve ser um RENAVAM válido (11 dígitos)",
             'data' => "O campo {$campo} deve ser uma data válida",
             'numero' => "O campo {$campo} deve ser um número",
             'inteiro' => "O campo {$campo} deve ser um número inteiro",
