@@ -127,23 +127,54 @@ $admin = $model->buscarComPermissoes($adminId);
 
 #### Usando o Middleware ACL Diretamente
 
+O middleware ACL pode ser aplicado de duas formas:
+
+**Forma 1: Encadeado com método ->middleware()** (Recomendado)
+
 ```php
 use App\Middleware\IntermediarioAcl;
 
 // Rota que requer uma permissão específica
-$roteador->get('/usuarios', [ControladorUsuario::class, 'listar'], [
-    'middleware' => [IntermediarioAcl::requer('usuarios.visualizar')]
-]);
+$roteador->get('/usuarios', [ControladorUsuario::class, 'listar'])
+    ->middleware(IntermediarioAcl::requer('usuarios.visualizar'));
 
-// Rota que requer múltiplas permissões (AND)
-$roteador->post('/usuarios', [ControladorUsuario::class, 'criar'], [
-    'middleware' => [IntermediarioAcl::requer(['usuarios.criar', 'usuarios.visualizar'], 'AND')]
-]);
+// Rota que requer múltiplas permissões (AND - todas necessárias)
+$roteador->post('/usuarios', [ControladorUsuario::class, 'criar'])
+    ->middleware(IntermediarioAcl::requer(['usuarios.criar', 'usuarios.visualizar'], 'AND'));
 
 // Rota que requer qualquer uma das permissões (OR)
-$roteador->put('/usuarios/{id}', [ControladorUsuario::class, 'atualizar'], [
-    'middleware' => [IntermediarioAcl::requer(['usuarios.editar', 'admins.editar'], 'OR')]
-]);
+$roteador->put('/usuarios/{id}', [ControladorUsuario::class, 'atualizar'])
+    ->middleware(IntermediarioAcl::requer(['usuarios.editar', 'admins.editar'], 'OR'));
+```
+
+**Exemplo Real das Rotas de Administradores:**
+
+```php
+use App\Controllers\ControllerAdministrador;
+use App\Middleware\IntermediarioAcl;
+
+return function($roteador) {
+    $roteador->grupo([
+        'prefixo' => 'administradores',
+        'middleware' => ['auth', 'admin']
+    ], function($roteador) {
+        // Listar - requer permissão de visualização
+        $roteador->get('/', [ControllerAdministrador::class, 'listar'])
+            ->middleware(IntermediarioAcl::requer('admins.visualizar'));
+
+        // Criar - requer permissão de criação
+        $roteador->post('/', [ControllerAdministrador::class, 'criar'])
+            ->middleware(IntermediarioAcl::requer('admins.criar'));
+
+        // Atualizar - requer permissão de edição
+        $roteador->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
+            ->middleware(IntermediarioAcl::requer('admins.editar'));
+
+        // Deletar - requer permissão de exclusão
+        $roteador->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
+            ->middleware(IntermediarioAcl::requer('admins.deletar'));
+    });
+};
 ```
 
 #### Usando o Middleware Admin (Verifica apenas se é admin)
@@ -259,19 +290,19 @@ Headers: Authorization: Bearer {token}
 ### Roles
 
 ```bash
-# Listar roles
+# Listar roles (requer: roles.visualizar)
 GET /api/roles
 Headers: Authorization: Bearer {token}
 
-# Buscar role
+# Buscar role (requer: roles.visualizar)
 GET /api/roles/{id}
 Headers: Authorization: Bearer {token}
 
-# Obter permissões de uma role
+# Obter permissões de uma role (requer: roles.visualizar)
 GET /api/roles/{id}/permissoes
 Headers: Authorization: Bearer {token}
 
-# Atribuir permissões a uma role
+# Atribuir permissões a uma role (requer: roles.editar)
 POST /api/roles/{id}/permissoes
 Headers: Authorization: Bearer {token}
 Body: { "permissoes": [1, 2, 3] }
@@ -280,15 +311,15 @@ Body: { "permissoes": [1, 2, 3] }
 ### Permissões
 
 ```bash
-# Listar permissões
+# Listar permissões (requer: permissoes.visualizar)
 GET /api/permissoes
 Headers: Authorization: Bearer {token}
 
-# Buscar permissão
+# Buscar permissão (requer: permissoes.visualizar)
 GET /api/permissoes/{id}
 Headers: Authorization: Bearer {token}
 
-# Listar permissões agrupadas por módulo
+# Listar permissões agrupadas por módulo (requer: permissoes.visualizar)
 GET /api/permissoes/modulos/listar
 Headers: Authorization: Bearer {token}
 ```
