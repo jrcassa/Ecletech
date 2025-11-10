@@ -47,6 +47,10 @@ $roteador->grupo([
     $rotasPermissao = require __DIR__ . '/permissao.php';
     $rotasPermissao($roteador);
 
+    // Inclui rotas de frota
+    $rotasFrota = require __DIR__ . '/frota.php';
+    $rotasFrota($roteador);
+
     // Rota de health check
     $roteador->get('/health', function() {
         return [
