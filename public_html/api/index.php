@@ -15,6 +15,9 @@ date_default_timezone_set('America/Sao_Paulo');
 // Define o cabeçalho de resposta padrão
 header('Content-Type: application/json; charset=utf-8');
 
+// Carrega o autoloader do Composer (para dependências externas)
+require __DIR__ . '/../../vendor/autoload.php';
+
 // Autoloader personalizado
 spl_autoload_register(function ($classe) {
     // Converte namespace para caminho de arquivo
