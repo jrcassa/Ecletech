@@ -11,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controlador para autenticação
  */
-class ControladorAutenticacao
+class ControllerAutenticacao
 {
     private Autenticacao $auth;
     private GerenciadorUsuario $gerenciadorUsuario;

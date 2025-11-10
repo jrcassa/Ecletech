@@ -1,10 +1,6 @@
 <?php
 
 use App\Core\Roteador;
-use App\Controllers\ControladorAutenticacao;
-use App\Controllers\ControladorAdministrador;
-use App\Controllers\ControladorPermissao;
-use App\Controllers\ControladorRole;
 use App\Middleware\IntermediarioAutenticacao;
 use App\Middleware\IntermediarioAdmin;
 use App\Middleware\IntermediarioAcl;
@@ -35,56 +31,21 @@ $roteador->grupo([
     'middleware' => ['cors', 'security', 'xss', 'ratelimit']
 ], function($roteador) {
 
-    // Rotas públicas (sem autenticação)
-    $roteador->grupo(['prefixo' => 'auth'], function($roteador) {
-        $roteador->post('/login', [ControladorAutenticacao::class, 'login']);
-        $roteador->post('/refresh', [ControladorAutenticacao::class, 'refresh']);
-        $roteador->get('/csrf-token', [ControladorAutenticacao::class, 'obterTokenCsrf']);
-    });
+    // Inclui rotas de autenticação
+    $rotasAutenticacao = require __DIR__ . '/autenticacao.php';
+    $rotasAutenticacao($roteador);
 
-    // Rotas protegidas (requerem autenticação)
-    $roteador->grupo([
-        'prefixo' => 'auth',
-        'middleware' => ['auth']
-    ], function($roteador) {
-        $roteador->post('/logout', [ControladorAutenticacao::class, 'logout']);
-        $roteador->get('/me', [ControladorAutenticacao::class, 'obterUsuarioAutenticado']);
-        $roteador->post('/alterar-senha', [ControladorAutenticacao::class, 'alterarSenha']);
-    });
+    // Inclui rotas de administradores
+    $rotasAdministrador = require __DIR__ . '/administrador.php';
+    $rotasAdministrador($roteador);
 
-    // Rotas de administradores (requerem autenticação + permissão admin)
-    // Mantendo middleware 'admin' para garantir nível de admin
-    $roteador->grupo([
-        'prefixo' => 'administradores',
-        'middleware' => ['auth', 'admin']
-    ], function($roteador) {
-        $roteador->get('/', [ControladorAdministrador::class, 'listar']);
-        $roteador->get('/{id}', [ControladorAdministrador::class, 'buscar']);
-        $roteador->post('/', [ControladorAdministrador::class, 'criar']);
-        $roteador->put('/{id}', [ControladorAdministrador::class, 'atualizar']);
-        $roteador->delete('/{id}', [ControladorAdministrador::class, 'deletar']);
-    });
+    // Inclui rotas de roles
+    $rotasRole = require __DIR__ . '/role.php';
+    $rotasRole($roteador);
 
-    // Rotas de roles (funções) - requerem autenticação + permissões específicas via ACL
-    $roteador->grupo([
-        'prefixo' => 'roles',
-        'middleware' => ['auth', 'admin']
-    ], function($roteador) {
-        $roteador->get('/', [ControladorRole::class, 'listar']);
-        $roteador->get('/{id}', [ControladorRole::class, 'buscar']);
-        $roteador->get('/{id}/permissoes', [ControladorRole::class, 'obterPermissoes']);
-        $roteador->post('/{id}/permissoes', [ControladorRole::class, 'atribuirPermissoes']);
-    });
-
-    // Rotas de permissões - requerem autenticação + permissões específicas via ACL
-    $roteador->grupo([
-        'prefixo' => 'permissoes',
-        'middleware' => ['auth', 'admin']
-    ], function($roteador) {
-        $roteador->get('/', [ControladorPermissao::class, 'listar']);
-        $roteador->get('/{id}', [ControladorPermissao::class, 'buscar']);
-        $roteador->get('/modulos/listar', [ControladorPermissao::class, 'listarPorModulo']);
-    });
+    // Inclui rotas de permissões
+    $rotasPermissao = require __DIR__ . '/permissao.php';
+    $rotasPermissao($roteador);
 
     // Rota de health check
     $roteador->get('/health', function() {

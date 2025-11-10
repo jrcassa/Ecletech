@@ -11,7 +11,7 @@ use App\Core\BancoDados;
 /**
  * Controlador para gerenciar roles (funções)
  */
-class ControladorRole
+class ControllerRole
 {
     private ModelAdministradorRole $model;
     private ModelAdministradorPermission $modelPermission;

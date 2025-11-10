@@ -11,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controlador para gerenciar administradores
  */
-class ControladorAdministrador
+class ControllerAdministrador
 {
     private ModelAdministrador $model;
     private GerenciadorUsuario $gerenciadorUsuario;
