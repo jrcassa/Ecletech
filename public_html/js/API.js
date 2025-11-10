@@ -69,7 +69,7 @@ const API = {
 
     async fetchCsrfToken() {
         try {
-            const url = `${this.baseURL}/csrf-token`;
+            const url = `${this.baseURL}/auth/csrf-token`;
             const headers = {
                 'Content-Type': 'application/json'
             };
@@ -119,8 +119,8 @@ const API = {
         const method = options.method || 'GET';
 
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase())) {
-            const needsCsrf = !endpoint.includes('/csrf-token') &&
-                !endpoint.includes('/login') &&
+            const needsCsrf = !endpoint.includes('/auth/csrf-token') &&
+                !endpoint.includes('/auth/login') &&
                 endpoint !== '/register' &&
                 !endpoint.includes('/verify-email');
 

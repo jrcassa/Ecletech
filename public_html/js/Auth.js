@@ -1,7 +1,7 @@
 const AuthAPI = {
     async login(email, senha) {
         try {
-            const response = await API.post('/login', {
+            const response = await API.post('/auth/login', {
                 email,
                 senha
             });
@@ -69,7 +69,7 @@ const AuthAPI = {
 
     async logout() {
         try {
-            await API.post('/logout', {});
+            await API.post('/auth/logout', {});
         } catch (error) {
             console.error('Erro ao fazer logout:', error);
         } finally {
