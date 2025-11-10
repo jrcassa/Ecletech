@@ -55,6 +55,11 @@ $router->grupo([
     $rotasAdministrador = require __DIR__ . '/administrador.php';
     $rotasAdministrador($router);
 
+    // Rota /me (requer autenticação)
+    $router->grupo(['middleware' => ['auth']], function($router) {
+        $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'obterUsuarioAutenticado']);
+    });
+
     // Rota de health check
     $router->get('/health', function() {
         return [
