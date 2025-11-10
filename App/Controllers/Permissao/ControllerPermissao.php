@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Permissao;
 
-use App\Models\ModelColaboradorPermission;
+use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 

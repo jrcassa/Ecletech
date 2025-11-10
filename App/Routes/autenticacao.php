@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\ControllerAutenticacao;
+use App\Controllers\Autenticacao\ControllerAutenticacao;
 
 /**
  * Rotas de autenticação

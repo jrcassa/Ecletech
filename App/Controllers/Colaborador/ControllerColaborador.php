@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Colaborador;
 
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;
-use App\Models\ModelColaborador;
+use App\Models\Colaborador\ModelColaborador;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 

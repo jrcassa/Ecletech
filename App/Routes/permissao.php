@@ -1,6 +1,6 @@
 <?php
 
-use App\Controllers\ControllerPermissao;
+use App\Controllers\Permissao\ControllerPermissao;
 use App\Middleware\MiddlewareAcl;
 
 /**
