@@ -75,7 +75,7 @@ class Roteador
     /**
      * Adiciona middleware a uma rota
      */
-    public function middleware(string|array $middleware): self
+    public function middleware(string|array|object $middleware): self
     {
         $ultimaChave = array_key_last($this->rotas);
         if ($ultimaChave !== null) {
