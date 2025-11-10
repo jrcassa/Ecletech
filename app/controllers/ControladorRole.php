@@ -48,7 +48,7 @@ class ControladorRole
 
             AuxiliarResposta::sucesso($roles);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
@@ -70,7 +70,7 @@ class ControladorRole
 
             AuxiliarResposta::sucesso($role);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
@@ -91,7 +91,7 @@ class ControladorRole
 
             AuxiliarResposta::sucesso($permissoes);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
@@ -125,7 +125,7 @@ class ControladorRole
             $dados = json_decode(file_get_contents('php://input'), true);
 
             if (!isset($dados['permissoes']) || !is_array($dados['permissoes'])) {
-                AuxiliarResposta::requisicaoInvalida('Permissões inválidas');
+                AuxiliarResposta::erro('Permissões inválidas', 400);
                 return;
             }
 
@@ -150,7 +150,7 @@ class ControladorRole
                 'total_permissoes' => count($dados['permissoes'])
             ]);
         } catch (\Exception $e) {
-            AuxiliarResposta::erroServidor($e->getMessage());
+            AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 }
