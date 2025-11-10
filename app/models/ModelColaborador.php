@@ -6,9 +6,9 @@ use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
 
 /**
- * Model para gerenciar administradores
+ * Model para gerenciar colaboradores
  */
-class ModelAdministrador
+class ModelColaborador
 {
     private BancoDados $db;
     private RegistroAuditoria $auditoria;
@@ -20,41 +20,41 @@ class ModelAdministrador
     }
 
     /**
-     * Busca um administrador por ID
+     * Busca um colaborador por ID
      */
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
             "SELECT a.*, n.nome as nivel_nome, n.codigo as nivel_codigo
-             FROM administradores a
-             LEFT JOIN administrador_niveis n ON a.nivel_id = n.id
+             FROM colaboradores a
+             LEFT JOIN colaborador_niveis n ON a.nivel_id = n.id
              WHERE a.id = ?",
             [$id]
         );
     }
 
     /**
-     * Busca um administrador por email
+     * Busca um colaborador por email
      */
     public function buscarPorEmail(string $email): ?array
     {
         return $this->db->buscarUm(
             "SELECT a.*, n.nome as nivel_nome, n.codigo as nivel_codigo
-             FROM administradores a
-             LEFT JOIN administrador_niveis n ON a.nivel_id = n.id
+             FROM colaboradores a
+             LEFT JOIN colaborador_niveis n ON a.nivel_id = n.id
              WHERE a.email = ?",
             [$email]
         );
     }
 
     /**
-     * Lista todos os administradores
+     * Lista todos os colaboradores
      */
     public function listar(array $filtros = []): array
     {
         $sql = "SELECT a.*, n.nome as nivel_nome, n.codigo as nivel_codigo
-                FROM administradores a
-                LEFT JOIN administrador_niveis n ON a.nivel_id = n.id
+                FROM colaboradores a
+                LEFT JOIN colaborador_niveis n ON a.nivel_id = n.id
                 WHERE 1=1";
         $parametros = [];
 
@@ -91,11 +91,11 @@ class ModelAdministrador
     }
 
     /**
-     * Cria um novo administrador
+     * Cria um novo colaborador
      */
     public function criar(array $dados): int
     {
-        $id = $this->db->inserir('administradores', [
+        $id = $this->db->inserir('colaboradores', [
             'nome' => $dados['nome'],
             'email' => $dados['email'],
             'senha' => $dados['senha'],
@@ -104,13 +104,13 @@ class ModelAdministrador
             'criado_em' => date('Y-m-d H:i:s')
         ]);
 
-        $this->auditoria->registrarCriacao('administradores', $id, $dados, $dados['usuario_id'] ?? null);
+        $this->auditoria->registrarCriacao('colaboradores', $id, $dados, $dados['usuario_id'] ?? null);
 
         return $id;
     }
 
     /**
-     * Atualiza um administrador
+     * Atualiza um colaborador
      */
     public function atualizar(int $id, array $dados, ?int $usuarioId = null): bool
     {
@@ -144,15 +144,15 @@ class ModelAdministrador
 
         if (!empty($dadosAtualizacao)) {
             $dadosAtualizacao['atualizado_em'] = date('Y-m-d H:i:s');
-            $this->db->atualizar('administradores', $dadosAtualizacao, 'id = ?', [$id]);
-            $this->auditoria->registrarAtualizacao('administradores', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
+            $this->db->atualizar('colaboradores', $dadosAtualizacao, 'id = ?', [$id]);
+            $this->auditoria->registrarAtualizacao('colaboradores', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
         }
 
         return true;
     }
 
     /**
-     * Deleta um administrador (soft delete)
+     * Deleta um colaborador (soft delete)
      */
     public function deletar(int $id, ?int $usuarioId = null): bool
     {
@@ -163,25 +163,25 @@ class ModelAdministrador
         }
 
         $resultado = $this->db->atualizar(
-            'administradores',
+            'colaboradores',
             ['ativo' => 0, 'deletado_em' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
         );
 
         if ($resultado > 0) {
-            $this->auditoria->registrarExclusao('administradores', $id, $dados, $usuarioId);
+            $this->auditoria->registrarExclusao('colaboradores', $id, $dados, $usuarioId);
         }
 
         return $resultado > 0;
     }
 
     /**
-     * Conta o total de administradores
+     * Conta o total de colaboradores
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM administradores WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM colaboradores WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['ativo'])) {
@@ -203,7 +203,7 @@ class ModelAdministrador
      */
     public function emailExiste(string $email, ?int $excluirId = null): bool
     {
-        $sql = "SELECT id FROM administradores WHERE email = ?";
+        $sql = "SELECT id FROM colaboradores WHERE email = ?";
         $parametros = [$email];
 
         if ($excluirId !== null) {
@@ -221,7 +221,7 @@ class ModelAdministrador
     public function atualizarUltimoLogin(int $id): bool
     {
         return $this->db->atualizar(
-            'administradores',
+            'colaboradores',
             ['ultimo_login' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
@@ -229,14 +229,14 @@ class ModelAdministrador
     }
 
     /**
-     * Busca administradores por nível
+     * Busca colaboradores por nível
      */
     public function buscarPorNivel(int $nivelId): array
     {
         return $this->db->buscarTodos(
             "SELECT a.*, n.nome as nivel_nome, n.codigo as nivel_codigo
-             FROM administradores a
-             LEFT JOIN administrador_niveis n ON a.nivel_id = n.id
+             FROM colaboradores a
+             LEFT JOIN colaborador_niveis n ON a.nivel_id = n.id
              WHERE a.nivel_id = ? AND a.ativo = 1
              ORDER BY a.nome ASC",
             [$nivelId]
@@ -244,30 +244,30 @@ class ModelAdministrador
     }
 
     /**
-     * Obtém todas as permissões de um administrador
+     * Obtém todas as permissões de um colaborador
      */
     public function obterPermissoes(int $id): array
     {
-        $admin = $this->buscarPorId($id);
+        $colaborador = $this->buscarPorId($id);
 
-        if (!$admin) {
+        if (!$colaborador) {
             return [];
         }
 
         $permissoes = $this->db->buscarTodos("
             SELECT DISTINCT p.id, p.nome, p.codigo, p.descricao, p.modulo
-            FROM administrador_permissions p
-            INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
-            INNER JOIN administrador_roles r ON r.id = rp.role_id
+            FROM colaborador_permissions p
+            INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
+            INNER JOIN colaborador_roles r ON r.id = rp.role_id
             WHERE r.nivel_id = ? AND r.ativo = 1 AND p.ativo = 1
             ORDER BY p.modulo, p.nome
-        ", [$admin['nivel_id']]);
+        ", [$colaborador['nivel_id']]);
 
         return $permissoes;
     }
 
     /**
-     * Obtém os códigos das permissões de um administrador
+     * Obtém os códigos das permissões de um colaborador
      */
     public function obterCodigosPermissoes(int $id): array
     {
@@ -276,7 +276,7 @@ class ModelAdministrador
     }
 
     /**
-     * Verifica se um administrador tem uma permissão específica
+     * Verifica se um colaborador tem uma permissão específica
      */
     public function temPermissao(int $id, string $permissao): bool
     {
@@ -285,7 +285,7 @@ class ModelAdministrador
     }
 
     /**
-     * Verifica se um administrador tem todas as permissões especificadas
+     * Verifica se um colaborador tem todas as permissões especificadas
      */
     public function temPermissoes(int $id, array $permissoes): bool
     {
@@ -301,7 +301,7 @@ class ModelAdministrador
     }
 
     /**
-     * Verifica se um administrador tem pelo menos uma das permissões
+     * Verifica se um colaborador tem pelo menos uma das permissões
      */
     public function temAlgumaPermissao(int $id, array $permissoes): bool
     {
@@ -317,38 +317,38 @@ class ModelAdministrador
     }
 
     /**
-     * Obtém as roles de um administrador
+     * Obtém as roles de um colaborador
      */
     public function obterRoles(int $id): array
     {
-        $admin = $this->buscarPorId($id);
+        $colaborador = $this->buscarPorId($id);
 
-        if (!$admin) {
+        if (!$colaborador) {
             return [];
         }
 
         return $this->db->buscarTodos("
             SELECT r.id, r.nome, r.codigo, r.descricao
-            FROM administrador_roles r
+            FROM colaborador_roles r
             WHERE r.nivel_id = ? AND r.ativo = 1
             ORDER BY r.nome
-        ", [$admin['nivel_id']]);
+        ", [$colaborador['nivel_id']]);
     }
 
     /**
-     * Obtém informações completas do administrador incluindo permissões
+     * Obtém informações completas do colaborador incluindo permissões
      */
     public function buscarComPermissoes(int $id): ?array
     {
-        $admin = $this->buscarPorId($id);
+        $colaborador = $this->buscarPorId($id);
 
-        if (!$admin) {
+        if (!$colaborador) {
             return null;
         }
 
-        $admin['permissoes'] = $this->obterPermissoes($id);
-        $admin['roles'] = $this->obterRoles($id);
+        $colaborador['permissoes'] = $this->obterPermissoes($id);
+        $colaborador['roles'] = $this->obterRoles($id);
 
-        return $admin;
+        return $colaborador;
     }
 }

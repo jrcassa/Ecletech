@@ -6,9 +6,9 @@ use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
 
 /**
- * Model para gerenciar níveis de administrador
+ * Model para gerenciar níveis de colaborador
  */
-class ModelAdministradorNivel
+class ModelColaboradorNivel
 {
     private BancoDados $db;
     private RegistroAuditoria $auditoria;
@@ -25,7 +25,7 @@ class ModelAdministradorNivel
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM administrador_niveis WHERE id = ?",
+            "SELECT * FROM colaborador_niveis WHERE id = ?",
             [$id]
         );
     }
@@ -36,7 +36,7 @@ class ModelAdministradorNivel
     public function buscarPorCodigo(string $codigo): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM administrador_niveis WHERE codigo = ?",
+            "SELECT * FROM colaborador_niveis WHERE codigo = ?",
             [$codigo]
         );
     }
@@ -46,7 +46,7 @@ class ModelAdministradorNivel
      */
     public function listar(bool $apenasAtivos = true): array
     {
-        $sql = "SELECT * FROM administrador_niveis";
+        $sql = "SELECT * FROM colaborador_niveis";
 
         if ($apenasAtivos) {
             $sql .= " WHERE ativo = 1";
@@ -62,7 +62,7 @@ class ModelAdministradorNivel
      */
     public function criar(array $dados, ?int $usuarioId = null): int
     {
-        $id = $this->db->inserir('administrador_niveis', [
+        $id = $this->db->inserir('colaborador_niveis', [
             'nome' => $dados['nome'],
             'codigo' => $dados['codigo'],
             'descricao' => $dados['descricao'] ?? null,
@@ -71,7 +71,7 @@ class ModelAdministradorNivel
             'criado_em' => date('Y-m-d H:i:s')
         ]);
 
-        $this->auditoria->registrarCriacao('administrador_niveis', $id, $dados, $usuarioId);
+        $this->auditoria->registrarCriacao('colaborador_niveis', $id, $dados, $usuarioId);
 
         return $id;
     }
@@ -111,8 +111,8 @@ class ModelAdministradorNivel
 
         if (!empty($dadosAtualizacao)) {
             $dadosAtualizacao['atualizado_em'] = date('Y-m-d H:i:s');
-            $this->db->atualizar('administrador_niveis', $dadosAtualizacao, 'id = ?', [$id]);
-            $this->auditoria->registrarAtualizacao('administrador_niveis', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
+            $this->db->atualizar('colaborador_niveis', $dadosAtualizacao, 'id = ?', [$id]);
+            $this->auditoria->registrarAtualizacao('colaborador_niveis', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
         }
 
         return true;
@@ -130,14 +130,14 @@ class ModelAdministradorNivel
         }
 
         $resultado = $this->db->atualizar(
-            'administrador_niveis',
+            'colaborador_niveis',
             ['ativo' => 0, 'deletado_em' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
         );
 
         if ($resultado > 0) {
-            $this->auditoria->registrarExclusao('administrador_niveis', $id, $dados, $usuarioId);
+            $this->auditoria->registrarExclusao('colaborador_niveis', $id, $dados, $usuarioId);
         }
 
         return $resultado > 0;
@@ -148,7 +148,7 @@ class ModelAdministradorNivel
      */
     public function contar(bool $apenasAtivos = true): int
     {
-        $sql = "SELECT COUNT(*) as total FROM administrador_niveis";
+        $sql = "SELECT COUNT(*) as total FROM colaborador_niveis";
 
         if ($apenasAtivos) {
             $sql .= " WHERE ativo = 1";
@@ -163,7 +163,7 @@ class ModelAdministradorNivel
      */
     public function codigoExiste(string $codigo, ?int $excluirId = null): bool
     {
-        $sql = "SELECT id FROM administrador_niveis WHERE codigo = ?";
+        $sql = "SELECT id FROM colaborador_niveis WHERE codigo = ?";
         $parametros = [$codigo];
 
         if ($excluirId !== null) {

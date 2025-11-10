@@ -134,9 +134,9 @@ class MiddlewareAcl
     {
         $permissoes = $this->db->buscarTodos("
             SELECT DISTINCT p.codigo
-            FROM administrador_permissions p
-            INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
-            INNER JOIN administrador_roles r ON r.id = rp.role_id
+            FROM colaborador_permissions p
+            INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
+            INNER JOIN colaborador_roles r ON r.id = rp.role_id
             WHERE r.nivel_id = ? AND r.ativo = 1 AND p.ativo = 1
         ", [$nivelId]);
 

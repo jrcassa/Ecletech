@@ -8,7 +8,7 @@ use App\Core\RegistroAuditoria;
 /**
  * Model para gerenciar relação entre roles e permissões
  */
-class ModelAdministradorRolePermission
+class ModelColaboradorRolePermission
 {
     private BancoDados $db;
     private RegistroAuditoria $auditoria;
@@ -26,8 +26,8 @@ class ModelAdministradorRolePermission
     {
         return $this->db->buscarTodos(
             "SELECT p.*
-             FROM administrador_permissions p
-             INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
+             FROM colaborador_permissions p
+             INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
              WHERE rp.role_id = ? AND p.ativo = 1
              ORDER BY p.modulo ASC, p.nome ASC",
             [$roleId]
@@ -41,8 +41,8 @@ class ModelAdministradorRolePermission
     {
         return $this->db->buscarTodos(
             "SELECT r.*
-             FROM administrador_roles r
-             INNER JOIN administrador_role_permissions rp ON rp.role_id = r.id
+             FROM colaborador_roles r
+             INNER JOIN colaborador_role_permissions rp ON rp.role_id = r.id
              WHERE rp.permission_id = ? AND r.ativo = 1
              ORDER BY r.nome ASC",
             [$permissionId]
@@ -59,14 +59,14 @@ class ModelAdministradorRolePermission
             return 0;
         }
 
-        $id = $this->db->inserir('administrador_role_permissions', [
+        $id = $this->db->inserir('colaborador_role_permissions', [
             'role_id' => $roleId,
             'permission_id' => $permissionId,
             'criado_em' => date('Y-m-d H:i:s')
         ]);
 
         $this->auditoria->registrarCriacao(
-            'administrador_role_permissions',
+            'colaborador_role_permissions',
             $id,
             ['role_id' => $roleId, 'permission_id' => $permissionId],
             $usuarioId
@@ -81,7 +81,7 @@ class ModelAdministradorRolePermission
     public function remover(int $roleId, int $permissionId, ?int $usuarioId = null): bool
     {
         $dados = $this->db->buscarUm(
-            "SELECT * FROM administrador_role_permissions WHERE role_id = ? AND permission_id = ?",
+            "SELECT * FROM colaborador_role_permissions WHERE role_id = ? AND permission_id = ?",
             [$roleId, $permissionId]
         );
 
@@ -90,14 +90,14 @@ class ModelAdministradorRolePermission
         }
 
         $resultado = $this->db->deletar(
-            'administrador_role_permissions',
+            'colaborador_role_permissions',
             'role_id = ? AND permission_id = ?',
             [$roleId, $permissionId]
         );
 
         if ($resultado > 0) {
             $this->auditoria->registrarExclusao(
-                'administrador_role_permissions',
+                'colaborador_role_permissions',
                 $dados['id'],
                 $dados,
                 $usuarioId
@@ -116,11 +116,11 @@ class ModelAdministradorRolePermission
 
         try {
             // Remove todas as permissões atuais
-            $this->db->deletar('administrador_role_permissions', 'role_id = ?', [$roleId]);
+            $this->db->deletar('colaborador_role_permissions', 'role_id = ?', [$roleId]);
 
             // Adiciona as novas permissões
             foreach ($permissionIds as $permissionId) {
-                $this->db->inserir('administrador_role_permissions', [
+                $this->db->inserir('colaborador_role_permissions', [
                     'role_id' => $roleId,
                     'permission_id' => $permissionId,
                     'criado_em' => date('Y-m-d H:i:s')
@@ -131,7 +131,7 @@ class ModelAdministradorRolePermission
 
             $this->auditoria->registrar(
                 'sincronizar',
-                'administrador_role_permissions',
+                'colaborador_role_permissions',
                 $roleId,
                 null,
                 ['permission_ids' => $permissionIds],
@@ -151,7 +151,7 @@ class ModelAdministradorRolePermission
     public function existe(int $roleId, int $permissionId): bool
     {
         $resultado = $this->db->buscarUm(
-            "SELECT id FROM administrador_role_permissions WHERE role_id = ? AND permission_id = ?",
+            "SELECT id FROM colaborador_role_permissions WHERE role_id = ? AND permission_id = ?",
             [$roleId, $permissionId]
         );
 
@@ -165,9 +165,9 @@ class ModelAdministradorRolePermission
     {
         $resultado = $this->db->buscarUm(
             "SELECT COUNT(*) as total
-             FROM administrador_permissions p
-             INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
-             INNER JOIN administrador_roles r ON r.id = rp.role_id
+             FROM colaborador_permissions p
+             INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
+             INNER JOIN colaborador_roles r ON r.id = rp.role_id
              WHERE r.nivel_id = ? AND p.codigo = ? AND r.ativo = 1 AND p.ativo = 1",
             [$nivelId, $codigoPermissao]
         );
@@ -182,9 +182,9 @@ class ModelAdministradorRolePermission
     {
         return $this->db->buscarTodos(
             "SELECT DISTINCT p.*
-             FROM administrador_permissions p
-             INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
-             INNER JOIN administrador_roles r ON r.id = rp.role_id
+             FROM colaborador_permissions p
+             INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
+             INNER JOIN colaborador_roles r ON r.id = rp.role_id
              WHERE r.nivel_id = ? AND r.ativo = 1 AND p.ativo = 1
              ORDER BY p.modulo ASC, p.nome ASC",
             [$nivelId]
@@ -197,7 +197,7 @@ class ModelAdministradorRolePermission
     public function removerTodasRole(int $roleId, ?int $usuarioId = null): bool
     {
         $resultado = $this->db->deletar(
-            'administrador_role_permissions',
+            'colaborador_role_permissions',
             'role_id = ?',
             [$roleId]
         );
@@ -205,7 +205,7 @@ class ModelAdministradorRolePermission
         if ($resultado > 0) {
             $this->auditoria->registrar(
                 'remover_todas',
-                'administrador_role_permissions',
+                'colaborador_role_permissions',
                 $roleId,
                 null,
                 null,
@@ -222,7 +222,7 @@ class ModelAdministradorRolePermission
     public function removerTodasPermissao(int $permissionId, ?int $usuarioId = null): bool
     {
         $resultado = $this->db->deletar(
-            'administrador_role_permissions',
+            'colaborador_role_permissions',
             'permission_id = ?',
             [$permissionId]
         );
@@ -230,7 +230,7 @@ class ModelAdministradorRolePermission
         if ($resultado > 0) {
             $this->auditoria->registrar(
                 'remover_todas',
-                'administrador_role_permissions',
+                'colaborador_role_permissions',
                 $permissionId,
                 null,
                 null,
@@ -247,7 +247,7 @@ class ModelAdministradorRolePermission
     public function contarPermissoesRole(int $roleId): int
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM administrador_role_permissions WHERE role_id = ?",
+            "SELECT COUNT(*) as total FROM colaborador_role_permissions WHERE role_id = ?",
             [$roleId]
         );
 
@@ -260,7 +260,7 @@ class ModelAdministradorRolePermission
     public function contarRolesPermissao(int $permissionId): int
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM administrador_role_permissions WHERE permission_id = ?",
+            "SELECT COUNT(*) as total FROM colaborador_role_permissions WHERE permission_id = ?",
             [$permissionId]
         );
 

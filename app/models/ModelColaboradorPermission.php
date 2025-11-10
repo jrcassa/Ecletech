@@ -6,9 +6,9 @@ use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
 
 /**
- * Model para gerenciar roles (funções) de administrador
+ * Model para gerenciar permissões de colaborador
  */
-class ModelAdministradorRole
+class ModelColaboradorPermission
 {
     private BancoDados $db;
     private RegistroAuditoria $auditoria;
@@ -20,80 +20,71 @@ class ModelAdministradorRole
     }
 
     /**
-     * Busca uma role por ID
+     * Busca uma permissão por ID
      */
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT r.*, n.nome as nivel_nome
-             FROM administrador_roles r
-             LEFT JOIN administrador_niveis n ON r.nivel_id = n.id
-             WHERE r.id = ?",
+            "SELECT * FROM colaborador_permissions WHERE id = ?",
             [$id]
         );
     }
 
     /**
-     * Busca uma role por código
+     * Busca uma permissão por código
      */
     public function buscarPorCodigo(string $codigo): ?array
     {
         return $this->db->buscarUm(
-            "SELECT r.*, n.nome as nivel_nome
-             FROM administrador_roles r
-             LEFT JOIN administrador_niveis n ON r.nivel_id = n.id
-             WHERE r.codigo = ?",
+            "SELECT * FROM colaborador_permissions WHERE codigo = ?",
             [$codigo]
         );
     }
 
     /**
-     * Lista todas as roles
+     * Lista todas as permissões
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT r.*, n.nome as nivel_nome
-                FROM administrador_roles r
-                LEFT JOIN administrador_niveis n ON r.nivel_id = n.id
-                WHERE 1=1";
+        $sql = "SELECT * FROM colaborador_permissions WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['ativo'])) {
-            $sql .= " AND r.ativo = ?";
+            $sql .= " AND ativo = ?";
             $parametros[] = $filtros['ativo'];
         }
 
-        if (isset($filtros['nivel_id'])) {
-            $sql .= " AND r.nivel_id = ?";
-            $parametros[] = $filtros['nivel_id'];
+        if (isset($filtros['modulo'])) {
+            $sql .= " AND modulo = ?";
+            $parametros[] = $filtros['modulo'];
         }
 
-        $sql .= " ORDER BY r.nome ASC";
+        $sql .= " ORDER BY modulo ASC, nome ASC";
 
         return $this->db->buscarTodos($sql, $parametros);
     }
 
     /**
-     * Cria uma nova role
+     * Cria uma nova permissão
      */
     public function criar(array $dados, ?int $usuarioId = null): int
     {
-        $id = $this->db->inserir('administrador_roles', [
+        $id = $this->db->inserir('colaborador_permissions', [
             'nome' => $dados['nome'],
             'codigo' => $dados['codigo'],
             'descricao' => $dados['descricao'] ?? null,
-            'nivel_id' => $dados['nivel_id'],
+            'modulo' => $dados['modulo'] ?? 'geral',
             'ativo' => $dados['ativo'] ?? 1,
             'criado_em' => date('Y-m-d H:i:s')
         ]);
 
-        $this->auditoria->registrarCriacao('administrador_roles', $id, $dados, $usuarioId);
+        $this->auditoria->registrarCriacao('colaborador_permissions', $id, $dados, $usuarioId);
 
         return $id;
     }
 
     /**
-     * Atualiza uma role
+     * Atualiza uma permissão
      */
     public function atualizar(int $id, array $dados, ?int $usuarioId = null): bool
     {
@@ -117,8 +108,8 @@ class ModelAdministradorRole
             $dadosAtualizacao['descricao'] = $dados['descricao'];
         }
 
-        if (isset($dados['nivel_id'])) {
-            $dadosAtualizacao['nivel_id'] = $dados['nivel_id'];
+        if (isset($dados['modulo'])) {
+            $dadosAtualizacao['modulo'] = $dados['modulo'];
         }
 
         if (isset($dados['ativo'])) {
@@ -127,15 +118,15 @@ class ModelAdministradorRole
 
         if (!empty($dadosAtualizacao)) {
             $dadosAtualizacao['atualizado_em'] = date('Y-m-d H:i:s');
-            $this->db->atualizar('administrador_roles', $dadosAtualizacao, 'id = ?', [$id]);
-            $this->auditoria->registrarAtualizacao('administrador_roles', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
+            $this->db->atualizar('colaborador_permissions', $dadosAtualizacao, 'id = ?', [$id]);
+            $this->auditoria->registrarAtualizacao('colaborador_permissions', $id, $dadosAntigos, $dadosAtualizacao, $usuarioId);
         }
 
         return true;
     }
 
     /**
-     * Deleta uma role (soft delete)
+     * Deleta uma permissão (soft delete)
      */
     public function deletar(int $id, ?int $usuarioId = null): bool
     {
@@ -146,36 +137,46 @@ class ModelAdministradorRole
         }
 
         $resultado = $this->db->atualizar(
-            'administrador_roles',
+            'colaborador_permissions',
             ['ativo' => 0, 'deletado_em' => date('Y-m-d H:i:s')],
             'id = ?',
             [$id]
         );
 
         if ($resultado > 0) {
-            $this->auditoria->registrarExclusao('administrador_roles', $id, $dados, $usuarioId);
+            $this->auditoria->registrarExclusao('colaborador_permissions', $id, $dados, $usuarioId);
         }
 
         return $resultado > 0;
     }
 
     /**
-     * Busca roles por nível
+     * Busca permissões por módulo
      */
-    public function buscarPorNivel(int $nivelId): array
+    public function buscarPorModulo(string $modulo): array
     {
         return $this->db->buscarTodos(
-            "SELECT * FROM administrador_roles WHERE nivel_id = ? AND ativo = 1 ORDER BY nome ASC",
-            [$nivelId]
+            "SELECT * FROM colaborador_permissions WHERE modulo = ? AND ativo = 1 ORDER BY nome ASC",
+            [$modulo]
         );
     }
 
     /**
-     * Conta o total de roles
+     * Lista todos os módulos
+     */
+    public function listarModulos(): array
+    {
+        return $this->db->buscarTodos(
+            "SELECT DISTINCT modulo FROM colaborador_permissions WHERE ativo = 1 ORDER BY modulo ASC"
+        );
+    }
+
+    /**
+     * Conta o total de permissões
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM administrador_roles WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM colaborador_permissions WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['ativo'])) {
@@ -183,9 +184,9 @@ class ModelAdministradorRole
             $parametros[] = $filtros['ativo'];
         }
 
-        if (isset($filtros['nivel_id'])) {
-            $sql .= " AND nivel_id = ?";
-            $parametros[] = $filtros['nivel_id'];
+        if (isset($filtros['modulo'])) {
+            $sql .= " AND modulo = ?";
+            $parametros[] = $filtros['modulo'];
         }
 
         $resultado = $this->db->buscarUm($sql, $parametros);
@@ -197,7 +198,7 @@ class ModelAdministradorRole
      */
     public function codigoExiste(string $codigo, ?int $excluirId = null): bool
     {
-        $sql = "SELECT id FROM administrador_roles WHERE codigo = ?";
+        $sql = "SELECT id FROM colaborador_permissions WHERE codigo = ?";
         $parametros = [$codigo];
 
         if ($excluirId !== null) {

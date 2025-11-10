@@ -37,7 +37,7 @@ class Autenticacao
 
         // Busca o usuário
         $usuario = $this->db->buscarUm(
-            "SELECT * FROM administradores WHERE email = ? AND ativo = 1",
+            "SELECT * FROM colaboradores WHERE email = ? AND ativo = 1",
             [$email]
         );
 
@@ -67,7 +67,7 @@ class Autenticacao
 
         // Atualiza último login
         $this->db->atualizar(
-            'administradores',
+            'colaboradores',
             ['ultimo_login' => date('Y-m-d H:i:s')],
             'id = ?',
             [$usuario['id']]
@@ -131,7 +131,7 @@ class Autenticacao
 
         // Verifica se o refresh token está armazenado
         $tokenArmazenado = $this->db->buscarUm(
-            "SELECT * FROM administrador_tokens WHERE usuario_id = ? AND token = ? AND tipo = 'refresh' AND revogado = 0 AND expira_em > NOW()",
+            "SELECT * FROM colaborador_tokens WHERE usuario_id = ? AND token = ? AND tipo = 'refresh' AND revogado = 0 AND expira_em > NOW()",
             [$payload['usuario_id'], $refreshToken]
         );
 
@@ -141,7 +141,7 @@ class Autenticacao
 
         // Busca o usuário
         $usuario = $this->db->buscarUm(
-            "SELECT * FROM administradores WHERE id = ? AND ativo = 1",
+            "SELECT * FROM colaboradores WHERE id = ? AND ativo = 1",
             [$payload['usuario_id']]
         );
 
@@ -184,7 +184,7 @@ class Autenticacao
 
         // Busca o usuário
         $usuario = $this->db->buscarUm(
-            "SELECT id, nome, email, nivel_id, ativo FROM administradores WHERE id = ? AND ativo = 1",
+            "SELECT id, nome, email, nivel_id, ativo FROM colaboradores WHERE id = ? AND ativo = 1",
             [$payload['usuario_id']]
         );
 
@@ -265,7 +265,7 @@ class Autenticacao
     {
         $expiracao = $this->config->obter('jwt.refresh_expiracao', 86400);
 
-        $this->db->inserir('administrador_tokens', [
+        $this->db->inserir('colaborador_tokens', [
             'usuario_id' => $usuarioId,
             'token' => $token,
             'tipo' => 'refresh',
@@ -280,7 +280,7 @@ class Autenticacao
     private function invalidarRefreshTokens(int $usuarioId): void
     {
         $this->db->atualizar(
-            'administrador_tokens',
+            'colaborador_tokens',
             ['revogado' => 1],
             'usuario_id = ? AND tipo = ?',
             [$usuarioId, 'refresh']

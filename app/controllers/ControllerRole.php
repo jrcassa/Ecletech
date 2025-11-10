@@ -2,8 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\ModelAdministradorRole;
-use App\Models\ModelAdministradorPermission;
+use App\Models\ModelColaboradorRole;
+use App\Models\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 use App\Core\BancoDados;
@@ -13,14 +13,14 @@ use App\Core\BancoDados;
  */
 class ControllerRole
 {
-    private ModelAdministradorRole $model;
-    private ModelAdministradorPermission $modelPermission;
+    private ModelColaboradorRole $model;
+    private ModelColaboradorPermission $modelPermission;
     private BancoDados $db;
 
     public function __construct()
     {
-        $this->model = new ModelAdministradorRole();
-        $this->modelPermission = new ModelAdministradorPermission();
+        $this->model = new ModelColaboradorRole();
+        $this->modelPermission = new ModelColaboradorPermission();
         $this->db = BancoDados::obterInstancia();
     }
 
@@ -102,8 +102,8 @@ class ControllerRole
     {
         return $this->db->buscarTodos("
             SELECT p.id, p.nome, p.codigo, p.descricao, p.modulo
-            FROM administrador_permissions p
-            INNER JOIN administrador_role_permissions rp ON rp.permission_id = p.id
+            FROM colaborador_permissions p
+            INNER JOIN colaborador_role_permissions rp ON rp.permission_id = p.id
             WHERE rp.role_id = ? AND p.ativo = 1
             ORDER BY p.modulo, p.nome
         ", [$roleId]);
@@ -131,13 +131,13 @@ class ControllerRole
 
             // Remove permissões antigas
             $this->db->executar(
-                "DELETE FROM administrador_role_permissions WHERE role_id = ?",
+                "DELETE FROM colaborador_role_permissions WHERE role_id = ?",
                 [$id]
             );
 
             // Adiciona novas permissões
             foreach ($dados['permissoes'] as $permissaoId) {
-                $this->db->inserir('administrador_role_permissions', [
+                $this->db->inserir('colaborador_role_permissions', [
                     'role_id' => $id,
                     'permission_id' => (int) $permissaoId,
                     'criado_em' => date('Y-m-d H:i:s')
