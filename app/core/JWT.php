@@ -2,8 +2,15 @@
 
 namespace App\Core;
 
+use Firebase\JWT\JWT as FirebaseJWT;
+use Firebase\JWT\Key;
+use Firebase\JWT\ExpiredException;
+use Firebase\JWT\SignatureInvalidException;
+use Firebase\JWT\BeforeValidException;
+
 /**
  * Classe para gerenciamento de JSON Web Tokens (JWT)
+ * Utiliza a biblioteca firebase/php-jwt para segurança e confiabilidade
  */
 class JWT
 {
@@ -28,15 +35,14 @@ class JWT
 
     /**
      * Gera um token JWT
+     *
+     * @param array $payload Dados a serem incluídos no token
+     * @param int|null $expiracao Tempo de expiração em segundos (opcional)
+     * @return string Token JWT gerado
      */
     public function gerar(array $payload, ?int $expiracao = null): string
     {
         $expiracao = $expiracao ?? $this->expiracao;
-
-        $header = [
-            'typ' => 'JWT',
-            'alg' => $this->algoritmo
-        ];
 
         $agora = time();
         $payloadCompleto = array_merge($payload, [
@@ -46,64 +52,56 @@ class JWT
             'nbf' => $agora
         ]);
 
-        $headerCodificado = $this->base64UrlEncode(json_encode($header));
-        $payloadCodificado = $this->base64UrlEncode(json_encode($payloadCompleto));
-
-        $assinatura = $this->assinar($headerCodificado . '.' . $payloadCodificado);
-
-        return $headerCodificado . '.' . $payloadCodificado . '.' . $assinatura;
+        return FirebaseJWT::encode($payloadCompleto, $this->chaveSecreta, $this->algoritmo);
     }
 
     /**
      * Valida e decodifica um token JWT
+     *
+     * @param string $token Token JWT a ser validado
+     * @return array|null Payload decodificado ou null se inválido
      */
     public function validar(string $token): ?array
     {
-        $partes = explode('.', $token);
+        try {
+            // Define o emissor esperado para validação
+            FirebaseJWT::$leeway = 0;
 
-        if (count($partes) !== 3) {
+            $decoded = FirebaseJWT::decode(
+                $token,
+                new Key($this->chaveSecreta, $this->algoritmo)
+            );
+
+            // Converte o objeto stdClass para array
+            $payload = (array) $decoded;
+
+            // Verifica o emissor
+            if (isset($payload['iss']) && $payload['iss'] !== $this->emissor) {
+                return null;
+            }
+
+            return $payload;
+
+        } catch (ExpiredException $e) {
+            // Token expirado
+            return null;
+        } catch (SignatureInvalidException $e) {
+            // Assinatura inválida
+            return null;
+        } catch (BeforeValidException $e) {
+            // Token ainda não é válido (nbf)
+            return null;
+        } catch (\Exception $e) {
+            // Qualquer outro erro
             return null;
         }
-
-        [$headerCodificado, $payloadCodificado, $assinatura] = $partes;
-
-        // Verifica a assinatura
-        $assinaturaValida = $this->verificarAssinatura(
-            $headerCodificado . '.' . $payloadCodificado,
-            $assinatura
-        );
-
-        if (!$assinaturaValida) {
-            return null;
-        }
-
-        // Decodifica o payload
-        $payload = json_decode($this->base64UrlDecode($payloadCodificado), true);
-
-        if (!$payload) {
-            return null;
-        }
-
-        // Verifica expiração
-        if (isset($payload['exp']) && $payload['exp'] < time()) {
-            return null;
-        }
-
-        // Verifica not before
-        if (isset($payload['nbf']) && $payload['nbf'] > time()) {
-            return null;
-        }
-
-        // Verifica emissor
-        if (isset($payload['iss']) && $payload['iss'] !== $this->emissor) {
-            return null;
-        }
-
-        return $payload;
     }
 
     /**
-     * Gera um refresh token
+     * Gera um refresh token com tempo de expiração maior
+     *
+     * @param array $payload Dados a serem incluídos no token
+     * @return string Refresh token JWT gerado
      */
     public function gerarRefreshToken(array $payload): string
     {
@@ -112,56 +110,52 @@ class JWT
     }
 
     /**
-     * Decodifica um token sem validar
+     * Decodifica um token sem validar a assinatura ou expiração
+     * ATENÇÃO: Use este método apenas quando a validação não for necessária
+     *
+     * @param string $token Token JWT a ser decodificado
+     * @return array|null Payload decodificado ou null se inválido
      */
     public function decodificar(string $token): ?array
     {
-        $partes = explode('.', $token);
+        try {
+            $partes = explode('.', $token);
 
-        if (count($partes) !== 3) {
+            if (count($partes) !== 3) {
+                return null;
+            }
+
+            // Decodifica apenas o payload (segunda parte) sem validar
+            $payloadCodificado = $partes[1];
+            $payload = json_decode($this->base64UrlDecode($payloadCodificado), true);
+
+            return $payload ?: null;
+
+        } catch (\Exception $e) {
             return null;
         }
-
-        $payload = json_decode($this->base64UrlDecode($partes[1]), true);
-        return $payload ?: null;
-    }
-
-    /**
-     * Assina os dados
-     */
-    private function assinar(string $dados): string
-    {
-        $assinatura = hash_hmac('sha256', $dados, $this->chaveSecreta, true);
-        return $this->base64UrlEncode($assinatura);
-    }
-
-    /**
-     * Verifica a assinatura
-     */
-    private function verificarAssinatura(string $dados, string $assinatura): bool
-    {
-        $assinaturaEsperada = $this->assinar($dados);
-        return hash_equals($assinaturaEsperada, $assinatura);
-    }
-
-    /**
-     * Codifica em Base64 URL-safe
-     */
-    private function base64UrlEncode(string $dados): string
-    {
-        return rtrim(strtr(base64_encode($dados), '+/', '-_'), '=');
     }
 
     /**
      * Decodifica Base64 URL-safe
+     *
+     * @param string $dados Dados codificados
+     * @return string Dados decodificados
      */
     private function base64UrlDecode(string $dados): string
     {
+        $remainder = strlen($dados) % 4;
+        if ($remainder) {
+            $padlen = 4 - $remainder;
+            $dados .= str_repeat('=', $padlen);
+        }
         return base64_decode(strtr($dados, '-_', '+/'));
     }
 
     /**
      * Extrai o token do cabeçalho Authorization
+     *
+     * @return string|null Token extraído ou null se não encontrado
      */
     public static function extrairDoCabecalho(): ?string
     {
@@ -182,6 +176,9 @@ class JWT
 
     /**
      * Obtém o tempo de expiração do token
+     *
+     * @param string $token Token JWT
+     * @return int|null Timestamp de expiração ou null
      */
     public function obterExpiracao(string $token): ?int
     {
@@ -191,6 +188,9 @@ class JWT
 
     /**
      * Verifica se o token está expirado
+     *
+     * @param string $token Token JWT
+     * @return bool True se expirado, false caso contrário
      */
     public function estaExpirado(string $token): bool
     {
@@ -199,7 +199,10 @@ class JWT
     }
 
     /**
-     * Obtém o ID do usuário do token
+     * Obtém o ID do usuário do token (com validação)
+     *
+     * @param string $token Token JWT
+     * @return int|null ID do usuário ou null se inválido
      */
     public function obterIdUsuario(string $token): ?int
     {
