@@ -102,9 +102,10 @@ async function carregarAuditoria(pagina = 1) {
             throw new Error(data.mensagem || 'Erro ao carregar auditoria');
         }
 
-        registros = data.dados || [];
-        paginaAtual = data.paginacao?.pagina_atual || 1;
-        totalPaginas = data.paginacao?.total_paginas || 1;
+        // A resposta paginada usa 'itens' ao invés de 'dados'
+        registros = data.dados?.itens || data.itens || [];
+        paginaAtual = data.dados?.paginacao?.pagina_atual || data.paginacao?.pagina_atual || 1;
+        totalPaginas = data.dados?.paginacao?.total_paginas || data.paginacao?.total_paginas || 1;
 
         renderizarTabela();
         atualizarPaginacao();
@@ -299,24 +300,24 @@ async function carregarEstatisticas() {
             throw new Error(data.mensagem || 'Erro ao carregar estatísticas');
         }
 
-        const stats = data.dados;
+        const stats = data.dados || {};
 
         statsGrid.innerHTML = `
             <div class="stat-card">
                 <h3>Total de Registros</h3>
-                <div class="value">${stats.total}</div>
+                <div class="value">${stats.total || 0}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <h3>Criações</h3>
-                <div class="value">${stats.por_acao.criar || 0}</div>
+                <div class="value">${stats.por_acao?.criar || 0}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                 <h3>Atualizações</h3>
-                <div class="value">${stats.por_acao.atualizar || 0}</div>
+                <div class="value">${stats.por_acao?.atualizar || 0}</div>
             </div>
             <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
                 <h3>Exclusões</h3>
-                <div class="value">${stats.por_acao.deletar || 0}</div>
+                <div class="value">${stats.por_acao?.deletar || 0}</div>
             </div>
         `;
 
