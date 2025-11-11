@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <title>Frotas - Ecletech</title>
     <style>
         * {
@@ -12,7 +20,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f7fa;
             min-height: 100vh;
             display: flex;
@@ -161,6 +169,143 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        
+        /* Sidebar Scroll Area */
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Menu Items */
+        
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+        }
+
+        .sidebar-nav a:hover .menu-item-content {
+            padding-left: 24px;
+        }
+
+        /* Submenus */
+        .submenu-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            text-align: left;
+        }
+
+        .submenu-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .submenu-toggle .submenu-arrow {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
+        .submenu-toggle.open .submenu-arrow {
+            transform: rotate(180deg);
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.open {
+            max-height: 500px;
+        }
+
+        .submenu a {
+            padding-left: 56px;
+            font-size: 13px;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .user-info-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Overlay para mobile */
@@ -721,77 +866,138 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
+        <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">E</div>
             <h2>Ecletech</h2>
         </div>
-        <nav class="sidebar-nav">
-            <!-- Principal -->
-            <div class="nav-section">
-                <div class="nav-section-title">Principal</div>
-                <a href="./home.html">
-                    <span class="icon">🏠</span>
-                    <span>Home</span>
-                </a>
-                <a href="./frotas.html" class="active">
-                    <span class="icon">🚗</span>
-                    <span>Frotas</span>
-                </a>
-            </div>
 
-            <!-- Cadastros -->
-            <div class="nav-section">
-                <div class="nav-section-title">Cadastros</div>
-                <a href="./cidades.html">
-                    <span class="icon">🌆</span>
-                    <span>Cidades</span>
-                </a>
-                <a href="./situacoes_vendas.html">
-                    <span class="icon">📊</span>
-                    <span>Situações de Vendas</span>
-                </a>
-                <a href="./tipos_enderecos.html">
-                    <span class="icon">📍</span>
-                    <span>Tipos de Endereços</span>
-                </a>
-                <a href="./tipos_contatos.html">
-                    <span class="icon">📞</span>
-                    <span>Tipos de Contatos</span>
-                </a>
-            </div>
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <!-- Principal -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html"class="active">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                </div>
 
-            <!-- Gestão -->
-            <div class="nav-section">
-                <div class="nav-section-title">Gestão</div>
-                <a href="./colaboradores.html">
-                    <span class="icon">👥</span>
-                    <span>Colaboradores</span>
-                </a>
-                <a href="./colaborador_management.html">
-                    <span class="icon">⚙️</span>
-                    <span>Gestão de Acessos</span>
-                </a>
-                <a href="./loja.html">
-                    <span class="icon">🏪</span>
-                    <span>Informações da Loja</span>
-                </a>
-            </div>
+                <!-- Cadastros -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
 
-            <!-- Sistema -->
-            <div class="nav-section">
-                <div class="nav-section-title">Sistema</div>
-                <a href="./brute_force.html">
-                    <span class="icon">🛡️</span>
-                    <span>Proteção Brute Force</span>
-                </a>
-                <a href="./auditoria.html">
-                    <span class="icon">📋</span>
-                    <span>Auditoria</span>
-                </a>
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Gestão -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Administração -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
             </div>
-        </nav>
+        </div>
     </div>
 
 
@@ -850,12 +1056,18 @@
     <div class="main-content" id="mainContent">
         <header class="header">
             <div class="header-left">
-                <button class="menu-toggle" id="menuToggle">☰</button>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1>Gerenciar Frotas</h1>
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" onclick="window.location.href='./home.html'">Voltar</button>
-                <button class="btn" id="logoutBtn">Sair</button>
+                <button class="btn btn-secondary" onclick="window.location.href='./home.html'">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+                <button class="btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
             </div>
         </header>
 
@@ -868,7 +1080,7 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="margin: 0; border: none; padding: 0;">Veículos da Frota</h2>
-                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Novo Veículo</button>
+                    <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i> Novo Veículo</button>
                 </div>
 
                 <div class="filters">
@@ -901,7 +1113,7 @@
                     </div>
                     <div class="filter-group">
                         <label>&nbsp;</label>
-                        <button class="btn" id="btnFiltrar">Filtrar</button>
+                        <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
                     </div>
                 </div>
 
@@ -936,9 +1148,9 @@
                     </div>
 
                     <div class="pagination" id="pagination">
-                        <button id="btnPrevious">Anterior</button>
+                        <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
                         <span class="page-info" id="pageInfo"></span>
-                        <button id="btnNext">Próximo</button>
+                        <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
             </div>
@@ -1069,8 +1281,8 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
-                    <button type="submit" class="btn btn-success" id="btnSalvar">Salvar</button>
+                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i> Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i> Salvar</button>
                 </div>
             </form>
         </div>
