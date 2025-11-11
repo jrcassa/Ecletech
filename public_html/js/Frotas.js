@@ -405,8 +405,17 @@ const FrotasManager = {
                 alert(response.mensagem || 'Veículo salvo com sucesso!');
             }
         } catch (error) {
-            this.showModalError(error.data?.erro || error.data?.mensagem || 'Erro ao salvar veículo');
-            console.error(error);
+            // Passa o objeto completo de erro para ter acesso aos erros de validação
+            const errorData = error.data || {};
+
+            // Se não tem dados estruturados, usa mensagem simples
+            if (!errorData.erros && !errorData.mensagem) {
+                this.showModalError('Erro ao salvar veículo');
+            } else {
+                this.showModalError(errorData);
+            }
+
+            console.error('Erro ao salvar veículo:', error);
         }
     },
 
@@ -463,11 +472,55 @@ const FrotasManager = {
     },
 
     /**
+     * Formata erros de validação da API
+     */
+    formatarErrosValidacao(erros) {
+        if (!erros || typeof erros !== 'object') {
+            return null;
+        }
+
+        const mensagens = [];
+        for (const [campo, mensagensArray] of Object.entries(erros)) {
+            if (Array.isArray(mensagensArray)) {
+                mensagensArray.forEach(msg => {
+                    mensagens.push(`• ${msg}`);
+                });
+            }
+        }
+
+        return mensagens.length > 0 ? mensagens.join('\n') : null;
+    },
+
+    /**
      * Mostra erro no modal
      */
-    showModalError(message) {
+    showModalError(error) {
         this.elements.modalError.style.display = 'block';
-        this.elements.modalErrorMessage.textContent = message;
+
+        let mensagemFinal;
+
+        // Verifica se é um objeto de erro da API com validações
+        if (error && typeof error === 'object') {
+            // Tenta pegar os erros de validação detalhados
+            const errosValidacao = this.formatarErrosValidacao(error.erros);
+
+            if (errosValidacao) {
+                // Se tem erros de validação, mostra eles formatados
+                const titulo = error.mensagem || 'Erro de validação';
+                mensagemFinal = `${titulo}:\n\n${errosValidacao}`;
+            } else {
+                // Se não tem erros detalhados, usa a mensagem geral
+                mensagemFinal = error.mensagem || error.erro || 'Erro ao processar requisição';
+            }
+        } else {
+            // Se é uma string simples
+            mensagemFinal = error;
+        }
+
+        this.elements.modalErrorMessage.textContent = mensagemFinal;
+
+        // Aplica estilo para preservar quebras de linha
+        this.elements.modalErrorMessage.style.whiteSpace = 'pre-line';
     },
 
     /**
