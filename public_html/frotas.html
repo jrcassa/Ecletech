@@ -397,6 +397,108 @@
             border-radius: 6px;
             text-align: center;
         }
+
+        /* Sistema de Notificações Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid #667eea;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .toast-show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            min-width: 20px;
+        }
+
+        .toast-close:hover {
+            color: #333;
+        }
+
+        /* Tipos de notificação */
+        .toast-sucesso {
+            border-left-color: #28a745;
+        }
+
+        .toast-sucesso .toast-icon {
+            color: #28a745;
+        }
+
+        .toast-erro {
+            border-left-color: #dc3545;
+        }
+
+        .toast-erro .toast-icon {
+            color: #dc3545;
+        }
+
+        .toast-aviso {
+            border-left-color: #ffc107;
+        }
+
+        .toast-aviso .toast-icon {
+            color: #ffc107;
+        }
+
+        .toast-info {
+            border-left-color: #667eea;
+        }
+
+        .toast-info .toast-icon {
+            color: #667eea;
+        }
+
+        /* Responsivo */
+        @media (max-width: 480px) {
+            .toast-container {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>

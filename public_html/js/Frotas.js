@@ -177,6 +177,7 @@ const FrotasManager = {
                 'Erro ao carregar veículos da frota';
 
             this.showError(mensagemErro);
+            Utils.Notificacao.erro(mensagemErro);
             console.error('Erro ao carregar veículos:', error);
         }
     },
@@ -345,7 +346,7 @@ const FrotasManager = {
                 Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao carregar veículo';
 
-            alert(mensagemErro);
+            Utils.Notificacao.erro(mensagemErro);
             console.error('Erro ao carregar veículo:', error);
         }
     },
@@ -414,11 +415,12 @@ const FrotasManager = {
             if (response.sucesso) {
                 this.fecharModal();
                 this.carregarVeiculos();
-                alert(response.mensagem || 'Veículo salvo com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Veículo salvo com sucesso!');
             }
         } catch (error) {
             // Exibe mensagem de erro com detalhes de validação
             this.showModalError(error.data || 'Erro ao salvar veículo');
+            Utils.Notificacao.erro(error.data || 'Erro ao salvar veículo');
             console.error('Erro ao salvar veículo:', error);
         }
     },
@@ -436,7 +438,7 @@ const FrotasManager = {
 
             if (response.sucesso) {
                 this.carregarVeiculos();
-                alert(response.mensagem || 'Veículo deletado com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Veículo deletado com sucesso!');
             }
         } catch (error) {
             // Usa Utils para formatar mensagem de erro
@@ -444,7 +446,7 @@ const FrotasManager = {
                 Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao deletar veículo';
 
-            alert(mensagemErro);
+            Utils.Notificacao.erro(mensagemErro);
             console.error('Erro ao deletar veículo:', error);
         }
     },
