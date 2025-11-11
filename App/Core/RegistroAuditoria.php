@@ -152,40 +152,43 @@ class RegistroAuditoria
      */
     public function buscarHistorico(array $filtros = []): array
     {
-        $sql = "SELECT * FROM auditoria WHERE 1=1";
+        $sql = "SELECT a.*, c.nome as usuario_nome
+                FROM auditoria a
+                LEFT JOIN colaboradores c ON a.usuario_id = c.id
+                WHERE 1=1";
         $parametros = [];
 
         if (isset($filtros['usuario_id'])) {
-            $sql .= " AND usuario_id = ?";
+            $sql .= " AND a.usuario_id = ?";
             $parametros[] = $filtros['usuario_id'];
         }
 
         if (isset($filtros['acao'])) {
-            $sql .= " AND acao = ?";
+            $sql .= " AND a.acao = ?";
             $parametros[] = $filtros['acao'];
         }
 
         if (isset($filtros['tabela'])) {
-            $sql .= " AND tabela = ?";
+            $sql .= " AND a.tabela = ?";
             $parametros[] = $filtros['tabela'];
         }
 
         if (isset($filtros['registro_id'])) {
-            $sql .= " AND registro_id = ?";
+            $sql .= " AND a.registro_id = ?";
             $parametros[] = $filtros['registro_id'];
         }
 
         if (isset($filtros['data_inicio'])) {
-            $sql .= " AND criado_em >= ?";
+            $sql .= " AND a.criado_em >= ?";
             $parametros[] = $filtros['data_inicio'];
         }
 
         if (isset($filtros['data_fim'])) {
-            $sql .= " AND criado_em <= ?";
+            $sql .= " AND a.criado_em <= ?";
             $parametros[] = $filtros['data_fim'];
         }
 
-        $sql .= " ORDER BY criado_em DESC";
+        $sql .= " ORDER BY a.criado_em DESC";
 
         if (isset($filtros['limite'])) {
             $sql .= " LIMIT ?";

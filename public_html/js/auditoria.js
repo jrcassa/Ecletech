@@ -139,11 +139,12 @@ function renderizarTabela() {
         const dataFormatada = dataCriacao.toLocaleString('pt-BR');
 
         const acaoBadge = getAcaoBadge(registro.acao);
+        const usuarioInfo = formatarUsuario(registro);
 
         tr.innerHTML = `
             <td>${registro.id}</td>
             <td>${dataFormatada}</td>
-            <td>${registro.usuario_id || 'Sistema'}</td>
+            <td>${usuarioInfo}</td>
             <td>${acaoBadge}</td>
             <td>${registro.tabela}</td>
             <td>${registro.registro_id || '-'}</td>
@@ -163,6 +164,19 @@ function getAcaoBadge(acao) {
         'restaurar': '<span class="badge badge-restaurar">Restaurar</span>'
     };
     return badges[acao] || `<span class="badge">${acao}</span>`;
+}
+
+// Formata informações do usuário
+function formatarUsuario(registro) {
+    if (!registro.usuario_id) {
+        return 'Sistema';
+    }
+
+    if (registro.usuario_nome) {
+        return `#${registro.usuario_id} ${registro.usuario_nome}`;
+    }
+
+    return `#${registro.usuario_id}`;
 }
 
 // Mostra detalhes
@@ -186,8 +200,8 @@ function mostrarDetalhes(registro) {
                     <div class="value">${dataFormatada}</div>
                 </div>
                 <div class="detail-item">
-                    <label>Usuário ID</label>
-                    <div class="value">${registro.usuario_id || 'Sistema'}</div>
+                    <label>Usuário</label>
+                    <div class="value">${formatarUsuario(registro)}</div>
                 </div>
                 <div class="detail-item">
                     <label>Ação</label>
