@@ -22,7 +22,7 @@ const FornecedoresManager = {
         filtros: {
             busca: '',
             tipo_pessoa: '',
-            status: 'ativo'
+            ativo: '1'
         },
         editandoId: null,
         contatos: [],
@@ -41,10 +41,9 @@ const FornecedoresManager = {
         noData: document.getElementById('noData'),
         btnNovo: document.getElementById('btnNovo'),
         btnFiltrar: document.getElementById('btnFiltrar'),
-        btnLimparFiltros: document.getElementById('btnLimparFiltros'),
         filtroBusca: document.getElementById('filtroBusca'),
         filtroTipoPessoa: document.getElementById('filtroTipoPessoa'),
-        filtroStatus: document.getElementById('filtroStatus'),
+        filtroAtivo: document.getElementById('filtroAtivo'),
         modalForm: document.getElementById('modalForm'),
         modalTitle: document.getElementById('modalTitle'),
         closeModal: document.getElementById('closeModal'),
@@ -57,13 +56,11 @@ const FornecedoresManager = {
         btnNext: document.getElementById('btnNext'),
         pageInfo: document.getElementById('pageInfo'),
         logoutBtn: document.getElementById('logoutBtn'),
-        contatosList: document.getElementById('contatosList'),
-        btnAdicionarContato: document.getElementById('btnAdicionarContato'),
-        enderecosList: document.getElementById('enderecosList'),
-        btnAdicionarEndereco: document.getElementById('btnAdicionarEndereco'),
-        tipoPessoa: document.getElementById('tipoPessoa'),
-        camposPF: document.getElementById('camposPF'),
-        camposPJ: document.getElementById('camposPJ')
+        listaContatos: document.getElementById('listaContatos'),
+        btnAddContato: document.getElementById('btnAddContato'),
+        listaEnderecos: document.getElementById('listaEnderecos'),
+        btnAddEndereco: document.getElementById('btnAddEndereco'),
+        tipoPessoa: document.getElementById('tipoPessoa')
     },
 
     /**
@@ -101,17 +98,15 @@ const FornecedoresManager = {
      * Configura event listeners
      */
     setupEventListeners() {
-        this.elements.btnNovo?.addEventListener('click', () => this.abrirModalCriar());
+        this.elements.btnNovo?.addEventListener('click', () => this.abrirModalNovo());
         this.elements.btnFiltrar?.addEventListener('click', () => this.aplicarFiltros());
-        this.elements.btnLimparFiltros?.addEventListener('click', () => this.limparFiltros());
         this.elements.closeModal?.addEventListener('click', () => this.fecharModal());
         this.elements.btnCancelar?.addEventListener('click', () => this.fecharModal());
-        this.elements.formFornecedor?.addEventListener('submit', (e) => this.salvarFornecedor(e));
+        this.elements.formFornecedor?.addEventListener('submit', (e) => this.salvar(e));
         this.elements.btnPrevious?.addEventListener('click', () => this.paginaAnterior());
         this.elements.btnNext?.addEventListener('click', () => this.proximaPagina());
-        this.elements.btnAdicionarContato?.addEventListener('click', () => this.adicionarContato());
-        this.elements.btnAdicionarEndereco?.addEventListener('click', () => this.adicionarEndereco());
-
+        this.elements.btnAddContato?.addEventListener('click', () => this.adicionarContato());
+        this.elements.btnAddEndereco?.addEventListener('click', () => this.adicionarEndereco());
         this.elements.logoutBtn?.addEventListener('click', async () => {
             if (confirm('Tem certeza que deseja sair?')) {
                 await AuthAPI.logout();
@@ -176,8 +171,8 @@ const FornecedoresManager = {
                 params.append('tipo_pessoa', this.state.filtros.tipo_pessoa);
             }
 
-            if (this.state.filtros.status) {
-                params.append('status', this.state.filtros.status);
+            if (this.state.filtros.ativo !== '') {
+                params.append('ativo', this.state.filtros.ativo);
             }
 
             const response = await API.get(`/fornecedor?${params.toString()}`);
@@ -187,12 +182,8 @@ const FornecedoresManager = {
                 this.state.paginacao.total = response.dados?.paginacao?.total || 0;
                 this.state.paginacao.totalPaginas = response.dados?.paginacao?.total_paginas || 0;
 
-                this.renderizarTabela(this.state.fornecedores);
-                this.renderizarPaginacao(
-                    this.state.paginacao.total,
-                    this.state.paginacao.pagina,
-                    this.state.paginacao.porPagina
-                );
+                this.renderizarTabela();
+                this.atualizarPaginacao();
             }
         } catch (error) {
             // Usa Utils para formatar mensagem de erro
@@ -209,11 +200,11 @@ const FornecedoresManager = {
     /**
      * Renderiza a tabela
      */
-    renderizarTabela(dados) {
+    renderizarTabela() {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (dados.length === 0) {
+        if (this.state.fornecedores.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -225,12 +216,14 @@ const FornecedoresManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        dados.forEach(fornecedor => {
+        this.state.fornecedores.forEach(fornecedor => {
             const tr = document.createElement('tr');
 
             const documento = fornecedor.tipo_pessoa === 'PF' ?
                 this.formatarCPF(fornecedor.cpf) :
                 this.formatarCNPJ(fornecedor.cnpj);
+
+            const ativo = fornecedor.ativo == 1 || fornecedor.ativo === true;
 
             tr.innerHTML = `
                 <td>${fornecedor.id}</td>
@@ -240,17 +233,17 @@ const FornecedoresManager = {
                 <td>${this.escapeHtml(fornecedor.email) || '-'}</td>
                 <td>${this.formatarTelefone(fornecedor.telefone) || '-'}</td>
                 <td>
-                    <span class="badge ${this.getStatusClass(fornecedor.status)}">
-                        ${this.formatarStatus(fornecedor.status)}
+                    <span class="badge ${this.getStatusClass(ativo)}">
+                        ${ativo ? 'Ativo' : 'Inativo'}
                     </span>
                 </td>
                 <td>
                     <div class="actions">
                         ${this.state.permissoes.editar ?
-                            `<button class="btn btn-small" onclick="FornecedoresManager.abrirModalEditar(${fornecedor.id})">Editar</button>` :
+                            `<button class="btn btn-small" onclick="FornecedoresManager.editar(${fornecedor.id})">Editar</button>` :
                             ''}
                         ${this.state.permissoes.deletar ?
-                            `<button class="btn btn-small btn-danger" onclick="FornecedoresManager.deletarFornecedor(${fornecedor.id})">Deletar</button>` :
+                            `<button class="btn btn-small btn-danger" onclick="FornecedoresManager.deletar(${fornecedor.id})">Deletar</button>` :
                             ''}
                     </div>
                 </td>
@@ -261,16 +254,21 @@ const FornecedoresManager = {
     },
 
     /**
-     * Renderiza paginação
+     * Atualiza paginação
      */
-    renderizarPaginacao(total, paginaAtual, porPagina) {
-        const inicio = (paginaAtual - 1) * porPagina + 1;
-        const fim = Math.min(paginaAtual * porPagina, total);
+    atualizarPaginacao() {
+        const inicio = (this.state.paginacao.pagina - 1) * this.state.paginacao.porPagina + 1;
+        const fim = Math.min(
+            this.state.paginacao.pagina * this.state.paginacao.porPagina,
+            this.state.paginacao.total
+        );
 
-        this.elements.pageInfo.textContent = `${inicio}-${fim} de ${total}`;
+        this.elements.pageInfo.textContent =
+            `${inicio}-${fim} de ${this.state.paginacao.total}`;
 
-        this.elements.btnPrevious.disabled = paginaAtual <= 1;
-        this.elements.btnNext.disabled = paginaAtual >= this.state.paginacao.totalPaginas;
+        this.elements.btnPrevious.disabled = this.state.paginacao.pagina <= 1;
+        this.elements.btnNext.disabled =
+            this.state.paginacao.pagina >= this.state.paginacao.totalPaginas;
     },
 
     /**
@@ -279,21 +277,7 @@ const FornecedoresManager = {
     aplicarFiltros() {
         this.state.filtros.busca = this.elements.filtroBusca.value;
         this.state.filtros.tipo_pessoa = this.elements.filtroTipoPessoa.value;
-        this.state.filtros.status = this.elements.filtroStatus.value;
-        this.state.paginacao.pagina = 1;
-        this.carregarFornecedores();
-    },
-
-    /**
-     * Limpa filtros
-     */
-    limparFiltros() {
-        this.elements.filtroBusca.value = '';
-        this.elements.filtroTipoPessoa.value = '';
-        this.elements.filtroStatus.value = 'ativo';
-        this.state.filtros.busca = '';
-        this.state.filtros.tipo_pessoa = '';
-        this.state.filtros.status = 'ativo';
+        this.state.filtros.ativo = this.elements.filtroAtivo.value;
         this.state.paginacao.pagina = 1;
         this.carregarFornecedores();
     },
@@ -319,20 +303,20 @@ const FornecedoresManager = {
     },
 
     /**
-     * Abre modal para criar novo fornecedor
+     * Abre modal para novo fornecedor
      */
-    abrirModalCriar() {
+    abrirModalNovo() {
         this.state.editandoId = null;
         this.state.contatos = [];
         this.state.enderecos = [];
 
         this.elements.modalTitle.textContent = 'Novo Fornecedor';
         this.elements.formFornecedor.reset();
-        document.getElementById('status').value = 'ativo';
-        document.getElementById('tipoPessoa').value = 'PF';
+        document.getElementById('ativo').value = '1';
+        document.getElementById('tipoPessoa').value = '';
 
-        this.elements.contatosList.innerHTML = '';
-        this.elements.enderecosList.innerHTML = '';
+        this.elements.listaContatos.innerHTML = '';
+        this.elements.listaEnderecos.innerHTML = '';
 
         this.controlarCamposCondicionais();
         this.aplicarMascaras();
@@ -343,9 +327,9 @@ const FornecedoresManager = {
     },
 
     /**
-     * Abre modal para editar fornecedor
+     * Edita fornecedor
      */
-    async abrirModalEditar(id) {
+    async editar(id) {
         try {
             const response = await API.get(`/fornecedor/${id}`);
 
@@ -359,17 +343,25 @@ const FornecedoresManager = {
                 document.getElementById('fornecedorId').value = fornecedor.id;
                 document.getElementById('tipoPessoa').value = fornecedor.tipo_pessoa || 'PF';
                 document.getElementById('nome').value = fornecedor.nome || '';
-                document.getElementById('cpf').value = fornecedor.cpf || '';
-                document.getElementById('cnpj').value = fornecedor.cnpj || '';
-                document.getElementById('razaoSocial').value = fornecedor.razao_social || '';
-                document.getElementById('inscricaoEstadual').value = fornecedor.inscricao_estadual || '';
-                document.getElementById('inscricaoMunicipal').value = fornecedor.inscricao_municipal || '';
+                document.getElementById('ativo').value = fornecedor.ativo == 1 ? '1' : '0';
+
+                // Campos específicos
+                if (fornecedor.tipo_pessoa === 'PF') {
+                    document.getElementById('cpf').value = this.formatarCPF(fornecedor.cpf) || '';
+                    document.getElementById('rg').value = fornecedor.rg || '';
+                    document.getElementById('dataNascimento').value = fornecedor.data_nascimento || '';
+                } else {
+                    document.getElementById('cnpj').value = this.formatarCNPJ(fornecedor.cnpj) || '';
+                    document.getElementById('razaoSocial').value = fornecedor.razao_social || '';
+                    document.getElementById('inscricaoEstadual').value = fornecedor.inscricao_estadual || '';
+                    document.getElementById('inscricaoMunicipal').value = fornecedor.inscricao_municipal || '';
+                    document.getElementById('tipoContribuinte').value = fornecedor.tipo_contribuinte || '';
+                }
+
                 document.getElementById('email').value = fornecedor.email || '';
-                document.getElementById('telefone').value = fornecedor.telefone || '';
-                document.getElementById('celular').value = fornecedor.celular || '';
-                document.getElementById('site').value = fornecedor.site || '';
+                document.getElementById('telefone').value = this.formatarTelefone(fornecedor.telefone) || '';
+                document.getElementById('celular').value = this.formatarTelefone(fornecedor.celular) || '';
                 document.getElementById('observacoes').value = fornecedor.observacoes || '';
-                document.getElementById('status').value = fornecedor.status || 'ativo';
 
                 // Controla campos condicionais
                 this.controlarCamposCondicionais();
@@ -389,6 +381,7 @@ const FornecedoresManager = {
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
+            // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao carregar fornecedor';
@@ -399,33 +392,44 @@ const FornecedoresManager = {
     },
 
     /**
-     * Salva fornecedor (criar ou editar)
+     * Salva fornecedor
      */
-    async salvarFornecedor(e) {
+    async salvar(e) {
         e.preventDefault();
 
         const tipoPessoa = document.getElementById('tipoPessoa').value;
 
+        if (!tipoPessoa) {
+            Utils.Notificacao.erro('Selecione o tipo de pessoa');
+            return;
+        }
+
         const dados = {
             tipo_pessoa: tipoPessoa,
             nome: document.getElementById('nome').value,
-            status: document.getElementById('status').value
+            ativo: parseInt(document.getElementById('ativo').value)
         };
 
         // Campos específicos por tipo de pessoa
         if (tipoPessoa === 'PF') {
             const cpf = document.getElementById('cpf').value;
             if (cpf) {
-                if (!this.validarCPF(cpf)) {
+                if (!Utils.Validation.cpf(cpf)) {
                     Utils.Notificacao.erro('CPF inválido');
                     return;
                 }
                 dados.cpf = cpf.replace(/\D/g, '');
             }
+
+            const rg = document.getElementById('rg').value;
+            if (rg) dados.rg = rg;
+
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            if (dataNascimento) dados.data_nascimento = dataNascimento;
         } else if (tipoPessoa === 'PJ') {
             const cnpj = document.getElementById('cnpj').value;
             if (cnpj) {
-                if (!this.validarCNPJ(cnpj)) {
+                if (!Utils.Validation.cnpj(cnpj)) {
                     Utils.Notificacao.erro('CNPJ inválido');
                     return;
                 }
@@ -440,12 +444,15 @@ const FornecedoresManager = {
 
             const inscricaoMunicipal = document.getElementById('inscricaoMunicipal').value;
             if (inscricaoMunicipal) dados.inscricao_municipal = inscricaoMunicipal;
+
+            const tipoContribuinte = document.getElementById('tipoContribuinte').value;
+            if (tipoContribuinte) dados.tipo_contribuinte = tipoContribuinte;
         }
 
         // Campos opcionais
         const email = document.getElementById('email').value;
         if (email) {
-            if (!this.validarEmail(email)) {
+            if (!Utils.Validation.email(email)) {
                 Utils.Notificacao.erro('Email inválido');
                 return;
             }
@@ -457,9 +464,6 @@ const FornecedoresManager = {
 
         const celular = document.getElementById('celular').value;
         if (celular) dados.celular = celular.replace(/\D/g, '');
-
-        const site = document.getElementById('site').value;
-        if (site) dados.site = site;
 
         const observacoes = document.getElementById('observacoes').value;
         if (observacoes) dados.observacoes = observacoes;
@@ -485,7 +489,9 @@ const FornecedoresManager = {
                 Utils.Notificacao.sucesso(response.mensagem || 'Fornecedor salvo com sucesso!');
             }
         } catch (error) {
+            // Exibe mensagem de erro com detalhes de validação
             this.showModalError(error.data || 'Erro ao salvar fornecedor');
+            Utils.Notificacao.erro(error.data || 'Erro ao salvar fornecedor');
             console.error('Erro ao salvar fornecedor:', error);
         }
     },
@@ -493,7 +499,7 @@ const FornecedoresManager = {
     /**
      * Deleta fornecedor
      */
-    async deletarFornecedor(id) {
+    async deletar(id) {
         if (!confirm('Tem certeza que deseja deletar este fornecedor?')) {
             return;
         }
@@ -506,6 +512,7 @@ const FornecedoresManager = {
                 Utils.Notificacao.sucesso(response.mensagem || 'Fornecedor deletado com sucesso!');
             }
         } catch (error) {
+            // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao deletar fornecedor';
@@ -541,13 +548,13 @@ const FornecedoresManager = {
      * Renderiza lista de contatos
      */
     renderizarContatos() {
-        this.elements.contatosList.innerHTML = '';
+        this.elements.listaContatos.innerHTML = '';
 
         this.state.contatos.forEach((contato, index) => {
             const div = document.createElement('div');
-            div.className = 'contato-item';
+            div.className = 'dynamic-list-item';
             div.innerHTML = `
-                <div class="form-grid">
+                <div class="form-row">
                     <div class="form-group">
                         <label>Nome do Contato</label>
                         <input type="text"
@@ -580,10 +587,10 @@ const FornecedoresManager = {
                 <button type="button"
                         class="btn btn-small btn-danger"
                         onclick="FornecedoresManager.removerContato(${index})">
-                    Remover
+                    <i class="fas fa-trash"></i> Remover
                 </button>
             `;
-            this.elements.contatosList.appendChild(div);
+            this.elements.listaContatos.appendChild(div);
         });
 
         // Reaplica máscaras
@@ -595,7 +602,7 @@ const FornecedoresManager = {
      */
     obterContatos() {
         const contatos = [];
-        const items = this.elements.contatosList.querySelectorAll('.contato-item');
+        const items = this.elements.listaContatos.querySelectorAll('.dynamic-list-item');
 
         items.forEach(item => {
             const nome = item.querySelector('.contato-nome').value.trim();
@@ -617,14 +624,13 @@ const FornecedoresManager = {
     adicionarEndereco() {
         const index = this.state.enderecos.length;
         this.state.enderecos.push({
-            tipo: 'comercial',
+            tipo_endereco_id: null,
             cep: '',
             logradouro: '',
             numero: '',
             complemento: '',
             bairro: '',
-            cidade: '',
-            estado: '',
+            cidade_id: null,
             pais: 'Brasil'
         });
         this.renderizarEnderecos();
@@ -642,22 +648,13 @@ const FornecedoresManager = {
      * Renderiza lista de endereços
      */
     renderizarEnderecos() {
-        this.elements.enderecosList.innerHTML = '';
+        this.elements.listaEnderecos.innerHTML = '';
 
         this.state.enderecos.forEach((endereco, index) => {
             const div = document.createElement('div');
-            div.className = 'endereco-item';
+            div.className = 'dynamic-list-item';
             div.innerHTML = `
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select class="endereco-tipo">
-                            <option value="comercial" ${endereco.tipo === 'comercial' ? 'selected' : ''}>Comercial</option>
-                            <option value="residencial" ${endereco.tipo === 'residencial' ? 'selected' : ''}>Residencial</option>
-                            <option value="entrega" ${endereco.tipo === 'entrega' ? 'selected' : ''}>Entrega</option>
-                            <option value="cobranca" ${endereco.tipo === 'cobranca' ? 'selected' : ''}>Cobrança</option>
-                        </select>
-                    </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>CEP</label>
                         <input type="text"
@@ -687,6 +684,8 @@ const FornecedoresManager = {
                                value="${this.escapeHtml(endereco.complemento || '')}"
                                placeholder="Apto, Sala, etc">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Bairro</label>
                         <input type="text"
@@ -695,28 +694,27 @@ const FornecedoresManager = {
                                placeholder="Bairro">
                     </div>
                     <div class="form-group">
-                        <label>Cidade</label>
-                        <input type="text"
-                               class="endereco-cidade"
-                               value="${this.escapeHtml(endereco.cidade || '')}"
-                               placeholder="Cidade">
+                        <label>Cidade (ID)</label>
+                        <input type="number"
+                               class="endereco-cidade-id"
+                               value="${endereco.cidade_id || ''}"
+                               placeholder="ID da cidade">
                     </div>
                     <div class="form-group">
-                        <label>Estado</label>
-                        <input type="text"
-                               class="endereco-estado"
-                               value="${this.escapeHtml(endereco.estado || '')}"
-                               placeholder="UF"
-                               maxlength="2">
+                        <label>Tipo Endereço (ID)</label>
+                        <input type="number"
+                               class="endereco-tipo-id"
+                               value="${endereco.tipo_endereco_id || ''}"
+                               placeholder="ID do tipo">
                     </div>
                 </div>
                 <button type="button"
                         class="btn btn-small btn-danger"
                         onclick="FornecedoresManager.removerEndereco(${index})">
-                    Remover
+                    <i class="fas fa-trash"></i> Remover
                 </button>
             `;
-            this.elements.enderecosList.appendChild(div);
+            this.elements.listaEnderecos.appendChild(div);
         });
 
         // Reaplica máscaras
@@ -728,28 +726,26 @@ const FornecedoresManager = {
      */
     obterEnderecos() {
         const enderecos = [];
-        const items = this.elements.enderecosList.querySelectorAll('.endereco-item');
+        const items = this.elements.listaEnderecos.querySelectorAll('.dynamic-list-item');
 
         items.forEach(item => {
-            const tipo = item.querySelector('.endereco-tipo').value;
             const cep = item.querySelector('.endereco-cep').value.replace(/\D/g, '');
             const logradouro = item.querySelector('.endereco-logradouro').value.trim();
             const numero = item.querySelector('.endereco-numero').value.trim();
             const complemento = item.querySelector('.endereco-complemento').value.trim();
             const bairro = item.querySelector('.endereco-bairro').value.trim();
-            const cidade = item.querySelector('.endereco-cidade').value.trim();
-            const estado = item.querySelector('.endereco-estado').value.trim().toUpperCase();
+            const cidadeId = item.querySelector('.endereco-cidade-id').value;
+            const tipoEnderecoId = item.querySelector('.endereco-tipo-id').value;
 
-            if (cep || logradouro || cidade || estado) {
+            if (cep || logradouro || cidadeId) {
                 enderecos.push({
-                    tipo,
+                    tipo_endereco_id: tipoEnderecoId ? parseInt(tipoEnderecoId) : null,
                     cep,
                     logradouro,
                     numero,
                     complemento,
                     bairro,
-                    cidade,
-                    estado,
+                    cidade_id: cidadeId ? parseInt(cidadeId) : null,
                     pais: 'Brasil'
                 });
             }
@@ -783,8 +779,6 @@ const FornecedoresManager = {
                 cep: cep,
                 logradouro: data.logradouro || '',
                 bairro: data.bairro || '',
-                cidade: data.localidade || '',
-                estado: data.uf || '',
                 pais: 'Brasil'
             };
 
@@ -796,27 +790,6 @@ const FornecedoresManager = {
             console.error('Erro ao buscar CEP:', error);
             Utils.Notificacao.erro('Erro ao buscar CEP');
         }
-    },
-
-    /**
-     * Valida CPF
-     */
-    validarCPF(cpf) {
-        return Utils.Validation.cpf(cpf);
-    },
-
-    /**
-     * Valida CNPJ
-     */
-    validarCNPJ(cnpj) {
-        return Utils.Validation.cnpj(cnpj);
-    },
-
-    /**
-     * Valida Email
-     */
-    validarEmail(email) {
-        return Utils.Validation.email(email);
     },
 
     /**
@@ -916,25 +889,34 @@ const FornecedoresManager = {
      */
     controlarCamposCondicionais() {
         const tipoPessoa = this.elements.tipoPessoa.value;
+        const camposPF = document.querySelectorAll('.campo-pf');
+        const camposPJ = document.querySelectorAll('.campo-pj');
 
+        // Esconde todos primeiro
+        camposPF.forEach(campo => {
+            campo.classList.remove('show');
+            const input = campo.querySelector('input, select');
+            if (input) input.removeAttribute('required');
+        });
+        camposPJ.forEach(campo => {
+            campo.classList.remove('show');
+            const input = campo.querySelector('input, select');
+            if (input) input.removeAttribute('required');
+        });
+
+        // Mostra os campos apropriados
         if (tipoPessoa === 'PF') {
-            // Mostra campos de PF
-            if (this.elements.camposPF) {
-                this.elements.camposPF.style.display = 'block';
-            }
-            // Esconde campos de PJ
-            if (this.elements.camposPJ) {
-                this.elements.camposPJ.style.display = 'none';
-            }
+            camposPF.forEach(campo => {
+                campo.classList.add('show');
+            });
+            const cpfInput = document.getElementById('cpf');
+            if (cpfInput) cpfInput.setAttribute('required', 'required');
         } else if (tipoPessoa === 'PJ') {
-            // Esconde campos de PF
-            if (this.elements.camposPF) {
-                this.elements.camposPF.style.display = 'none';
-            }
-            // Mostra campos de PJ
-            if (this.elements.camposPJ) {
-                this.elements.camposPJ.style.display = 'block';
-            }
+            camposPJ.forEach(campo => {
+                campo.classList.add('show');
+            });
+            const cnpjInput = document.getElementById('cnpj');
+            if (cnpjInput) cnpjInput.setAttribute('required', 'required');
         }
     },
 
@@ -947,8 +929,8 @@ const FornecedoresManager = {
         this.state.editandoId = null;
         this.state.contatos = [];
         this.state.enderecos = [];
-        this.elements.contatosList.innerHTML = '';
-        this.elements.enderecosList.innerHTML = '';
+        this.elements.listaContatos.innerHTML = '';
+        this.elements.listaEnderecos.innerHTML = '';
         this.elements.modalError.style.display = 'none';
         Utils.Errors.limparCampos();
     },
@@ -996,15 +978,17 @@ const FornecedoresManager = {
                 'nome': 'nome',
                 'cpf': 'cpf',
                 'cnpj': 'cnpj',
+                'rg': 'rg',
+                'data_nascimento': 'dataNascimento',
                 'razao_social': 'razaoSocial',
                 'inscricao_estadual': 'inscricaoEstadual',
                 'inscricao_municipal': 'inscricaoMunicipal',
+                'tipo_contribuinte': 'tipoContribuinte',
                 'email': 'email',
                 'telefone': 'telefone',
                 'celular': 'celular',
-                'site': 'site',
                 'observacoes': 'observacoes',
-                'status': 'status'
+                'ativo': 'ativo'
             };
 
             Utils.Errors.destacarCampos(error.erros, mapeamentoCampos);
@@ -1023,27 +1007,10 @@ const FornecedoresManager = {
     },
 
     /**
-     * Formata status
-     */
-    formatarStatus(status) {
-        const statusMap = {
-            'ativo': 'Ativo',
-            'inativo': 'Inativo',
-            'bloqueado': 'Bloqueado'
-        };
-        return statusMap[status] || status;
-    },
-
-    /**
      * Retorna classe CSS baseada no status
      */
-    getStatusClass(status) {
-        const classes = {
-            'ativo': 'badge-success',
-            'inativo': 'badge-secondary',
-            'bloqueado': 'badge-danger'
-        };
-        return classes[status] || 'badge-secondary';
+    getStatusClass(ativo) {
+        return ativo ? 'badge-success' : 'badge-secondary';
     },
 
     /**
