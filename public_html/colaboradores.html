@@ -23,62 +23,144 @@
             position: fixed;
             left: 0;
             top: 0;
-            width: 260px;
+            width: 280px;
             height: 100vh;
-            background: #2c3e50;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
             color: white;
             transition: transform 0.3s ease;
             z-index: 1000;
             overflow-y: auto;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .sidebar.closed {
-            transform: translateX(-260px);
+            transform: translateX(-280px);
         }
 
         .sidebar-header {
-            padding: 20px;
-            background: #1a252f;
+            padding: 24px 20px;
+            background: rgba(0, 0, 0, 0.2);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header .logo {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .sidebar-header h2 {
             font-size: 20px;
             margin: 0;
             color: white;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
         .sidebar-nav {
-            padding: 20px 0;
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4px;
         }
 
         .sidebar-nav a {
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.75);
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             border-left: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .sidebar-nav a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            background: linear-gradient(90deg, #667eea 0%, transparent 100%);
+            transition: all 0.3s ease;
+            opacity: 0;
         }
 
         .sidebar-nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
-            border-left-color: #667eea;
+            padding-left: 24px;
+        }
+
+        .sidebar-nav a:hover::before {
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
         }
 
         .sidebar-nav a.active {
-            background: rgba(102, 126, 234, 0.2);
+            background: rgba(102, 126, 234, 0.15);
             color: white;
             border-left-color: #667eea;
+            box-shadow: inset 0 0 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .sidebar-nav a.active .icon {
+            transform: scale(1.1);
         }
 
         .sidebar-nav a .icon {
-            margin-right: 12px;
-            font-size: 20px;
+            margin-right: 14px;
+            font-size: 18px;
             width: 24px;
             text-align: center;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Overlay para mobile */
@@ -100,7 +182,7 @@
         /* Main content */
         .main-content {
             flex: 1;
-            margin-left: 260px;
+            margin-left: 280px;
             transition: margin-left 0.3s ease;
             width: 100%;
         }
@@ -581,7 +663,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-260px);
+                transform: translateX(-280px);
             }
 
             .sidebar.open {
@@ -604,8 +686,77 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>📊 Ecletech</h2>
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
         </div>
+        <nav class="sidebar-nav">
+            <!-- Principal -->
+            <div class="nav-section">
+                <div class="nav-section-title">Principal</div>
+                <a href="./home.html">
+                    <span class="icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="./frotas.html">
+                    <span class="icon">🚗</span>
+                    <span>Frotas</span>
+                </a>
+            </div>
+
+            <!-- Cadastros -->
+            <div class="nav-section">
+                <div class="nav-section-title">Cadastros</div>
+                <a href="./cidades.html">
+                    <span class="icon">🌆</span>
+                    <span>Cidades</span>
+                </a>
+                <a href="./situacoes_vendas.html">
+                    <span class="icon">📊</span>
+                    <span>Situações de Vendas</span>
+                </a>
+                <a href="./tipos_enderecos.html">
+                    <span class="icon">📍</span>
+                    <span>Tipos de Endereços</span>
+                </a>
+                <a href="./tipos_contatos.html">
+                    <span class="icon">📞</span>
+                    <span>Tipos de Contatos</span>
+                </a>
+            </div>
+
+            <!-- Gestão -->
+            <div class="nav-section">
+                <div class="nav-section-title">Gestão</div>
+                <a href="./colaboradores.html" class="active">
+                    <span class="icon">👥</span>
+                    <span>Colaboradores</span>
+                </a>
+                <a href="./colaborador_management.html">
+                    <span class="icon">⚙️</span>
+                    <span>Gestão de Acessos</span>
+                </a>
+                <a href="./loja.html">
+                    <span class="icon">🏪</span>
+                    <span>Informações da Loja</span>
+                </a>
+            </div>
+
+            <!-- Sistema -->
+            <div class="nav-section">
+                <div class="nav-section-title">Sistema</div>
+                <a href="./brute_force.html">
+                    <span class="icon">🛡️</span>
+                    <span>Proteção Brute Force</span>
+                </a>
+                <a href="./auditoria.html">
+                    <span class="icon">📋</span>
+                    <span>Auditoria</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+
         <nav class="sidebar-nav">
             <a href="./home.html">
                 <span class="icon">🏠</span>
