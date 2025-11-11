@@ -3,12 +3,14 @@
 -- Descrição: Adiciona as permissões necessárias para gerenciar informações da loja
 
 -- Inserir permissões para o módulo de loja
-INSERT INTO colaborador_permissions (nome, descricao, modulo, criado_em) VALUES
-('loja.visualizar', 'Visualizar informações da loja', 'loja', NOW()),
-('loja.editar', 'Editar informações da loja', 'loja', NOW())
+INSERT INTO colaborador_permissions (nome, codigo, descricao, modulo, ativo, criado_em) VALUES
+('Visualizar Informações da Loja', 'loja.visualizar', 'Permite visualizar informações da loja', 'loja', 1, NOW()),
+('Editar Informações da Loja', 'loja.editar', 'Permite editar informações da loja', 'loja', 1, NOW())
 ON DUPLICATE KEY UPDATE
+    nome = VALUES(nome),
     descricao = VALUES(descricao),
     modulo = VALUES(modulo),
+    ativo = VALUES(ativo),
     atualizado_em = NOW();
 
 -- Associar permissões ao papel de Super Admin (ID 1)
