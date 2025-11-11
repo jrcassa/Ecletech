@@ -145,6 +145,15 @@ class Router
      */
     public function despachar(): void
     {
+        // Registra a requisição para auditoria
+        try {
+            $auditoria = new RegistroAuditoria();
+            $auditoria->registrarRequisicao();
+        } catch (\Exception $e) {
+            // Não interrompe o fluxo se falhar o registro de auditoria
+            error_log("Erro ao registrar requisição na auditoria: " . $e->getMessage());
+        }
+
         $metodo = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
