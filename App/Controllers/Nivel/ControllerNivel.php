@@ -1,95 +1,59 @@
 <?php
 
-namespace App\Controllers\Permissao;
+namespace App\Controllers\Nivel;
 
-use App\Models\Colaborador\ModelColaboradorPermission;
+use App\Models\Colaborador\ModelColaboradorNivel;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Controlador para gerenciar permissões
+ * Controlador para gerenciar níveis de colaboradores
  */
-class ControllerPermissao
+class ControllerNivel
 {
-    private ModelColaboradorPermission $model;
+    private ModelColaboradorNivel $model;
 
     public function __construct()
     {
-        $this->model = new ModelColaboradorPermission();
+        $this->model = new ModelColaboradorNivel();
     }
 
     /**
-     * Lista todas as permissões
+     * Lista todos os níveis
      */
     public function listar(): void
     {
         try {
-            $filtros = [];
+            $apenasAtivos = isset($_GET['ativo']) ? (bool) $_GET['ativo'] : false;
+            $niveis = $this->model->listar($apenasAtivos);
 
-            if (isset($_GET['modulo'])) {
-                $filtros['modulo'] = $_GET['modulo'];
-            }
-
-            if (isset($_GET['ativo'])) {
-                $filtros['ativo'] = (int) $_GET['ativo'];
-            }
-
-            if (isset($_GET['busca'])) {
-                $filtros['busca'] = $_GET['busca'];
-            }
-
-            $permissoes = $this->model->listar($filtros);
-
-            AuxiliarResposta::sucesso($permissoes);
+            AuxiliarResposta::sucesso($niveis);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
     /**
-     * Busca uma permissão por ID
+     * Busca um nível por ID
      */
     public function buscar(int $id): void
     {
         try {
-            $permissao = $this->model->buscarPorId($id);
+            $nivel = $this->model->buscarPorId($id);
 
-            if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+            if (!$nivel) {
+                AuxiliarResposta::naoEncontrado('Nível não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($permissao);
+            AuxiliarResposta::sucesso($nivel);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
     }
 
     /**
-     * Lista permissões agrupadas por módulo
-     */
-    public function listarPorModulo(): void
-    {
-        try {
-            $permissoes = $this->model->listar(['ativo' => 1]);
-            $agrupadas = [];
-
-            foreach ($permissoes as $permissao) {
-                $modulo = $permissao['modulo'] ?? 'geral';
-                if (!isset($agrupadas[$modulo])) {
-                    $agrupadas[$modulo] = [];
-                }
-                $agrupadas[$modulo][] = $permissao;
-            }
-
-            AuxiliarResposta::sucesso($agrupadas);
-        } catch (\Exception $e) {
-            AuxiliarResposta::erroInterno($e->getMessage());
-        }
-    }
-
-    /**
-     * Cria uma nova permissão
+     * Cria um novo nível
      */
     public function criar(): void
     {
@@ -99,9 +63,9 @@ class ControllerPermissao
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
                 'nome' => ['obrigatorio', 'string', 'max:100'],
-                'codigo' => ['obrigatorio', 'string', 'max:100'],
+                'codigo' => ['obrigatorio', 'string', 'max:50'],
                 'descricao' => ['string'],
-                'modulo' => ['string', 'max:50'],
+                'ordem' => ['inteiro'],
                 'ativo' => ['inteiro']
             ]);
 
@@ -123,7 +87,7 @@ class ControllerPermissao
 
             AuxiliarResposta::sucesso([
                 'id' => $id,
-                'mensagem' => 'Permissão criada com sucesso'
+                'mensagem' => 'Nível criado com sucesso'
             ], 201);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
@@ -131,15 +95,15 @@ class ControllerPermissao
     }
 
     /**
-     * Atualiza uma permissão
+     * Atualiza um nível
      */
     public function atualizar(int $id): void
     {
         try {
-            $permissao = $this->model->buscarPorId($id);
+            $nivel = $this->model->buscarPorId($id);
 
-            if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+            if (!$nivel) {
+                AuxiliarResposta::naoEncontrado('Nível não encontrado');
                 return;
             }
 
@@ -148,9 +112,9 @@ class ControllerPermissao
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
                 'nome' => ['string', 'max:100'],
-                'codigo' => ['string', 'max:100'],
+                'codigo' => ['string', 'max:50'],
                 'descricao' => ['string'],
-                'modulo' => ['string', 'max:50'],
+                'ordem' => ['inteiro'],
                 'ativo' => ['inteiro']
             ]);
 
@@ -171,7 +135,7 @@ class ControllerPermissao
             $this->model->atualizar($id, $dados, $usuarioId);
 
             AuxiliarResposta::sucesso([
-                'mensagem' => 'Permissão atualizada com sucesso'
+                'mensagem' => 'Nível atualizado com sucesso'
             ]);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
@@ -179,15 +143,15 @@ class ControllerPermissao
     }
 
     /**
-     * Deleta uma permissão (soft delete)
+     * Deleta um nível (soft delete)
      */
     public function deletar(int $id): void
     {
         try {
-            $permissao = $this->model->buscarPorId($id);
+            $nivel = $this->model->buscarPorId($id);
 
-            if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+            if (!$nivel) {
+                AuxiliarResposta::naoEncontrado('Nível não encontrado');
                 return;
             }
 
@@ -196,10 +160,10 @@ class ControllerPermissao
 
             if ($sucesso) {
                 AuxiliarResposta::sucesso([
-                    'mensagem' => 'Permissão deletada com sucesso'
+                    'mensagem' => 'Nível deletado com sucesso'
                 ]);
             } else {
-                AuxiliarResposta::erro('Não foi possível deletar a permissão', 500);
+                AuxiliarResposta::erro('Não foi possível deletar o nível', 500);
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());

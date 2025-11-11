@@ -110,6 +110,124 @@ class ControllerRole
     }
 
     /**
+     * Cria uma nova role
+     */
+    public function criar(): void
+    {
+        try {
+            $dados = json_decode(file_get_contents('php://input'), true);
+
+            // Validação
+            $erros = AuxiliarValidacao::validar($dados, [
+                'nome' => ['obrigatorio', 'string', 'max:100'],
+                'codigo' => ['obrigatorio', 'string', 'max:50'],
+                'descricao' => ['string'],
+                'nivel_id' => ['obrigatorio', 'inteiro'],
+                'ativo' => ['inteiro']
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::erroValidacao('Dados inválidos', $erros);
+                return;
+            }
+
+            // Verifica se o código já existe
+            if ($this->model->codigoExiste($dados['codigo'])) {
+                AuxiliarResposta::erroValidacao('Código já cadastrado', [
+                    'codigo' => 'Este código já está em uso'
+                ]);
+                return;
+            }
+
+            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $id = $this->model->criar($dados, $usuarioId);
+
+            AuxiliarResposta::sucesso([
+                'id' => $id,
+                'mensagem' => 'Role criada com sucesso'
+            ], 201);
+        } catch (\Exception $e) {
+            AuxiliarResposta::erroInterno($e->getMessage());
+        }
+    }
+
+    /**
+     * Atualiza uma role
+     */
+    public function atualizar(int $id): void
+    {
+        try {
+            $role = $this->model->buscarPorId($id);
+
+            if (!$role) {
+                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                return;
+            }
+
+            $dados = json_decode(file_get_contents('php://input'), true);
+
+            // Validação
+            $erros = AuxiliarValidacao::validar($dados, [
+                'nome' => ['string', 'max:100'],
+                'codigo' => ['string', 'max:50'],
+                'descricao' => ['string'],
+                'nivel_id' => ['inteiro'],
+                'ativo' => ['inteiro']
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::erroValidacao('Dados inválidos', $erros);
+                return;
+            }
+
+            // Verifica se o código já existe (excluindo o próprio registro)
+            if (isset($dados['codigo']) && $this->model->codigoExiste($dados['codigo'], $id)) {
+                AuxiliarResposta::erroValidacao('Código já cadastrado', [
+                    'codigo' => 'Este código já está em uso'
+                ]);
+                return;
+            }
+
+            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $this->model->atualizar($id, $dados, $usuarioId);
+
+            AuxiliarResposta::sucesso([
+                'mensagem' => 'Role atualizada com sucesso'
+            ]);
+        } catch (\Exception $e) {
+            AuxiliarResposta::erroInterno($e->getMessage());
+        }
+    }
+
+    /**
+     * Deleta uma role (soft delete)
+     */
+    public function deletar(int $id): void
+    {
+        try {
+            $role = $this->model->buscarPorId($id);
+
+            if (!$role) {
+                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                return;
+            }
+
+            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $sucesso = $this->model->deletar($id, $usuarioId);
+
+            if ($sucesso) {
+                AuxiliarResposta::sucesso([
+                    'mensagem' => 'Role deletada com sucesso'
+                ]);
+            } else {
+                AuxiliarResposta::erro('Não foi possível deletar a role', 500);
+            }
+        } catch (\Exception $e) {
+            AuxiliarResposta::erroInterno($e->getMessage());
+        }
+    }
+
+    /**
      * Atribui permissões a uma role
      */
     public function atribuirPermissoes(int $id): void

@@ -21,6 +21,18 @@ return function($router) {
         $router->get('/{id}', [ControllerRole::class, 'buscar'])
             ->middleware(MiddlewareAcl::requer('roles.visualizar'));
 
+        // Criar role - requer permissão de criação
+        $router->post('/', [ControllerRole::class, 'criar'])
+            ->middleware(MiddlewareAcl::requer('roles.criar'));
+
+        // Atualizar role - requer permissão de edição
+        $router->put('/{id}', [ControllerRole::class, 'atualizar'])
+            ->middleware(MiddlewareAcl::requer('roles.editar'));
+
+        // Deletar role - requer permissão de exclusão
+        $router->delete('/{id}', [ControllerRole::class, 'deletar'])
+            ->middleware(MiddlewareAcl::requer('roles.deletar'));
+
         // Obter permissões de uma role - requer permissão de visualização
         $router->get('/{id}/permissoes', [ControllerRole::class, 'obterPermissoes'])
             ->middleware(MiddlewareAcl::requer('roles.visualizar'));

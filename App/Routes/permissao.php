@@ -13,6 +13,11 @@ return function($router) {
         'prefixo' => 'permissoes',
         'middleware' => ['auth', 'admin']
     ], function($router) {
+        // Listar permissões por módulo - requer permissão de visualização
+        // IMPORTANTE: Esta rota deve vir ANTES de /{id} para não conflitar
+        $router->get('/modulos/listar', [ControllerPermissao::class, 'listarPorModulo'])
+            ->middleware(MiddlewareAcl::requer('permissoes.visualizar'));
+
         // Listar permissões - requer permissão de visualização
         $router->get('/', [ControllerPermissao::class, 'listar'])
             ->middleware(MiddlewareAcl::requer('permissoes.visualizar'));
@@ -21,8 +26,16 @@ return function($router) {
         $router->get('/{id}', [ControllerPermissao::class, 'buscar'])
             ->middleware(MiddlewareAcl::requer('permissoes.visualizar'));
 
-        // Listar permissões por módulo - requer permissão de visualização
-        $router->get('/modulos/listar', [ControllerPermissao::class, 'listarPorModulo'])
-            ->middleware(MiddlewareAcl::requer('permissoes.visualizar'));
+        // Criar permissão - requer permissão de criação
+        $router->post('/', [ControllerPermissao::class, 'criar'])
+            ->middleware(MiddlewareAcl::requer('permissoes.criar'));
+
+        // Atualizar permissão - requer permissão de edição
+        $router->put('/{id}', [ControllerPermissao::class, 'atualizar'])
+            ->middleware(MiddlewareAcl::requer('permissoes.editar'));
+
+        // Deletar permissão - requer permissão de exclusão
+        $router->delete('/{id}', [ControllerPermissao::class, 'deletar'])
+            ->middleware(MiddlewareAcl::requer('permissoes.deletar'));
     });
 };
