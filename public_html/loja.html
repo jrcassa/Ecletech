@@ -645,7 +645,7 @@
                     <span class="icon"><i class="fas fa-home"></i></span>
                     <span>Home</span>
                 </a>
-                <a href="./frotas.html">
+                <a href="./frotas.html" data-permission="frota.visualizar">
                     <span class="icon"><i class="fas fa-car"></i></span>
                     <span>Frotas</span>
                 </a>
@@ -654,19 +654,19 @@
             <!-- Cadastros -->
             <div class="nav-section">
                 <div class="nav-section-title">Cadastros</div>
-                <a href="./cidades.html">
+                <a href="./cidades.html" data-permission="cidade.visualizar">
                     <span class="icon"><i class="fas fa-city"></i></span>
                     <span>Cidades</span>
                 </a>
-                <a href="./situacoes_vendas.html">
+                <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
                     <span class="icon"><i class="fas fa-chart-line"></i></span>
                     <span>Situações de Vendas</span>
                 </a>
-                <a href="./tipos_enderecos.html">
+                <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
                     <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
                     <span>Tipos de Endereços</span>
                 </a>
-                <a href="./tipos_contatos.html">
+                <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
                     <span class="icon"><i class="fas fa-phone"></i></span>
                     <span>Tipos de Contatos</span>
                 </a>
@@ -675,15 +675,15 @@
             <!-- Gestão -->
             <div class="nav-section">
                 <div class="nav-section-title">Gestão</div>
-                <a href="./colaboradores.html">
+                <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
                     <span class="icon"><i class="fas fa-users"></i></span>
                     <span>Colaboradores</span>
                 </a>
-                <a href="./colaborador_management.html">
+                <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
                     <span class="icon"><i class="fas fa-user-shield"></i></span>
                     <span>Gestão de Acessos</span>
                 </a>
-                <a href="./loja.html" class="active">
+                <a href="./loja.html" class="active" data-permission="loja.visualizar">
                     <span class="icon"><i class="fas fa-store"></i></span>
                     <span>Informações da Loja</span>
                 </a>
@@ -692,11 +692,11 @@
             <!-- Sistema -->
             <div class="nav-section">
                 <div class="nav-section-title">Sistema</div>
-                <a href="./brute_force.html">
+                <a href="./brute_force.html" data-permission="config.visualizar">
                     <span class="icon"><i class="fas fa-shield-alt"></i></span>
                     <span>Proteção Brute Force</span>
                 </a>
-                <a href="./auditoria.html">
+                <a href="./auditoria.html" data-permission="auditoria.visualizar">
                     <span class="icon"><i class="fas fa-clipboard-list"></i></span>
                     <span>Auditoria</span>
                 </a>
@@ -879,6 +879,7 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
+    <script src="js/sidebar.js"></script>
     <script src="js/Loja.js"></script>
     <script>
         // Toggle sidebar
