@@ -8,10 +8,10 @@ use App\Middleware\MiddlewareAcl;
  * Todas as rotas requerem autenticação + permissões específicas (ACL)
  *
  * Permissões necessárias:
- * - administradores.visualizar: Listar e buscar administradores
- * - administradores.criar: Criar novos administradores
- * - administradores.editar: Atualizar administradores existentes
- * - administradores.deletar: Deletar administradores
+ * - colaboradores.visualizar: Listar e buscar administradores
+ * - colaboradores.criar: Criar novos administradores
+ * - colaboradores.editar: Atualizar administradores existentes
+ * - colaboradores.deletar: Deletar administradores
  */
 
 return function($router) {
@@ -25,22 +25,22 @@ return function($router) {
 
         // Listar administradores - requer permissão de visualização
         $router->get('/', [ControllerAdministrador::class, 'listar'])
-            ->middleware(MiddlewareAcl::requer('administradores.visualizar'));
+            ->middleware(MiddlewareAcl::requer('colaboradores.visualizar'));
 
         // Buscar administrador por ID - requer permissão de visualização
         $router->get('/{id}', [ControllerAdministrador::class, 'buscar'])
-            ->middleware(MiddlewareAcl::requer('administradores.visualizar'));
+            ->middleware(MiddlewareAcl::requer('colaboradores.visualizar'));
 
         // Criar administrador - requer permissão de criação
         $router->post('/', [ControllerAdministrador::class, 'criar'])
-            ->middleware(MiddlewareAcl::requer('administradores.criar'));
+            ->middleware(MiddlewareAcl::requer('colaboradores.criar'));
 
         // Atualizar administrador - requer permissão de edição
         $router->put('/{id}', [ControllerAdministrador::class, 'atualizar'])
-            ->middleware(MiddlewareAcl::requer('administradores.editar'));
+            ->middleware(MiddlewareAcl::requer('colaboradores.editar'));
 
         // Deletar administrador - requer permissão de exclusão
         $router->delete('/{id}', [ControllerAdministrador::class, 'deletar'])
-            ->middleware(MiddlewareAcl::requer('administradores.deletar'));
+            ->middleware(MiddlewareAcl::requer('colaboradores.deletar'));
     });
 };
