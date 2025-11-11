@@ -55,6 +55,10 @@ $router->grupo([
     $rotasFrota = require __DIR__ . '/frota.php';
     $rotasFrota($router);
 
+    // Inclui rotas de fornecedores
+    $rotasFornecedor = require __DIR__ . '/fornecedor.php';
+    $rotasFornecedor($router);
+
     // Inclui rotas de loja
     $rotasLoja = require __DIR__ . '/loja.php';
     $rotasLoja($router);
