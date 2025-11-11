@@ -234,6 +234,12 @@ O sistema vem com as seguintes permissões pré-configuradas:
 - `relatorios.visualizar` - Visualizar relatórios
 - `relatorios.exportar` - Exportar relatórios
 
+### Módulo: Fornecedores
+- `fornecedor.visualizar` - Visualizar fornecedores
+- `fornecedor.criar` - Criar novos fornecedores
+- `fornecedor.editar` - Editar fornecedores
+- `fornecedor.deletar` - Deletar fornecedores
+
 ## Endpoints da API
 
 ### Autenticação
@@ -321,6 +327,62 @@ Headers: Authorization: Bearer {token}
 
 # Listar permissões agrupadas por módulo (requer: permissoes.visualizar)
 GET /api/permissoes/modulos/listar
+Headers: Authorization: Bearer {token}
+```
+
+### Fornecedores
+
+```bash
+# Listar fornecedores (requer: fornecedor.visualizar)
+GET /api/fornecedor
+Headers: Authorization: Bearer {token}
+Query Params: ?pagina=1&por_pagina=20&tipo_pessoa=PF&busca=nome&ativo=1
+
+# Buscar fornecedor (requer: fornecedor.visualizar)
+GET /api/fornecedor/{id}
+Headers: Authorization: Bearer {token}
+
+# Obter estatísticas de fornecedores (requer: fornecedor.visualizar)
+GET /api/fornecedor/estatisticas
+Headers: Authorization: Bearer {token}
+
+# Criar fornecedor (requer: fornecedor.criar)
+POST /api/fornecedor
+Headers: Authorization: Bearer {token}
+Body: {
+  "tipo_pessoa": "PJ",
+  "nome": "Empresa ABC",
+  "cnpj": "12345678000199",
+  "razao_social": "Empresa ABC LTDA",
+  "telefone": "11999999999",
+  "email": "contato@empresa.com",
+  "contatos": [
+    {
+      "nome": "João Silva",
+      "contato": "11988887777",
+      "cargo": "Gerente",
+      "observacao": "Responsável por compras"
+    }
+  ],
+  "enderecos": [
+    {
+      "cep": "01001000",
+      "logradouro": "Praça da Sé",
+      "numero": "100",
+      "bairro": "Sé",
+      "cidade_id": 1,
+      "estado": "SP"
+    }
+  ]
+}
+
+# Atualizar fornecedor (requer: fornecedor.editar)
+PUT /api/fornecedor/{id}
+Headers: Authorization: Bearer {token}
+Body: { "nome": "...", "telefone": "...", "contatos": [...], "enderecos": [...] }
+
+# Deletar fornecedor (requer: fornecedor.deletar)
+DELETE /api/fornecedor/{id}
 Headers: Authorization: Bearer {token}
 ```
 
