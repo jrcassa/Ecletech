@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models\TipoEndereco;
+namespace App\Models\TipoContato;
 
 use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
 
 /**
- * Model para gerenciar tipos de endereços
+ * Model para gerenciar tipos de contatos
  */
-class ModelTipoEndereco
+class ModelTipoContato
 {
     private BancoDados $db;
     private RegistroAuditoria $auditoria;
@@ -20,44 +20,44 @@ class ModelTipoEndereco
     }
 
     /**
-     * Busca um tipo de endereço por ID
+     * Busca um tipo de contato por ID
      */
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM tipos_enderecos WHERE id = ? AND deletado_em IS NULL",
+            "SELECT * FROM tipos_contatos WHERE id = ? AND deletado_em IS NULL",
             [$id]
         );
     }
 
     /**
-     * Busca um tipo de endereço por external_id
+     * Busca um tipo de contato por external_id
      */
     public function buscarPorExternalId(string $externalId): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM tipos_enderecos WHERE external_id = ? AND deletado_em IS NULL",
+            "SELECT * FROM tipos_contatos WHERE external_id = ? AND deletado_em IS NULL",
             [$externalId]
         );
     }
 
     /**
-     * Busca um tipo de endereço por nome
+     * Busca um tipo de contato por nome
      */
     public function buscarPorNome(string $nome): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM tipos_enderecos WHERE nome = ? AND deletado_em IS NULL",
+            "SELECT * FROM tipos_contatos WHERE nome = ? AND deletado_em IS NULL",
             [$nome]
         );
     }
 
     /**
-     * Lista todos os tipos de endereços
+     * Lista todos os tipos de contatos
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT * FROM tipos_enderecos WHERE deletado_em IS NULL";
+        $sql = "SELECT * FROM tipos_contatos WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -94,11 +94,11 @@ class ModelTipoEndereco
     }
 
     /**
-     * Conta o total de tipos de endereços
+     * Conta o total de tipos de contatos
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM tipos_enderecos WHERE deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM tipos_contatos WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -120,7 +120,7 @@ class ModelTipoEndereco
     }
 
     /**
-     * Cria um novo tipo de endereço
+     * Cria um novo tipo de contato
      */
     public function criar(array $dados): int
     {
@@ -135,12 +135,12 @@ class ModelTipoEndereco
             $dadosInsert['external_id'] = $dados['external_id'];
         }
 
-        $id = $this->db->inserir('tipos_enderecos', $dadosInsert);
+        $id = $this->db->inserir('tipos_contatos', $dadosInsert);
 
         // Registra auditoria
         $this->auditoria->registrar(
             'criar',
-            'tipo_endereco',
+            'tipo_contato',
             $id,
             null,
             $dadosInsert,
@@ -151,7 +151,7 @@ class ModelTipoEndereco
     }
 
     /**
-     * Atualiza um tipo de endereço
+     * Atualiza um tipo de contato
      */
     public function atualizar(int $id, array $dados, ?int $usuarioId = null): bool
     {
@@ -174,13 +174,13 @@ class ModelTipoEndereco
             }
         }
 
-        $resultado = $this->db->atualizar('tipos_enderecos', $dadosUpdate, 'id = ?', [$id]);
+        $resultado = $this->db->atualizar('tipos_contatos', $dadosUpdate, 'id = ?', [$id]);
 
         // Registra auditoria
         if ($resultado) {
             $this->auditoria->registrar(
                 'atualizar',
-                'tipo_endereco',
+                'tipo_contato',
                 $id,
                 $dadosAtuais,
                 $dadosUpdate,
@@ -192,7 +192,7 @@ class ModelTipoEndereco
     }
 
     /**
-     * Deleta um tipo de endereço (soft delete)
+     * Deleta um tipo de contato (soft delete)
      */
     public function deletar(int $id, ?int $usuarioId = null): bool
     {
@@ -203,7 +203,7 @@ class ModelTipoEndereco
         }
 
         $resultado = $this->db->atualizar(
-            'tipos_enderecos',
+            'tipos_contatos',
             [
                 'deletado_em' => date('Y-m-d H:i:s'),
                 'ativo' => 0
@@ -216,7 +216,7 @@ class ModelTipoEndereco
         if ($resultado) {
             $this->auditoria->registrar(
                 'deletar',
-                'tipo_endereco',
+                'tipo_contato',
                 $id,
                 $dadosAtuais,
                 ['deletado_em' => date('Y-m-d H:i:s')],
@@ -228,12 +228,12 @@ class ModelTipoEndereco
     }
 
     /**
-     * Restaura um tipo de endereço deletado
+     * Restaura um tipo de contato deletado
      */
     public function restaurar(int $id, ?int $usuarioId = null): bool
     {
         $resultado = $this->db->atualizar(
-            'tipos_enderecos',
+            'tipos_contatos',
             [
                 'deletado_em' => null,
                 'ativo' => 1
@@ -246,7 +246,7 @@ class ModelTipoEndereco
         if ($resultado) {
             $this->auditoria->registrar(
                 'restaurar',
-                'tipo_endereco',
+                'tipo_contato',
                 $id,
                 ['deletado_em' => date('Y-m-d H:i:s')],
                 ['deletado_em' => null],
@@ -262,7 +262,7 @@ class ModelTipoEndereco
      */
     public function nomeExiste(string $nome, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM tipos_enderecos WHERE nome = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM tipos_contatos WHERE nome = ? AND deletado_em IS NULL";
         $parametros = [$nome];
 
         if ($excluirId) {
@@ -279,7 +279,7 @@ class ModelTipoEndereco
      */
     public function externalIdExiste(string $externalId, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM tipos_enderecos WHERE external_id = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM tipos_contatos WHERE external_id = ? AND deletado_em IS NULL";
         $parametros = [$externalId];
 
         if ($excluirId) {
@@ -292,7 +292,7 @@ class ModelTipoEndereco
     }
 
     /**
-     * Obtém estatísticas de tipos de endereços
+     * Obtém estatísticas de tipos de contatos
      */
     public function obterEstatisticas(): array
     {
@@ -300,13 +300,13 @@ class ModelTipoEndereco
 
         // Total de tipos ativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM tipos_enderecos WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM tipos_contatos WHERE ativo = 1 AND deletado_em IS NULL"
         );
         $stats['total_ativos'] = (int) $resultado['total'];
 
         // Total de tipos inativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM tipos_enderecos WHERE ativo = 0 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM tipos_contatos WHERE ativo = 0 AND deletado_em IS NULL"
         );
         $stats['total_inativos'] = (int) $resultado['total'];
 

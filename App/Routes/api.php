@@ -71,6 +71,10 @@ $router->grupo([
     $rotasTipoEndereco = require __DIR__ . '/tipo_endereco.php';
     $rotasTipoEndereco($router);
 
+    // Inclui rotas de tipos de contatos
+    $rotasTipoContato = require __DIR__ . '/tipo_contato.php';
+    $rotasTipoContato($router);
+
     // Inclui rotas de login attempts (proteção brute force)
     $rotasLoginAttempts = require __DIR__ . '/login_attempts.php';
     $rotasLoginAttempts($router);

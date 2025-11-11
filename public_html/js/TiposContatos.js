@@ -1,9 +1,9 @@
 /**
- * Gerenciador de Tipos de Endereços
- * Implementa CRUD completo de tipos de endereços com validação de permissões ACL
+ * Gerenciador de Tipos de Contatos
+ * Implementa CRUD completo de tipos de contatos com validação de permissões ACL
  */
 
-const TiposEnderecosManager = {
+const TiposContatosManager = {
     // Estado da aplicação
     state: {
         tipos: [],
@@ -135,7 +135,7 @@ const TiposEnderecosManager = {
     },
 
     /**
-     * Carrega tipos de endereços
+     * Carrega tipos de contatos
      */
     async carregarTipos() {
         this.showLoading();
@@ -154,7 +154,7 @@ const TiposEnderecosManager = {
                 params.append('ativo', this.state.filtros.ativo);
             }
 
-            const response = await API.get(`/tipos-enderecos?${params.toString()}`);
+            const response = await API.get(`/tipos-contatos?${params.toString()}`);
 
             if (response.sucesso) {
                 this.state.tipos = response.dados?.itens || [];
@@ -168,11 +168,11 @@ const TiposEnderecosManager = {
             // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
-                'Erro ao carregar tipos de endereços';
+                'Erro ao carregar tipos de contatos';
 
             this.showError(mensagemErro);
             Utils.Notificacao.erro(mensagemErro);
-            console.error('Erro ao carregar tipos de endereços:', error);
+            console.error('Erro ao carregar tipos de contatos:', error);
         }
     },
 
@@ -210,10 +210,10 @@ const TiposEnderecosManager = {
                 <td>
                     <div class="actions">
                         ${this.state.permissoes.editar ?
-                            `<button class="btn btn-small" onclick="TiposEnderecosManager.editar(${tipo.id})">Editar</button>` :
+                            `<button class="btn btn-small" onclick="TiposContatosManager.editar(${tipo.id})">Editar</button>` :
                             ''}
                         ${this.state.permissoes.deletar ?
-                            `<button class="btn btn-small btn-danger" onclick="TiposEnderecosManager.deletar(${tipo.id})">Deletar</button>` :
+                            `<button class="btn btn-small btn-danger" onclick="TiposContatosManager.deletar(${tipo.id})">Deletar</button>` :
                             ''}
                     </div>
                 </td>
@@ -276,7 +276,7 @@ const TiposEnderecosManager = {
      */
     abrirModalNovo() {
         this.state.editandoId = null;
-        this.elements.modalTitle.textContent = 'Novo Tipo de Endereço';
+        this.elements.modalTitle.textContent = 'Novo Tipo de Contato';
         this.elements.formTipo.reset();
         document.getElementById('ativo').value = '1';
 
@@ -286,17 +286,17 @@ const TiposEnderecosManager = {
     },
 
     /**
-     * Edita tipo de endereço
+     * Edita tipo de contato
      */
     async editar(id) {
         try {
-            const response = await API.get(`/tipos-enderecos/${id}`);
+            const response = await API.get(`/tipos-contatos/${id}`);
 
             if (response.sucesso && response.dados) {
                 const tipo = response.dados;
                 this.state.editandoId = id;
 
-                this.elements.modalTitle.textContent = 'Editar Tipo de Endereço';
+                this.elements.modalTitle.textContent = 'Editar Tipo de Contato';
 
                 document.getElementById('tipoId').value = tipo.id;
                 document.getElementById('external_id').value = tipo.external_id || '';
@@ -311,15 +311,15 @@ const TiposEnderecosManager = {
             // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
-                'Erro ao carregar tipo de endereço';
+                'Erro ao carregar tipo de contato';
 
             Utils.Notificacao.erro(mensagemErro);
-            console.error('Erro ao carregar tipo de endereço:', error);
+            console.error('Erro ao carregar tipo de contato:', error);
         }
     },
 
     /**
-     * Salva tipo de endereço
+     * Salva tipo de contato
      */
     async salvar(e) {
         e.preventDefault();
@@ -340,48 +340,48 @@ const TiposEnderecosManager = {
 
             if (this.state.editandoId) {
                 // Atualizar
-                response = await API.put(`/tipos-enderecos/${this.state.editandoId}`, dados);
+                response = await API.put(`/tipos-contatos/${this.state.editandoId}`, dados);
             } else {
                 // Criar
-                response = await API.post('/tipos-enderecos', dados);
+                response = await API.post('/tipos-contatos', dados);
             }
 
             if (response.sucesso) {
                 this.fecharModal();
                 this.carregarTipos();
-                Utils.Notificacao.sucesso(response.mensagem || 'Tipo de endereço salvo com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Tipo de contato salvo com sucesso!');
             }
         } catch (error) {
             // Exibe mensagem de erro com detalhes de validação
-            this.showModalError(error.data || 'Erro ao salvar tipo de endereço');
-            Utils.Notificacao.erro(error.data || 'Erro ao salvar tipo de endereço');
-            console.error('Erro ao salvar tipo de endereço:', error);
+            this.showModalError(error.data || 'Erro ao salvar tipo de contato');
+            Utils.Notificacao.erro(error.data || 'Erro ao salvar tipo de contato');
+            console.error('Erro ao salvar tipo de contato:', error);
         }
     },
 
     /**
-     * Deleta tipo de endereço
+     * Deleta tipo de contato
      */
     async deletar(id) {
-        if (!confirm('Tem certeza que deseja deletar este tipo de endereço?')) {
+        if (!confirm('Tem certeza que deseja deletar este tipo de contato?')) {
             return;
         }
 
         try {
-            const response = await API.delete(`/tipos-enderecos/${id}`);
+            const response = await API.delete(`/tipos-contatos/${id}`);
 
             if (response.sucesso) {
                 this.carregarTipos();
-                Utils.Notificacao.sucesso(response.mensagem || 'Tipo de endereço deletado com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Tipo de contato deletado com sucesso!');
             }
         } catch (error) {
             // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
-                'Erro ao deletar tipo de endereço';
+                'Erro ao deletar tipo de contato';
 
             Utils.Notificacao.erro(mensagemErro);
-            console.error('Erro ao deletar tipo de endereço:', error);
+            console.error('Erro ao deletar tipo de contato:', error);
         }
     },
 
@@ -437,5 +437,5 @@ const TiposEnderecosManager = {
 
 // Inicializa quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
-    TiposEnderecosManager.init();
+    TiposContatosManager.init();
 });

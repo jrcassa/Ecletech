@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situações de Vendas - Ecletech</title>
+    <title>Tipos de Contatos - Ecletech</title>
     <style>
         * {
             margin: 0;
@@ -298,16 +298,6 @@
             color: #721c24;
         }
 
-        .color-preview {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
-            border: 2px solid #ddd;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
         .actions {
             display: flex;
             gap: 8px;
@@ -392,25 +382,6 @@
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
-        }
-
-        .color-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .color-input-group input[type="color"] {
-            width: 60px;
-            height: 45px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 2px;
-        }
-
-        .color-input-group input[type="text"] {
-            flex: 1;
         }
 
         .form-actions {
@@ -640,17 +611,17 @@
                 <span class="icon">🌆</span>
                 <span>Cidades</span>
             </a>
-            <a href="./situacoes_vendas.html" class="active">
+            <a href="./situacoes_vendas.html">
                 <span class="icon">📊</span>
                 <span>Situações de Vendas</span>
             </a>
             <a href="./tipos_enderecos.html">
-            <a href="./tipos_contatos.html">
-                <span class="icon">📞</span>
-                <span>Tipos de Contatos</span>
-            </a>
                 <span class="icon">📍</span>
                 <span>Tipos de Endereços</span>
+            </a>
+            <a href="./tipos_contatos.html" class="active">
+                <span class="icon">📞</span>
+                <span>Tipos de Contatos</span>
             </a>
             <a href="./colaboradores.html">
                 <span class="icon">👥</span>
@@ -683,7 +654,7 @@
         <header class="header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1>Gerenciar Situações de Vendas</h1>
+                <h1>Gerenciar Tipos de Contatos</h1>
             </div>
             <div class="header-actions">
                 <button class="btn btn-secondary" onclick="window.location.href='./home.html'">Voltar</button>
@@ -699,8 +670,8 @@
         <div id="pageContent" style="display: none;">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; border: none; padding: 0;">Situações de Vendas Cadastradas</h2>
-                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Nova Situação</button>
+                    <h2 style="margin: 0; border: none; padding: 0;">Tipos de Contatos Cadastrados</h2>
+                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Novo Tipo</button>
                 </div>
 
                 <div class="filters">
@@ -737,7 +708,6 @@
                                 <th>ID</th>
                                 <th>ID Externo</th>
                                 <th>Nome</th>
-                                <th>Cor</th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
@@ -746,7 +716,7 @@
                     </table>
 
                     <div id="noData" class="no-data" style="display: none;">
-                        Nenhuma situação de venda encontrada.
+                        Nenhum tipo de contato encontrado.
                     </div>
 
                     <div class="pagination" id="pagination">
@@ -763,7 +733,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Nova Situação de Venda</h3>
+                <h3 id="modalTitle">Novo Tipo de Contato</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -771,8 +741,8 @@
                 <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <form id="formSituacao">
-                <input type="hidden" id="situacaoId">
+            <form id="formTipo">
+                <input type="hidden" id="tipoId">
 
                 <div class="form-group">
                     <label for="external_id">ID Externo</label>
@@ -781,16 +751,7 @@
 
                 <div class="form-group">
                     <label for="nome">Nome *</label>
-                    <input type="text" id="nome" required placeholder="Ex: Em aberto">
-                </div>
-
-                <div class="form-group">
-                    <label for="cor">Cor *</label>
-                    <div class="color-input-group">
-                        <input type="color" id="colorPicker" value="#999999">
-                        <input type="text" id="cor" required placeholder="#999999" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$">
-                    </div>
-                    <small style="color: #666; font-size: 12px;">Formato: #RRGGBB (hexadecimal)</small>
+                    <input type="text" id="nome" required placeholder="Ex: Telefone">
                 </div>
 
                 <div class="form-group">
@@ -842,22 +803,7 @@
                 sidebarOverlay.classList.remove('show');
             }
         });
-
-        // Sincroniza color picker com input de texto
-        const colorPicker = document.getElementById('colorPicker');
-        const corInput = document.getElementById('cor');
-
-        colorPicker.addEventListener('input', (e) => {
-            corInput.value = e.target.value.toUpperCase();
-        });
-
-        corInput.addEventListener('input', (e) => {
-            const valor = e.target.value;
-            if (/^#[0-9A-Fa-f]{6}$/.test(valor)) {
-                colorPicker.value = valor;
-            }
-        });
     </script>
-    <script src="js/SituacoesVendas.js"></script>
+    <script src="js/TiposContatos.js"></script>
 </body>
 </html>
