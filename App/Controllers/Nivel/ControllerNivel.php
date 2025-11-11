@@ -5,6 +5,7 @@ namespace App\Controllers\Nivel;
 use App\Models\Colaborador\ModelColaboradorNivel;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
+use App\Core\Autenticacao;
 
 /**
  * Controlador para gerenciar níveis de colaboradores
@@ -12,10 +13,12 @@ use App\Helpers\AuxiliarValidacao;
 class ControllerNivel
 {
     private ModelColaboradorNivel $model;
+    private Autenticacao $auth;
 
     public function __construct()
     {
         $this->model = new ModelColaboradorNivel();
+        $this->auth = new Autenticacao();
     }
 
     /**
@@ -82,7 +85,8 @@ class ControllerNivel
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $id = $this->model->criar($dados, $usuarioId);
 
             AuxiliarResposta::sucesso([
@@ -131,7 +135,8 @@ class ControllerNivel
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $this->model->atualizar($id, $dados, $usuarioId);
 
             AuxiliarResposta::sucesso([
@@ -155,7 +160,8 @@ class ControllerNivel
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $sucesso = $this->model->deletar($id, $usuarioId);
 
             if ($sucesso) {

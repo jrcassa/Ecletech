@@ -14,6 +14,7 @@ class TokenCsrf
     private int $expiracao;
     private ?ModelCsrfToken $model = null;
     private bool $usarBancoDados = true;
+    private ?Autenticacao $auth = null;
 
     public function __construct()
     {
@@ -27,6 +28,7 @@ class TokenCsrf
         // Tenta usar o banco de dados, mas usa sessão como fallback se houver erro
         try {
             $this->model = new ModelCsrfToken();
+            $this->auth = new Autenticacao();
         } catch (\Exception $e) {
             $this->usarBancoDados = false;
             error_log("TokenCsrf: Não foi possível conectar ao banco de dados. Usando sessão como fallback. Erro: " . $e->getMessage());
@@ -47,10 +49,17 @@ class TokenCsrf
         // Se o banco de dados estiver disponível, salva também lá
         if ($this->usarBancoDados && $this->model) {
             try {
+                // Obtém colaborador_id do JWT
+                $colaboradorId = null;
+                if ($this->auth) {
+                    $usuario = $this->auth->obterUsuarioAutenticado();
+                    $colaboradorId = $usuario['id'] ?? null;
+                }
+
                 $this->model->criar([
                     'token' => $token,
                     'session_id' => session_id(),
-                    'colaborador_id' => $_SESSION['colaborador_id'] ?? null,
+                    'colaborador_id' => $colaboradorId,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
                     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
                     'expira_em' => date('Y-m-d H:i:s', time() + $this->expiracao)

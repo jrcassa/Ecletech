@@ -20,7 +20,7 @@ return function($router) {
             ->middleware(MiddlewareAcl::requer('loja.visualizar'));
 
         // PUT /loja - Atualizar informações da loja (único registro)
-        // Apenas administradores podem editar
+        // Apenas colaboradores autorizados podem editar
         $router->put('/', [ControllerLoja::class, 'atualizar'])
             ->middleware(['admin'])
             ->middleware(MiddlewareAcl::requer('loja.editar'));

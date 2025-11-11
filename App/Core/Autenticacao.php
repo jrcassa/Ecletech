@@ -22,10 +22,6 @@ class Autenticacao
         $this->config = Configuracao::obterInstancia();
         $this->limitador = new LimitadorRequisicao();
         $this->loginAttempt = new ModelLoginAttempt();
-
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
     }
 
     /**
@@ -142,9 +138,6 @@ class Autenticacao
                 $this->invalidarRefreshTokens($payload['colaborador_id']);
             }
         }
-
-        // Limpa a sessão
-        session_destroy();
 
         return true;
     }

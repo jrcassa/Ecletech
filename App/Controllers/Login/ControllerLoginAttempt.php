@@ -247,7 +247,7 @@ class ControllerLoginAttempt
             }
 
             $permanente = $dados['permanente'] ?? false;
-            $motivo = $dados['motivo'] ?? 'Bloqueio manual por administrador';
+            $motivo = $dados['motivo'] ?? 'Bloqueio manual por colaborador autorizado';
 
             $sucesso = $this->model->criarBloqueio(
                 $dados['tipo'],

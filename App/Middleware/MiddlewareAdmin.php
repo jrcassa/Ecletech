@@ -7,7 +7,7 @@ use App\Core\BancoDados;
 use App\Helpers\AuxiliarResposta;
 
 /**
- * Middleware para verificar permissões de administrador
+ * Middleware para verificar permissões de colaborador
  */
 class MiddlewareAdmin
 {
@@ -34,7 +34,7 @@ class MiddlewareAdmin
 
         // Verifica se o usuário tem permissões de admin
         if (!$this->verificarPermissaoAdmin($usuario['nivel_id'])) {
-            AuxiliarResposta::proibido('Acesso negado. Permissões de administrador necessárias.');
+            AuxiliarResposta::proibido('Acesso negado. Permissões de colaborador necessárias.');
             return false;
         }
 
@@ -42,7 +42,7 @@ class MiddlewareAdmin
     }
 
     /**
-     * Verifica se o nível tem permissão de administrador
+     * Verifica se o nível tem permissão de colaborador
      */
     private function verificarPermissaoAdmin(int $nivelId): bool
     {
