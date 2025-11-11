@@ -3,7 +3,7 @@
  * Implementa edição das informações da loja (singleton - apenas 1 registro)
  */
 
-const Loja = {
+const LojaManager = {
     // Estado da aplicação
     state: {
         loja: null,
@@ -19,6 +19,23 @@ const Loja = {
         successAlert: document.getElementById('successAlert'),
         errorAlert: document.getElementById('errorAlert'),
         btnSalvar: document.getElementById('btnSalvar')
+    },
+
+    /**
+     * Inicializa o gerenciador
+     */
+    async init() {
+        // Verifica autenticação
+        if (!AuthAPI.isAuthenticated()) {
+            window.location.href = './auth.html';
+            return;
+        }
+
+        // Configura event listeners
+        this.configurarMascaras();
+
+        // Carrega informações da loja
+        await this.carregar();
     },
 
     /**
@@ -84,13 +101,10 @@ const Loja = {
         form.endereco_bairro.value = this.state.loja.endereco_bairro || '';
         form.endereco_cidade.value = this.state.loja.endereco_cidade || '';
         form.endereco_uf.value = this.state.loja.endereco_uf || '';
-
-        // Configura máscaras
-        this.configurarMascaras();
     },
 
     /**
-     * Configura event listeners do formulário
+     * Configura event listeners do formulário e máscaras
      */
     configurarMascaras() {
         const form = this.elements.formLoja;
@@ -362,4 +376,4 @@ const Loja = {
 };
 
 // Exporta para uso global
-window.Loja = Loja;
+window.LojaManager = LojaManager;
