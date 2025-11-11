@@ -4,6 +4,7 @@ namespace App\Models\Cidade;
 
 use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
+use App\Helpers\AuxiliarValidacao;
 
 /**
  * Model para gerenciar cidades
@@ -75,10 +76,15 @@ class ModelCidade
             $parametros[] = $busca;
         }
 
-        // Ordenação
-        $ordenacao = $filtros['ordenacao'] ?? 'nome';
-        $direcao = $filtros['direcao'] ?? 'ASC';
-        $sql .= " ORDER BY {$ordenacao} {$direcao}";
+        // Ordenação (validada contra SQL Injection)
+        $camposPermitidos = ['id', 'nome', 'codigo', 'external_id', 'ativo', 'criado_em', 'atualizado_em'];
+        $ordenacaoValidada = AuxiliarValidacao::validarOrdenacao(
+            $filtros['ordenacao'] ?? 'nome',
+            $filtros['direcao'] ?? 'ASC',
+            $camposPermitidos,
+            'nome'
+        );
+        $sql .= " ORDER BY {$ordenacaoValidada['campo']} {$ordenacaoValidada['direcao']}";
 
         // Paginação
         if (isset($filtros['limite'])) {
