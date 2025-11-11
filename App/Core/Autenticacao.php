@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Models\Login\ModelLoginAttempt;
+
 /**
  * Classe para gerenciar autenticação de usuários
  */
@@ -11,6 +13,7 @@ class Autenticacao
     private BancoDados $db;
     private Configuracao $config;
     private LimitadorRequisicao $limitador;
+    private ModelLoginAttempt $loginAttempt;
 
     public function __construct()
     {
@@ -18,6 +21,7 @@ class Autenticacao
         $this->db = BancoDados::obterInstancia();
         $this->config = Configuracao::obterInstancia();
         $this->limitador = new LimitadorRequisicao();
+        $this->loginAttempt = new ModelLoginAttempt();
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -29,7 +33,31 @@ class Autenticacao
      */
     public function login(string $email, string $senha): ?array
     {
-        // Verifica rate limiting
+        // Obtém IP do cliente
+        $ipAddress = $this->obterIpCliente();
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+        // Verifica se o IP está bloqueado
+        if ($this->loginAttempt->ipEstaBloqueado($ipAddress)) {
+            $bloqueio = $this->loginAttempt->obterBloqueioIp($ipAddress);
+            $mensagem = "Seu IP está bloqueado";
+            if ($bloqueio && isset($bloqueio['bloqueado_ate'])) {
+                $mensagem .= " até " . date('d/m/Y H:i:s', strtotime($bloqueio['bloqueado_ate']));
+            }
+            throw new \RuntimeException($mensagem);
+        }
+
+        // Verifica se o email está bloqueado
+        if ($this->loginAttempt->emailEstaBloqueado($email)) {
+            $bloqueio = $this->loginAttempt->obterBloqueioEmail($email);
+            $mensagem = "Esta conta está bloqueada";
+            if ($bloqueio && isset($bloqueio['bloqueado_ate'])) {
+                $mensagem .= " até " . date('d/m/Y H:i:s', strtotime($bloqueio['bloqueado_ate']));
+            }
+            throw new \RuntimeException($mensagem);
+        }
+
+        // Verifica rate limiting global
         $identificador = LimitadorRequisicao::obterIdentificador();
         if ($this->limitador->estaHabilitado() && !$this->limitador->verificar("login:{$identificador}")) {
             throw new \RuntimeException("Muitas tentativas de login. Tente novamente mais tarde.");
@@ -42,23 +70,18 @@ class Autenticacao
         );
 
         if (!$usuario) {
-            $this->registrarTentativaFalha($email);
+            $this->registrarTentativaFalha($email, $ipAddress, $userAgent, 'usuario_nao_encontrado');
             throw new \RuntimeException("Credenciais inválidas");
-        }
-
-        // Verifica se a conta está bloqueada
-        if ($this->contaBloqueada($usuario['id'])) {
-            throw new \RuntimeException("Conta bloqueada temporariamente");
         }
 
         // Verifica a senha
         if (!password_verify($senha, $usuario['senha'])) {
-            $this->registrarTentativaFalha($email, $usuario['id']);
+            $this->registrarTentativaFalha($email, $ipAddress, $userAgent, 'senha_invalida');
             throw new \RuntimeException("Credenciais inválidas");
         }
 
-        // Limpa tentativas de login
-        $this->limparTentativasFalhas($usuario['id']);
+        // Login bem-sucedido - registra tentativa
+        $this->loginAttempt->registrarTentativa($email, $ipAddress, true, null, $userAgent);
 
         // Registra a requisição de login
         if ($this->limitador->estaHabilitado()) {
@@ -209,54 +232,66 @@ class Autenticacao
     }
 
     /**
-     * Registra tentativa de login falha
+     * Registra tentativa de login falha e gerencia bloqueios
      */
-    private function registrarTentativaFalha(string $email, ?int $usuarioId = null): void
-    {
-        if (!isset($_SESSION['tentativas_login'])) {
-            $_SESSION['tentativas_login'] = [];
+    private function registrarTentativaFalha(
+        string $email,
+        string $ipAddress,
+        ?string $userAgent,
+        string $motivoFalha
+    ): void {
+        // Registra a tentativa falhada no banco
+        $this->loginAttempt->registrarTentativa($email, $ipAddress, false, $motivoFalha, $userAgent);
+
+        // Conta tentativas falhadas recentes por email
+        $tentativasEmail = $this->loginAttempt->contarTentativasFalhadasPorEmail($email);
+
+        // Conta tentativas falhadas recentes por IP
+        $tentativasIp = $this->loginAttempt->contarTentativasFalhadasPorIp($ipAddress);
+
+        $maxTentativas = $this->config->obter('BRUTE_FORCE_MAX_TENTATIVAS', 5);
+
+        // Se excedeu tentativas por email, bloqueia o email
+        if ($tentativasEmail >= $maxTentativas) {
+            $this->loginAttempt->criarBloqueio(
+                'email',
+                $email,
+                null,
+                $tentativasEmail,
+                false,
+                "Bloqueio automático: {$tentativasEmail} tentativas falhadas"
+            );
         }
 
-        $_SESSION['tentativas_login'][] = [
-            'email' => $email,
-            'usuario_id' => $usuarioId,
-            'timestamp' => time(),
-            'ip' => LimitadorRequisicao::obterIdentificador()
-        ];
-    }
-
-    /**
-     * Limpa tentativas de login falhas
-     */
-    private function limparTentativasFalhas(int $usuarioId): void
-    {
-        if (isset($_SESSION['tentativas_login'])) {
-            $_SESSION['tentativas_login'] = array_filter(
-                $_SESSION['tentativas_login'],
-                fn($t) => $t['usuario_id'] !== $usuarioId
+        // Se excedeu tentativas por IP, bloqueia o IP
+        if ($tentativasIp >= $maxTentativas) {
+            $this->loginAttempt->criarBloqueio(
+                'ip',
+                null,
+                $ipAddress,
+                $tentativasIp,
+                false,
+                "Bloqueio automático: {$tentativasIp} tentativas falhadas do IP"
             );
         }
     }
 
     /**
-     * Verifica se a conta está bloqueada
+     * Obtém o IP real do cliente (considera proxies)
      */
-    private function contaBloqueada(int $usuarioId): bool
+    private function obterIpCliente(): string
     {
-        if (!isset($_SESSION['tentativas_login'])) {
-            return false;
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ??
+              $_SERVER['HTTP_X_REAL_IP'] ??
+              $_SERVER['REMOTE_ADDR'] ??
+              'unknown';
+
+        // Se múltiplos IPs (proxy chain), pega o primeiro
+        if (strpos($ip, ',') !== false) {
+            $ip = trim(explode(',', $ip)[0]);
         }
 
-        $maxTentativas = $this->config->obter('seguranca.tentativas_login_max', 5);
-        $tempoBloqueio = $this->config->obter('seguranca.bloqueio_tempo', 900);
-        $agora = time();
-
-        $tentativas = array_filter(
-            $_SESSION['tentativas_login'],
-            fn($t) => $t['usuario_id'] === $usuarioId && ($agora - $t['timestamp']) < $tempoBloqueio
-        );
-
-        return count($tentativas) >= $maxTentativas;
+        return $ip;
     }
 
     /**
