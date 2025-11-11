@@ -3,6 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informações da Loja - Ecletech</title>
     <style>
         * {
@@ -12,7 +22,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f7fa;
             min-height: 100vh;
             display: flex;
@@ -161,6 +171,143 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        
+        /* Sidebar Scroll Area */
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Menu Items */
+        
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+        }
+
+        .sidebar-nav a:hover .menu-item-content {
+            padding-left: 24px;
+        }
+
+        /* Submenus */
+        .submenu-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            text-align: left;
+        }
+
+        .submenu-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .submenu-toggle .submenu-arrow {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
+        .submenu-toggle.open .submenu-arrow {
+            transform: rotate(180deg);
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.open {
+            max-height: 500px;
+        }
+
+        .submenu a {
+            padding-left: 56px;
+            font-size: 13px;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .user-info-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Overlay para mobile */
@@ -495,11 +642,11 @@
             <div class="nav-section">
                 <div class="nav-section-title">Principal</div>
                 <a href="./home.html">
-                    <span class="icon">🏠</span>
+                    <span class="icon"><i class="fas fa-home"></i></span>
                     <span>Home</span>
                 </a>
                 <a href="./frotas.html">
-                    <span class="icon">🚗</span>
+                    <span class="icon"><i class="fas fa-car"></i></span>
                     <span>Frotas</span>
                 </a>
             </div>
@@ -508,19 +655,19 @@
             <div class="nav-section">
                 <div class="nav-section-title">Cadastros</div>
                 <a href="./cidades.html">
-                    <span class="icon">🌆</span>
+                    <span class="icon"><i class="fas fa-city"></i></span>
                     <span>Cidades</span>
                 </a>
                 <a href="./situacoes_vendas.html">
-                    <span class="icon">📊</span>
+                    <span class="icon"><i class="fas fa-chart-line"></i></span>
                     <span>Situações de Vendas</span>
                 </a>
                 <a href="./tipos_enderecos.html">
-                    <span class="icon">📍</span>
+                    <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
                     <span>Tipos de Endereços</span>
                 </a>
                 <a href="./tipos_contatos.html">
-                    <span class="icon">📞</span>
+                    <span class="icon"><i class="fas fa-phone"></i></span>
                     <span>Tipos de Contatos</span>
                 </a>
             </div>
@@ -529,15 +676,15 @@
             <div class="nav-section">
                 <div class="nav-section-title">Gestão</div>
                 <a href="./colaboradores.html">
-                    <span class="icon">👥</span>
+                    <span class="icon"><i class="fas fa-users"></i></span>
                     <span>Colaboradores</span>
                 </a>
                 <a href="./colaborador_management.html">
-                    <span class="icon">⚙️</span>
+                    <span class="icon"><i class="fas fa-user-shield"></i></span>
                     <span>Gestão de Acessos</span>
                 </a>
                 <a href="./loja.html" class="active">
-                    <span class="icon">🏪</span>
+                    <span class="icon"><i class="fas fa-store"></i></span>
                     <span>Informações da Loja</span>
                 </a>
             </div>
@@ -546,11 +693,11 @@
             <div class="nav-section">
                 <div class="nav-section-title">Sistema</div>
                 <a href="./brute_force.html">
-                    <span class="icon">🛡️</span>
+                    <span class="icon"><i class="fas fa-shield-alt"></i></span>
                     <span>Proteção Brute Force</span>
                 </a>
                 <a href="./auditoria.html">
-                    <span class="icon">📋</span>
+                    <span class="icon"><i class="fas fa-clipboard-list"></i></span>
                     <span>Auditoria</span>
                 </a>
             </div>
@@ -562,7 +709,9 @@
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <button class="menu-toggle" id="menuToggle">☰</button>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1>Informações da Loja</h1>
             </div>
             <div class="header-actions">
@@ -769,6 +918,35 @@
 
             // Inicializa o gerenciador da loja
             await LojaManager.init();
+        });
+    </script>
+    <script>
+        // Toggle submenu
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => sm.classList.remove('open'));
+            document.querySelectorAll('.submenu-toggle').forEach(btn => btn.classList.remove('open'));
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
         });
     </script>
 </body>
