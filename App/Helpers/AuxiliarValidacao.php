@@ -422,4 +422,32 @@ class AuxiliarValidacao
             default => "O campo {$campo} é inválido"
         };
     }
+
+    /**
+     * Valida e sanitiza parâmetros de ORDER BY contra SQL Injection
+     *
+     * @param string $campo Campo de ordenação fornecido pelo usuário
+     * @param string $direcao Direção de ordenação fornecida pelo usuário
+     * @param array $camposPermitidos Lista de campos permitidos para ordenação
+     * @param string $campoDefault Campo padrão caso o fornecido seja inválido
+     * @return array Array com ['campo' => campo_validado, 'direcao' => direcao_validada]
+     */
+    public static function validarOrdenacao(
+        string $campo,
+        string $direcao,
+        array $camposPermitidos,
+        string $campoDefault = 'id'
+    ): array {
+        // Valida o campo contra a whitelist
+        $campoValidado = in_array($campo, $camposPermitidos, true) ? $campo : $campoDefault;
+
+        // Valida a direção (apenas ASC ou DESC)
+        $direcaoUpper = strtoupper(trim($direcao));
+        $direcaoValidada = in_array($direcaoUpper, ['ASC', 'DESC'], true) ? $direcaoUpper : 'ASC';
+
+        return [
+            'campo' => $campoValidado,
+            'direcao' => $direcaoValidada
+        ];
+    }
 }
