@@ -151,13 +151,53 @@ As permissões seguem o padrão `modulo.acao`:
 | `colaboradores.editar` | Editar colaboradores |
 | `colaboradores.deletar` | Deletar colaboradores |
 | `frota.visualizar` | Visualizar frotas |
+| `frota.criar` | Criar frotas |
 | `frota.editar` | Editar frotas |
-| `estados.visualizar` | Visualizar estados |
-| `cidades.visualizar` | Visualizar cidades |
+| `frota.deletar` | Deletar frotas |
+| `estado.visualizar` | Visualizar estados |
+| `estado.criar` | Criar estados |
+| `estado.editar` | Editar estados |
+| `estado.deletar` | Deletar estados |
+| `cidade.visualizar` | Visualizar cidades |
+| `cidade.criar` | Criar cidades |
+| `cidade.editar` | Editar cidades |
+| `cidade.deletar` | Deletar cidades |
+| `situacao_venda.visualizar` | Visualizar situações de vendas |
+| `situacao_venda.criar` | Criar situações de vendas |
+| `situacao_venda.editar` | Editar situações de vendas |
+| `situacao_venda.deletar` | Deletar situações de vendas |
+| `tipo_endereco.visualizar` | Visualizar tipos de endereços |
+| `tipo_endereco.criar` | Criar tipos de endereços |
+| `tipo_endereco.editar` | Editar tipos de endereços |
+| `tipo_endereco.deletar` | Deletar tipos de endereços |
+| `tipo_contato.visualizar` | Visualizar tipos de contatos |
+| `tipo_contato.criar` | Criar tipos de contatos |
+| `tipo_contato.editar` | Editar tipos de contatos |
+| `tipo_contato.deletar` | Deletar tipos de contatos |
+| `loja.visualizar` | Visualizar informações da loja |
+| `loja.editar` | Editar informações da loja |
 | `permissoes.visualizar` | Visualizar permissões |
+| `permissoes.criar` | Criar permissões |
+| `permissoes.editar` | Editar permissões |
+| `permissoes.deletar` | Deletar permissões |
 | `roles.visualizar` | Visualizar roles |
-| `admin.brute_force` | Acessar proteção brute force |
-| `admin.auditoria` | Acessar auditoria |
+| `roles.criar` | Criar roles |
+| `roles.editar` | Editar roles |
+| `roles.deletar` | Deletar roles |
+| `niveis.visualizar` | Visualizar níveis |
+| `niveis.criar` | Criar níveis |
+| `niveis.editar` | Editar níveis |
+| `niveis.deletar` | Deletar níveis |
+| `usuarios.visualizar` | Visualizar usuários |
+| `usuarios.criar` | Criar usuários |
+| `usuarios.editar` | Editar usuários |
+| `usuarios.deletar` | Deletar usuários |
+| `config.visualizar` | Visualizar configurações |
+| `config.editar` | Editar configurações |
+| `auditoria.visualizar` | Visualizar auditoria |
+| `auditoria.deletar` | Deletar auditoria |
+| `relatorios.visualizar` | Visualizar relatórios |
+| `relatorios.exportar` | Exportar relatórios |
 
 ## Comportamento em Caso de Erro
 
