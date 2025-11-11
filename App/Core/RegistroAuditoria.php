@@ -27,7 +27,7 @@ class RegistroAuditoria
         ?int $registroId = null,
         ?array $dadosAntigos = null,
         ?array $dadosNovos = null,
-        ?int $usuarioId = null
+        ?int $colaboradorId = null
     ): void {
         if (!$this->habilitada) {
             return;
@@ -35,7 +35,7 @@ class RegistroAuditoria
 
         try {
             $this->db->inserir('auditoria', [
-                'usuario_id' => $usuarioId,
+                'colaborador_id' => $colaboradorId,
                 'acao' => $acao,
                 'tabela' => $tabela,
                 'registro_id' => $registroId,
@@ -54,9 +54,9 @@ class RegistroAuditoria
     /**
      * Registra uma criação
      */
-    public function registrarCriacao(string $tabela, int $registroId, array $dados, ?int $usuarioId = null): void
+    public function registrarCriacao(string $tabela, int $registroId, array $dados, ?int $colaboradorId = null): void
     {
-        $this->registrar('criar', $tabela, $registroId, null, $dados, $usuarioId);
+        $this->registrar('criar', $tabela, $registroId, null, $dados, $colaboradorId);
     }
 
     /**
@@ -67,23 +67,23 @@ class RegistroAuditoria
         int $registroId,
         array $dadosAntigos,
         array $dadosNovos,
-        ?int $usuarioId = null
+        ?int $colaboradorId = null
     ): void {
-        $this->registrar('atualizar', $tabela, $registroId, $dadosAntigos, $dadosNovos, $usuarioId);
+        $this->registrar('atualizar', $tabela, $registroId, $dadosAntigos, $dadosNovos, $colaboradorId);
     }
 
     /**
      * Registra uma exclusão
      */
-    public function registrarExclusao(string $tabela, int $registroId, array $dados, ?int $usuarioId = null): void
+    public function registrarExclusao(string $tabela, int $registroId, array $dados, ?int $colaboradorId = null): void
     {
-        $this->registrar('deletar', $tabela, $registroId, $dados, null, $usuarioId);
+        $this->registrar('deletar', $tabela, $registroId, $dados, null, $colaboradorId);
     }
 
     /**
      * Registra um login
      */
-    public function registrarLogin(int $usuarioId, bool $sucesso = true): void
+    public function registrarLogin(int $colaboradorId, bool $sucesso = true): void
     {
         if (!$this->habilitada) {
             return;
@@ -91,7 +91,7 @@ class RegistroAuditoria
 
         try {
             $this->db->inserir('auditoria_login', [
-                'usuario_id' => $usuarioId,
+                'colaborador_id' => $colaboradorId,
                 'sucesso' => $sucesso ? 1 : 0,
                 'ip' => $this->obterIp(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
@@ -105,7 +105,7 @@ class RegistroAuditoria
     /**
      * Registra um logout
      */
-    public function registrarLogout(int $usuarioId): void
+    public function registrarLogout(int $colaboradorId): void
     {
         if (!$this->habilitada) {
             return;
@@ -113,7 +113,7 @@ class RegistroAuditoria
 
         try {
             $this->db->inserir('auditoria_login', [
-                'usuario_id' => $usuarioId,
+                'colaborador_id' => $colaboradorId,
                 'acao' => 'logout',
                 'ip' => $this->obterIp(),
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
@@ -166,15 +166,15 @@ class RegistroAuditoria
      */
     public function buscarHistorico(array $filtros = []): array
     {
-        $sql = "SELECT a.*, c.nome as usuario_nome
+        $sql = "SELECT a.*, c.nome as colaborador_nome
                 FROM auditoria a
-                LEFT JOIN colaboradores c ON a.usuario_id = c.id
+                LEFT JOIN colaboradores c ON a.colaborador_id = c.id
                 WHERE 1=1";
         $parametros = [];
 
-        if (isset($filtros['usuario_id'])) {
-            $sql .= " AND a.usuario_id = ?";
-            $parametros[] = $filtros['usuario_id'];
+        if (isset($filtros['colaborador_id'])) {
+            $sql .= " AND a.colaborador_id = ?";
+            $parametros[] = $filtros['colaborador_id'];
         }
 
         if (isset($filtros['acao'])) {
@@ -220,11 +220,11 @@ class RegistroAuditoria
     /**
      * Busca histórico de login
      */
-    public function buscarHistoricoLogin(int $usuarioId, int $limite = 10): array
+    public function buscarHistoricoLogin(int $colaboradorId, int $limite = 10): array
     {
         return $this->db->buscarTodos(
-            "SELECT * FROM auditoria_login WHERE usuario_id = ? ORDER BY criado_em DESC LIMIT ?",
-            [$usuarioId, $limite]
+            "SELECT * FROM auditoria_login WHERE colaborador_id = ? ORDER BY criado_em DESC LIMIT ?",
+            [$colaboradorId, $limite]
         );
     }
 

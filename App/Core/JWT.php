@@ -228,14 +228,14 @@ class JWT
     }
 
     /**
-     * Obtém o ID do usuário do token (com validação)
+     * Obtém o ID do colaborador do token (com validação)
      *
      * @param string $token Token JWT
-     * @return int|null ID do usuário ou null se inválido
+     * @return int|null ID do colaborador ou null se inválido
      */
-    public function obterIdUsuario(string $token): ?int
+    public function obterIdColaborador(string $token): ?int
     {
         $payload = $this->validar($token);
-        return $payload['usuario_id'] ?? null;
+        return $payload['colaborador_id'] ?? null;
     }
 }

@@ -50,7 +50,7 @@ class TokenCsrf
                 $this->model->criar([
                     'token' => $token,
                     'session_id' => session_id(),
-                    'usuario_id' => $_SESSION['usuario_id'] ?? null,
+                    'colaborador_id' => $_SESSION['colaborador_id'] ?? null,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
                     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
                     'expira_em' => date('Y-m-d H:i:s', time() + $this->expiracao)

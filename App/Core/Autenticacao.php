@@ -102,7 +102,7 @@ class Autenticacao
 
         // Gera tokens
         $payload = [
-            'usuario_id' => $usuario['id'],
+            'colaborador_id' => $usuario['id'],
             'email' => $usuario['email'],
             'nivel_id' => $usuario['nivel_id']
         ];
@@ -134,12 +134,12 @@ class Autenticacao
     {
         if ($token) {
             $payload = $this->jwt->validar($token);
-            if ($payload && isset($payload['usuario_id'])) {
+            if ($payload && isset($payload['colaborador_id'])) {
                 // Registra auditoria de logout
                 $auditoria = new RegistroAuditoria();
-                $auditoria->registrarLogout($payload['usuario_id']);
+                $auditoria->registrarLogout($payload['colaborador_id']);
 
-                $this->invalidarRefreshTokens($payload['usuario_id']);
+                $this->invalidarRefreshTokens($payload['colaborador_id']);
             }
         }
 
@@ -156,14 +156,14 @@ class Autenticacao
     {
         $payload = $this->jwt->validar($refreshToken);
 
-        if (!$payload || !isset($payload['usuario_id'])) {
+        if (!$payload || !isset($payload['colaborador_id'])) {
             throw new \RuntimeException("Refresh token inválido");
         }
 
         // Verifica se o refresh token está armazenado
         $tokenArmazenado = $this->db->buscarUm(
-            "SELECT * FROM colaborador_tokens WHERE usuario_id = ? AND token = ? AND tipo = 'refresh' AND revogado = 0 AND expira_em > NOW()",
-            [$payload['usuario_id'], $refreshToken]
+            "SELECT * FROM colaborador_tokens WHERE colaborador_id = ? AND token = ? AND tipo = 'refresh' AND revogado = 0 AND expira_em > NOW()",
+            [$payload['colaborador_id'], $refreshToken]
         );
 
         if (!$tokenArmazenado) {
@@ -173,7 +173,7 @@ class Autenticacao
         // Busca o usuário
         $usuario = $this->db->buscarUm(
             "SELECT * FROM colaboradores WHERE id = ? AND ativo = 1",
-            [$payload['usuario_id']]
+            [$payload['colaborador_id']]
         );
 
         if (!$usuario) {
@@ -182,7 +182,7 @@ class Autenticacao
 
         // Gera novo access token
         $novoPayload = [
-            'usuario_id' => $usuario['id'],
+            'colaborador_id' => $usuario['id'],
             'email' => $usuario['email'],
             'nivel_id' => $usuario['nivel_id']
         ];
@@ -210,14 +210,14 @@ class Autenticacao
 
         $payload = $this->jwt->validar($token);
 
-        if (!$payload || !isset($payload['usuario_id'])) {
+        if (!$payload || !isset($payload['colaborador_id'])) {
             return null;
         }
 
         // Busca o usuário
         $usuario = $this->db->buscarUm(
             "SELECT id, nome, email, nivel_id, ativo FROM colaboradores WHERE id = ? AND ativo = 1",
-            [$payload['usuario_id']]
+            [$payload['colaborador_id']]
         );
 
         return $usuario ?: null;
@@ -305,12 +305,12 @@ class Autenticacao
     /**
      * Salva o refresh token no banco
      */
-    private function salvarRefreshToken(int $usuarioId, string $token): void
+    private function salvarRefreshToken(int $colaboradorId, string $token): void
     {
         $expiracao = $this->config->obter('jwt.refresh_expiracao', 86400);
 
         $this->db->inserir('colaborador_tokens', [
-            'usuario_id' => $usuarioId,
+            'colaborador_id' => $colaboradorId,
             'token' => $token,
             'tipo' => 'refresh',
             'expira_em' => date('Y-m-d H:i:s', time() + $expiracao),
@@ -319,15 +319,15 @@ class Autenticacao
     }
 
     /**
-     * Invalida todos os refresh tokens de um usuário
+     * Invalida todos os refresh tokens de um colaborador
      */
-    private function invalidarRefreshTokens(int $usuarioId): void
+    private function invalidarRefreshTokens(int $colaboradorId): void
     {
         $this->db->atualizar(
             'colaborador_tokens',
             ['revogado' => 1],
-            'usuario_id = ? AND tipo = ?',
-            [$usuarioId, 'refresh']
+            'colaborador_id = ? AND tipo = ?',
+            [$colaboradorId, 'refresh']
         );
     }
 }

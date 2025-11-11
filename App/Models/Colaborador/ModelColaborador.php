@@ -104,7 +104,7 @@ class ModelColaborador
             'criado_em' => date('Y-m-d H:i:s')
         ]);
 
-        $this->auditoria->registrarCriacao('colaboradores', $id, $dados, $dados['usuario_id'] ?? null);
+        $this->auditoria->registrarCriacao('colaboradores', $id, $dados, $dados['colaborador_id'] ?? null);
 
         return $id;
     }

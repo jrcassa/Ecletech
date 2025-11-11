@@ -562,14 +562,14 @@ $id = $model->criar([
     'tipo' => 'automovel',
     'placa' => 'ABC1D23',
     'status' => 'ativo',
-    'usuario_id' => 1
+    'colaborador_id' => 1
 ]);
 
 // Atualizar veículo
-$model->atualizar(1, ['quilometragem' => 16000], $usuarioId);
+$model->atualizar(1, ['quilometragem' => 16000], $colaboradorId);
 
 // Deletar veículo (soft delete)
-$model->deletar(1, $usuarioId);
+$model->deletar(1, $colaboradorId);
 
 // Verificar duplicatas
 if ($model->placaExiste('ABC1D23')) {

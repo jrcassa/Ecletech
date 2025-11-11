@@ -142,7 +142,7 @@ class ControllerAdministrador
 
             // Obtém usuário autenticado
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['usuario_id'] = $usuarioAutenticado['id'] ?? null;
+            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
             // Cria o administrador
             $id = $this->gerenciadorUsuario->criar($dados);

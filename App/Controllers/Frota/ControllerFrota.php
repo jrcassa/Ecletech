@@ -171,7 +171,7 @@ class ControllerFrota
 
             // Obtém usuário autenticado para auditoria
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['usuario_id'] = $usuarioAutenticado['id'] ?? null;
+            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
             // Cria o veículo
             $id = $this->model->criar($dados);

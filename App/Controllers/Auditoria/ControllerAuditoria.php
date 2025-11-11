@@ -38,8 +38,8 @@ class ControllerAuditoria
             $filtros = [];
 
             // Obtém parâmetros de query
-            if (isset($_GET['usuario_id'])) {
-                $filtros['usuario_id'] = (int) $_GET['usuario_id'];
+            if (isset($_GET['colaborador_id'])) {
+                $filtros['colaborador_id'] = (int) $_GET['colaborador_id'];
             }
 
             if (isset($_GET['acao'])) {
@@ -144,7 +144,7 @@ class ControllerAuditoria
             $porPagina = isset($_GET['por_pagina']) ? (int) $_GET['por_pagina'] : 20;
 
             $filtros = [
-                'usuario_id' => (int) $usuarioId,
+                'colaborador_id' => (int) $usuarioId,
                 'limite' => $porPagina,
                 'offset' => ($pagina - 1) * $porPagina
             ];
@@ -152,7 +152,7 @@ class ControllerAuditoria
             $registros = $this->auditoria->buscarHistorico($filtros);
 
             // Conta total
-            $total = count($this->auditoria->buscarHistorico(['usuario_id' => (int) $usuarioId]));
+            $total = count($this->auditoria->buscarHistorico(['colaborador_id' => (int) $usuarioId]));
 
             // Decodifica JSON
             foreach ($registros as &$registro) {
@@ -225,13 +225,13 @@ class ControllerAuditoria
                 return;
             }
 
-            $usuarioId = isset($_GET['usuario_id']) ? (int) $_GET['usuario_id'] : null;
+            $colaboradorId = isset($_GET['colaborador_id']) ? (int) $_GET['colaborador_id'] : null;
             $limite = isset($_GET['limite']) ? (int) $_GET['limite'] : 50;
 
-            if ($usuarioId) {
-                $registros = $this->auditoria->buscarHistoricoLogin($usuarioId, $limite);
+            if ($colaboradorId) {
+                $registros = $this->auditoria->buscarHistoricoLogin($colaboradorId, $limite);
             } else {
-                // Se não especificar usuário, busca todos (precisa adicionar método)
+                // Se não especificar colaborador, busca todos (precisa adicionar método)
                 $registros = [];
             }
 
@@ -280,12 +280,12 @@ class ControllerAuditoria
                 }
                 $estatisticas['por_tabela'][$tabela]++;
 
-                // Agrupa por usuário
-                $usuarioId = $registro['usuario_id'] ?? 'sistema';
-                if (!isset($estatisticas['por_usuario'][$usuarioId])) {
-                    $estatisticas['por_usuario'][$usuarioId] = 0;
+                // Agrupa por colaborador
+                $colaboradorId = $registro['colaborador_id'] ?? 'sistema';
+                if (!isset($estatisticas['por_colaborador'][$colaboradorId])) {
+                    $estatisticas['por_colaborador'][$colaboradorId] = 0;
                 }
-                $estatisticas['por_usuario'][$usuarioId]++;
+                $estatisticas['por_colaborador'][$colaboradorId]++;
             }
 
             // Decodifica JSON das últimas ações

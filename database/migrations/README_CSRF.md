@@ -15,7 +15,7 @@ csrf_tokens (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     token           VARCHAR(64) NOT NULL UNIQUE,
     session_id      VARCHAR(255) NULL,
-    usuario_id      INT UNSIGNED NULL,
+    colaborador_id  INT UNSIGNED NULL,
     ip_address      VARCHAR(45) NULL,
     user_agent      VARCHAR(500) NULL,
     usado           TINYINT(1) NOT NULL DEFAULT 0,
@@ -106,14 +106,14 @@ $model = new ModelCsrfToken();
 $tokenId = $model->criar([
     'token' => bin2hex(random_bytes(32)),
     'session_id' => session_id(),
-    'usuario_id' => $_SESSION['usuario_id'] ?? null,
+    'colaborador_id' => $_SESSION['colaborador_id'] ?? null,
     'ip_address' => $_SERVER['REMOTE_ADDR'],
     'user_agent' => $_SERVER['HTTP_USER_AGENT'],
     'expira_em' => date('Y-m-d H:i:s', time() + 3600)
 ]);
 
-// Buscar tokens de um usuário
-$tokens = $model->buscarPorUsuario($usuarioId);
+// Buscar tokens de um colaborador
+$tokens = $model->buscarPorColaborador($colaboradorId);
 ```
 
 ## Integração com TokenCsrf.php
@@ -125,7 +125,7 @@ A classe `TokenCsrf` (`App/Core/TokenCsrf.php`) foi atualizada para:
 1. **Usar banco de dados automaticamente** quando disponível
 2. **Fallback para sessões** caso haja erro de conexão ao banco
 3. **One-time tokens** - tokens são marcados como "usado" após validação
-4. **Rastreamento completo** - armazena IP, user agent, session_id e usuario_id
+4. **Rastreamento completo** - armazena IP, user agent, session_id e colaborador_id
 5. **Tokens de uso único** - cada token só pode ser validado uma vez
 
 ## Limpeza Automática
