@@ -95,8 +95,7 @@ class ModelFornecedor
         $fornecedor['enderecos'] = $this->db->buscarTodos(
             "SELECT
                 fe.*,
-                c.nome as nome_cidade,
-                c.estado_id
+                c.nome as nome_cidade
             FROM fornecedores_enderecos fe
             LEFT JOIN cidades c ON fe.cidade_id = c.id
             WHERE fe.fornecedor_id = ?
