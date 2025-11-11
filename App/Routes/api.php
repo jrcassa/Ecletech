@@ -67,6 +67,10 @@ $router->grupo([
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
 
+    // Inclui rotas de tipos de endereços
+    $rotasTipoEndereco = require __DIR__ . '/tipo_endereco.php';
+    $rotasTipoEndereco($router);
+
     // Inclui rotas de login attempts (proteção brute force)
     $rotasLoginAttempts = require __DIR__ . '/login_attempts.php';
     $rotasLoginAttempts($router);
