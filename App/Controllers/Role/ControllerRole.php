@@ -7,6 +7,7 @@ use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 use App\Core\BancoDados;
+use App\Core\Autenticacao;
 
 /**
  * Controlador para gerenciar roles (funções)
@@ -16,12 +17,14 @@ class ControllerRole
     private ModelColaboradorRole $model;
     private ModelColaboradorPermission $modelPermission;
     private BancoDados $db;
+    private Autenticacao $auth;
 
     public function __construct()
     {
         $this->model = new ModelColaboradorRole();
         $this->modelPermission = new ModelColaboradorPermission();
         $this->db = BancoDados::obterInstancia();
+        $this->auth = new Autenticacao();
     }
 
     /**
@@ -139,7 +142,8 @@ class ControllerRole
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $id = $this->model->criar($dados, $usuarioId);
 
             AuxiliarResposta::sucesso([
@@ -188,7 +192,8 @@ class ControllerRole
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $this->model->atualizar($id, $dados, $usuarioId);
 
             AuxiliarResposta::sucesso([
@@ -212,7 +217,8 @@ class ControllerRole
                 return;
             }
 
-            $usuarioId = $_SESSION['usuario']['id'] ?? null;
+            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuarioId = $usuario['id'] ?? null;
             $sucesso = $this->model->deletar($id, $usuarioId);
 
             if ($sucesso) {

@@ -10,7 +10,7 @@ use App\Helpers\AuxiliarValidacao;
 use App\Middleware\MiddlewareAcl;
 
 /**
- * Controlador para gerenciar administradores
+ * Controlador para gerenciar colaboradores
  * Todos os métodos verificam permissões ACL antes de executar
  */
 class ControllerAdministrador
@@ -29,7 +29,7 @@ class ControllerAdministrador
     }
 
     /**
-     * Lista todos os administradores
+     * Lista todos os colaboradores
      * Requer permissão: colaboradores.visualizar
      */
     public function listar(): void
@@ -37,7 +37,7 @@ class ControllerAdministrador
         try {
             // Verifica permissão ACL
             if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
-                AuxiliarResposta::proibido('Você não tem permissão para visualizar administradores');
+                AuxiliarResposta::proibido('Você não tem permissão para visualizar colaboradores');
                 return;
             }
 
@@ -63,22 +63,22 @@ class ControllerAdministrador
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = ($pagina - 1) * $porPagina;
 
-            $administradores = $this->model->listar($filtros);
+            $colaboradores = $this->model->listar($filtros);
             $total = $this->model->contar($filtros);
 
             // Remove senhas dos resultados
-            foreach ($administradores as &$admin) {
-                unset($admin['senha']);
+            foreach ($colaboradores as &$colab) {
+                unset($colab['senha']);
             }
 
-            AuxiliarResposta::paginado($administradores, $total, $pagina, $porPagina);
+            AuxiliarResposta::paginado($colaboradores, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }
     }
 
     /**
-     * Busca um administrador por ID
+     * Busca um colaborador por ID
      * Requer permissão: colaboradores.visualizar
      */
     public function buscar(string $id): void
@@ -86,35 +86,35 @@ class ControllerAdministrador
         try {
             // Verifica permissão ACL
             if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
-                AuxiliarResposta::proibido('Você não tem permissão para visualizar administradores');
+                AuxiliarResposta::proibido('Você não tem permissão para visualizar colaboradores');
                 return;
             }
 
-            $administrador = $this->model->buscarPorId((int) $id);
+            $colaborador = $this->model->buscarPorId((int) $id);
 
-            if (!$administrador) {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+            if (!$colaborador) {
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Remove a senha
-            unset($administrador['senha']);
+            unset($colaborador['senha']);
 
-            AuxiliarResposta::sucesso($administrador, 'Administrador encontrado');
+            AuxiliarResposta::sucesso($colaborador, 'Colaborador encontrado');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }
     }
 
     /**
-     * Cria um novo administrador
+     * Cria um novo colaborador
      * Requer permissão: colaboradores.criar
      */
     public function criar(): void
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.criar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para criar administradores');
+            AuxiliarResposta::proibido('Você não tem permissão para criar colaboradores');
             return;
         }
 
@@ -144,43 +144,43 @@ class ControllerAdministrador
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Cria o administrador
+            // Cria o colaborador
             $id = $this->gerenciadorUsuario->criar($dados);
 
-            $administrador = $this->model->buscarPorId($id);
-            unset($administrador['senha']);
+            $colaborador = $this->model->buscarPorId($id);
+            unset($colaborador['senha']);
 
-            AuxiliarResposta::criado($administrador, 'Administrador criado com sucesso');
+            AuxiliarResposta::criado($colaborador, 'Colaborador criado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Atualiza um administrador
+     * Atualiza um colaborador
      * Requer permissão: colaboradores.editar
      */
     public function atualizar(string $id): void
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.editar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para editar administradores');
+            AuxiliarResposta::proibido('Você não tem permissão para editar colaboradores');
             return;
         }
 
         $dados = AuxiliarResposta::obterDados();
-        $administradorId = (int) $id;
+        $colaboradorId = (int) $id;
 
         try {
-            $administrador = $this->model->buscarPorId($administradorId);
+            $colaborador = $this->model->buscarPorId($colaboradorId);
 
-            if (!$administrador) {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+            if (!$colaborador) {
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Verifica se o email já existe (para outro usuário)
-            if (isset($dados['email']) && $this->model->emailExiste($dados['email'], $administradorId)) {
+            if (isset($dados['email']) && $this->model->emailExiste($dados['email'], $colaboradorId)) {
                 AuxiliarResposta::conflito('Email já cadastrado');
                 return;
             }
@@ -188,48 +188,48 @@ class ControllerAdministrador
             // Obtém usuário autenticado
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
 
-            // Atualiza o administrador
-            $this->gerenciadorUsuario->atualizar($administradorId, $dados);
+            // Atualiza o colaborador
+            $this->gerenciadorUsuario->atualizar($colaboradorId, $dados);
 
-            $administradorAtualizado = $this->model->buscarPorId($administradorId);
-            unset($administradorAtualizado['senha']);
+            $colaboradorAtualizado = $this->model->buscarPorId($colaboradorId);
+            unset($colaboradorAtualizado['senha']);
 
-            AuxiliarResposta::sucesso($administradorAtualizado, 'Administrador atualizado com sucesso');
+            AuxiliarResposta::sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Deleta um administrador (soft delete)
+     * Deleta um colaborador (soft delete)
      * Requer permissão: colaboradores.deletar
      */
     public function deletar(string $id): void
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.deletar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para deletar administradores');
+            AuxiliarResposta::proibido('Você não tem permissão para deletar colaboradores');
             return;
         }
 
-        $administradorId = (int) $id;
+        $colaboradorId = (int) $id;
 
         try {
             // Obtém usuário autenticado
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
 
             // Não permite deletar a si mesmo
-            if ($usuarioAutenticado && $usuarioAutenticado['id'] == $administradorId) {
+            if ($usuarioAutenticado && $usuarioAutenticado['id'] == $colaboradorId) {
                 AuxiliarResposta::erro('Não é possível deletar seu próprio usuário', 400);
                 return;
             }
 
-            $resultado = $this->gerenciadorUsuario->deletar($administradorId);
+            $resultado = $this->gerenciadorUsuario->deletar($colaboradorId);
 
             if ($resultado) {
-                AuxiliarResposta::sucesso(null, 'Administrador deletado com sucesso');
+                AuxiliarResposta::sucesso(null, 'Colaborador deletado com sucesso');
             } else {
-                AuxiliarResposta::naoEncontrado('Administrador não encontrado');
+                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
@@ -237,7 +237,7 @@ class ControllerAdministrador
     }
 
     /**
-     * Verifica as permissões do usuário atual para o módulo de administradores
+     * Verifica as permissões do usuário atual para o módulo de colaboradores
      * Retorna quais operações o usuário pode realizar
      */
     public function verificarPermissoes(): void
