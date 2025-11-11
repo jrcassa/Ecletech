@@ -51,10 +51,6 @@ $router->grupo([
     $rotasFrota = require __DIR__ . '/frota.php';
     $rotasFrota($router);
 
-    // Inclui rotas de administradores
-    $rotasAdministrador = require __DIR__ . '/administrador.php';
-    $rotasAdministrador($router);
-
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'obterUsuarioAutenticado']);
