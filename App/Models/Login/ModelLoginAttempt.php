@@ -20,9 +20,10 @@ class ModelLoginAttempt
         $this->db = BancoDados::obterInstancia();
 
         // Configurações de proteção brute force
-        $this->maxTentativas = (int) Configuracao::obter('BRUTE_FORCE_MAX_TENTATIVAS', 5);
-        $this->janelaTempoMinutos = (int) Configuracao::obter('BRUTE_FORCE_JANELA_TEMPO', 15);
-        $this->tempoBloqueioMinutos = (int) Configuracao::obter('BRUTE_FORCE_TEMPO_BLOQUEIO', 30);
+        $config = Configuracao::obterInstancia();
+        $this->maxTentativas = (int) $config->obter('BRUTE_FORCE_MAX_TENTATIVAS', 5);
+        $this->janelaTempoMinutos = (int) $config->obter('BRUTE_FORCE_JANELA_TEMPO', 15);
+        $this->tempoBloqueioMinutos = (int) $config->obter('BRUTE_FORCE_TEMPO_BLOQUEIO', 30);
     }
 
     /**
