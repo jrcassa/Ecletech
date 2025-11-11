@@ -7,6 +7,7 @@ use App\Core\GerenciadorUsuario;
 use App\Models\Colaborador\ModelColaborador;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
+use App\Middleware\MiddlewareAcl;
 
 /**
  * Controlador para gerenciar colaboradores
@@ -16,12 +17,14 @@ class ControllerColaborador
     private ModelColaborador $model;
     private GerenciadorUsuario $gerenciadorUsuario;
     private Autenticacao $auth;
+    private MiddlewareAcl $acl;
 
     public function __construct()
     {
         $this->model = new ModelColaborador();
         $this->gerenciadorUsuario = new GerenciadorUsuario();
         $this->auth = new Autenticacao();
+        $this->acl = new MiddlewareAcl();
     }
 
     /**
@@ -192,6 +195,26 @@ class ControllerColaborador
             } else {
                 AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
             }
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Verifica as permissões do usuário atual para o módulo de colaboradores
+     * Retorna quais operações o usuário pode realizar
+     */
+    public function verificarPermissoes(): void
+    {
+        try {
+            $permissoes = [
+                'visualizar' => $this->acl->verificarPermissao('colaboradores.visualizar'),
+                'criar' => $this->acl->verificarPermissao('colaboradores.criar'),
+                'editar' => $this->acl->verificarPermissao('colaboradores.editar'),
+                'deletar' => $this->acl->verificarPermissao('colaboradores.deletar')
+            ];
+
+            AuxiliarResposta::sucesso($permissoes, 'Permissões verificadas');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }

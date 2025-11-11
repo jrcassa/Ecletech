@@ -13,6 +13,9 @@ return function($router) {
         'prefixo' => 'colaboradores',
         'middleware' => ['auth', 'admin']
     ], function($router) {
+        // Verificar permissões do usuário atual
+        $router->get('/permissoes', [ControllerColaborador::class, 'verificarPermissoes']);
+
         // Listar colaboradores - requer permissão de visualização
         $router->get('/', [ControllerColaborador::class, 'listar'])
             ->middleware(MiddlewareAcl::requer('colaboradores.visualizar'));
