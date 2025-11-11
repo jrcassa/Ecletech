@@ -171,9 +171,9 @@ const FrotasManager = {
                 this.atualizarPaginacao();
             }
         } catch (error) {
-            // Formata mensagem de erro considerando validações da API
+            // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
-                this.formatarMensagemErro(error.data) :
+                Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao carregar veículos da frota';
 
             this.showError(mensagemErro);
@@ -300,7 +300,7 @@ const FrotasManager = {
         document.getElementById('status').value = 'ativo';
 
         this.elements.modalError.style.display = 'none';
-        this.limparErrosCampos();
+        Utils.Errors.limparCampos();
         this.elements.modalForm.classList.add('show');
     },
 
@@ -336,13 +336,13 @@ const FrotasManager = {
                 document.getElementById('observacoes').value = veiculo.observacoes || '';
 
                 this.elements.modalError.style.display = 'none';
-                this.limparErrosCampos();
+                Utils.Errors.limparCampos();
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
-            // Formata mensagem de erro considerando validações da API
+            // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
-                this.formatarMensagemErro(error.data) :
+                Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao carregar veículo';
 
             alert(mensagemErro);
@@ -439,9 +439,9 @@ const FrotasManager = {
                 alert(response.mensagem || 'Veículo deletado com sucesso!');
             }
         } catch (error) {
-            // Formata mensagem de erro considerando validações da API
+            // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
-                this.formatarMensagemErro(error.data) :
+                Utils.Errors.formatarMensagem(error.data) :
                 'Erro ao deletar veículo';
 
             alert(mensagemErro);
@@ -457,7 +457,7 @@ const FrotasManager = {
         this.elements.formVeiculo.reset();
         this.state.editandoId = null;
         this.elements.modalError.style.display = 'none';
-        this.limparErrosCampos();
+        Utils.Errors.limparCampos();
     },
 
     /**
@@ -482,71 +482,43 @@ const FrotasManager = {
     },
 
     /**
-     * Formata erros de validação da API
-     */
-    formatarErrosValidacao(erros) {
-        if (!erros || typeof erros !== 'object') {
-            return null;
-        }
-
-        const mensagens = [];
-        for (const [campo, mensagensArray] of Object.entries(erros)) {
-            if (Array.isArray(mensagensArray)) {
-                mensagensArray.forEach(msg => {
-                    mensagens.push(`• ${msg}`);
-                });
-            }
-        }
-
-        return mensagens.length > 0 ? mensagens.join('\n') : null;
-    },
-
-    /**
-     * Mostra erro no modal
+     * Mostra erro no modal usando Utils
      */
     showModalError(error) {
         // Limpa destaques anteriores
-        this.limparErrosCampos();
+        Utils.Errors.limparCampos();
 
-        this.elements.modalError.style.display = 'block';
-        const mensagemFinal = this.formatarMensagemErro(error);
-        this.elements.modalErrorMessage.textContent = mensagemFinal;
-
-        // Aplica estilo para preservar quebras de linha
-        this.elements.modalErrorMessage.style.whiteSpace = 'pre-line';
+        // Exibe erro usando Utils
+        Utils.Errors.exibir(
+            this.elements.modalError,
+            this.elements.modalErrorMessage,
+            error
+        );
 
         // Destaca campos com erro
         if (error && error.erros && typeof error.erros === 'object') {
-            this.destacarCamposComErro(error.erros);
+            // Mapeamento de campos do backend para IDs dos inputs
+            const mapeamentoCampos = {
+                'nome': 'nome',
+                'tipo': 'tipo',
+                'placa': 'placa',
+                'status': 'status',
+                'marca': 'marca',
+                'modelo': 'modelo',
+                'ano_fabricacao': 'anoFabricacao',
+                'ano_modelo': 'anoModelo',
+                'cor': 'cor',
+                'chassi': 'chassi',
+                'renavam': 'renavam',
+                'quilometragem': 'quilometragem',
+                'capacidade_tanque': 'capacidadeTanque',
+                'data_aquisicao': 'dataAquisicao',
+                'valor_aquisicao': 'valorAquisicao',
+                'observacoes': 'observacoes'
+            };
+
+            Utils.Errors.destacarCampos(error.erros, mapeamentoCampos);
         }
-    },
-
-    /**
-     * Formata mensagem de erro de forma consistente
-     * Suporta erros da API com estrutura: { sucesso: false, mensagem: "...", erros: {...} }
-     */
-    formatarMensagemErro(error) {
-        // Se é uma string simples
-        if (typeof error === 'string') {
-            return error;
-        }
-
-        // Se não é um objeto, retorna mensagem padrão
-        if (!error || typeof error !== 'object') {
-            return 'Erro ao processar requisição';
-        }
-
-        // Verifica se é um objeto de erro da API com validações
-        const errosValidacao = this.formatarErrosValidacao(error.erros);
-
-        if (errosValidacao) {
-            // Se tem erros de validação, mostra eles formatados
-            const titulo = error.mensagem || 'Erro de validação';
-            return `${titulo}:\n\n${errosValidacao}`;
-        }
-
-        // Se não tem erros detalhados, usa a mensagem geral
-        return error.mensagem || error.erro || 'Erro ao processar requisição';
     },
 
     /**
@@ -609,64 +581,10 @@ const FrotasManager = {
     },
 
     /**
-     * Destaca campos com erro no formulário
-     */
-    destacarCamposComErro(erros) {
-        // Mapeamento de nomes de campos do backend para IDs dos inputs
-        const mapeamentoCampos = {
-            'nome': 'nome',
-            'tipo': 'tipo',
-            'placa': 'placa',
-            'status': 'status',
-            'marca': 'marca',
-            'modelo': 'modelo',
-            'ano_fabricacao': 'anoFabricacao',
-            'ano_modelo': 'anoModelo',
-            'cor': 'cor',
-            'chassi': 'chassi',
-            'renavam': 'renavam',
-            'quilometragem': 'quilometragem',
-            'capacidade_tanque': 'capacidadeTanque',
-            'data_aquisicao': 'dataAquisicao',
-            'valor_aquisicao': 'valorAquisicao',
-            'observacoes': 'observacoes'
-        };
-
-        for (const [campo, mensagens] of Object.entries(erros)) {
-            const inputId = mapeamentoCampos[campo] || campo;
-            const inputElement = document.getElementById(inputId);
-
-            if (inputElement) {
-                // Adiciona borda vermelha
-                inputElement.style.borderColor = '#dc3545';
-                inputElement.style.borderWidth = '2px';
-
-                // Adiciona classe para identificar campos com erro
-                inputElement.classList.add('campo-com-erro');
-            }
-        }
-    },
-
-    /**
-     * Limpa destaques de erro dos campos
-     */
-    limparErrosCampos() {
-        const camposComErro = document.querySelectorAll('.campo-com-erro');
-        camposComErro.forEach(campo => {
-            campo.style.borderColor = '';
-            campo.style.borderWidth = '';
-            campo.classList.remove('campo-com-erro');
-        });
-    },
-
-    /**
-     * Escape HTML
+     * Escape HTML usando Utils
      */
     escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return Utils.DOM.escapeHtml(text);
     }
 };
 
