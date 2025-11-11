@@ -1,48 +1,36 @@
--- Migration: Adicionar permissões de estados
--- Descrição: Adiciona as permissões necessárias para gerenciar estados
+-- Migration: Adicionar permissões do módulo Estados
+-- Descrição: Cria as permissões para visualizar, criar, editar e deletar estados
 
--- Inserir permissões de estados
-INSERT INTO permissoes (nome, descricao, categoria, criado_em) VALUES
-('estado.visualizar', 'Visualizar estados', 'estado', NOW()),
-('estado.criar', 'Criar estados', 'estado', NOW()),
-('estado.editar', 'Editar estados', 'estado', NOW()),
-('estado.deletar', 'Deletar estados', 'estado', NOW())
+-- Inserir permissões para o módulo estados
+INSERT INTO colaborador_permissions (nome, codigo, descricao, modulo, ativo, criado_em) VALUES
+('Visualizar Estados', 'estado.visualizar', 'Permite visualizar a lista de estados', 'estado', 1, NOW()),
+('Criar Estado', 'estado.criar', 'Permite criar novos estados', 'estado', 1, NOW()),
+('Editar Estado', 'estado.editar', 'Permite editar estados existentes', 'estado', 1, NOW()),
+('Deletar Estado', 'estado.deletar', 'Permite deletar estados', 'estado', 1, NOW())
 ON DUPLICATE KEY UPDATE
+    nome = VALUES(nome),
     descricao = VALUES(descricao),
-    categoria = VALUES(categoria);
+    modulo = VALUES(modulo),
+    ativo = VALUES(ativo),
+    atualizado_em = NOW();
 
--- Obter IDs das permissões de estados
-SET @perm_estado_visualizar = (SELECT id FROM permissoes WHERE nome = 'estado.visualizar');
-SET @perm_estado_criar = (SELECT id FROM permissoes WHERE nome = 'estado.criar');
-SET @perm_estado_editar = (SELECT id FROM permissoes WHERE nome = 'estado.editar');
-SET @perm_estado_deletar = (SELECT id FROM permissoes WHERE nome = 'estado.deletar');
+-- Associar todas as permissões de estado ao role Super Admin (ID 1)
+INSERT INTO colaborador_role_permissions (role_id, permission_id, criado_em)
+SELECT 1, p.id, NOW()
+FROM colaborador_permissions p
+WHERE p.modulo = 'estado'
+AND NOT EXISTS (
+    SELECT 1 FROM colaborador_role_permissions crp
+    WHERE crp.role_id = 1 AND crp.permission_id = p.id
+);
 
--- Obter IDs dos grupos
-SET @grupo_admin = (SELECT id FROM grupos WHERE nome = 'Administrador');
-SET @grupo_gerente = (SELECT id FROM grupos WHERE nome = 'Gerente');
-SET @grupo_operador = (SELECT id FROM grupos WHERE nome = 'Operador');
-SET @grupo_colaborador = (SELECT id FROM grupos WHERE nome = 'Colaborador');
-
--- Atribuir permissões ao grupo Administrador (acesso total)
-INSERT IGNORE INTO grupos_permissoes (grupo_id, permissao_id) VALUES
-(@grupo_admin, @perm_estado_visualizar),
-(@grupo_admin, @perm_estado_criar),
-(@grupo_admin, @perm_estado_editar),
-(@grupo_admin, @perm_estado_deletar);
-
--- Atribuir permissões ao grupo Gerente (acesso total)
-INSERT IGNORE INTO grupos_permissoes (grupo_id, permissao_id) VALUES
-(@grupo_gerente, @perm_estado_visualizar),
-(@grupo_gerente, @perm_estado_criar),
-(@grupo_gerente, @perm_estado_editar),
-(@grupo_gerente, @perm_estado_deletar);
-
--- Atribuir permissões ao grupo Operador (visualizar, criar e editar)
-INSERT IGNORE INTO grupos_permissoes (grupo_id, permissao_id) VALUES
-(@grupo_operador, @perm_estado_visualizar),
-(@grupo_operador, @perm_estado_criar),
-(@grupo_operador, @perm_estado_editar);
-
--- Atribuir permissões ao grupo Colaborador (apenas visualizar)
-INSERT IGNORE INTO grupos_permissoes (grupo_id, permissao_id) VALUES
-(@grupo_colaborador, @perm_estado_visualizar);
+-- Associar permissões de visualizar e criar ao role Admin (ID 2)
+INSERT INTO colaborador_role_permissions (role_id, permission_id, criado_em)
+SELECT 2, p.id, NOW()
+FROM colaborador_permissions p
+WHERE p.modulo = 'estado'
+AND p.codigo IN ('estado.visualizar', 'estado.criar', 'estado.editar')
+AND NOT EXISTS (
+    SELECT 1 FROM colaborador_role_permissions crp
+    WHERE crp.role_id = 2 AND crp.permission_id = p.id
+);
