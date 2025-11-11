@@ -40,13 +40,15 @@ class ModelLoginAttempt
                 (email, ip_address, user_agent, tentativa_sucesso, motivo_falha, criado_em)
                 VALUES (?, ?, ?, ?, ?, NOW())";
 
-        return $this->db->executar($sql, [
+        $stmt = $this->db->executar($sql, [
             $email,
             $ipAddress,
             $userAgent,
             $sucesso ? 1 : 0,
             $motivoFalha
         ]);
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -171,20 +173,22 @@ class ModelLoginAttempt
                         atualizado_em = NOW()
                     WHERE id = ?";
 
-            return $this->db->executar($sql, [
+            $stmt = $this->db->executar($sql, [
                 $tentativas,
                 $bloqueadoAte,
                 $permanente ? 1 : 0,
                 $motivo,
                 $bloqueioExistente['id']
             ]);
+
+            return $stmt->rowCount() > 0;
         } else {
             // Cria novo bloqueio
             $sql = "INSERT INTO login_bloqueios
                     (tipo_bloqueio, email, ip_address, tentativas_falhadas, bloqueado_ate, bloqueado_permanente, motivo, criado_em)
                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
 
-            return $this->db->executar($sql, [
+            $stmt = $this->db->executar($sql, [
                 $tipo,
                 $email,
                 $ipAddress,
@@ -193,6 +197,8 @@ class ModelLoginAttempt
                 $permanente ? 1 : 0,
                 $motivo
             ]);
+
+            return $stmt->rowCount() > 0;
         }
     }
 
@@ -225,7 +231,8 @@ class ModelLoginAttempt
                 WHERE email = ?
                 AND tipo_bloqueio IN ('email', 'ambos')";
 
-        return $this->db->executar($sql, [$email]);
+        $stmt = $this->db->executar($sql, [$email]);
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -237,7 +244,8 @@ class ModelLoginAttempt
                 WHERE ip_address = ?
                 AND tipo_bloqueio IN ('ip', 'ambos')";
 
-        return $this->db->executar($sql, [$ipAddress]);
+        $stmt = $this->db->executar($sql, [$ipAddress]);
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -245,7 +253,8 @@ class ModelLoginAttempt
      */
     public function desbloquearPorId(int $id): bool
     {
-        return $this->db->executar("DELETE FROM login_bloqueios WHERE id = ?", [$id]);
+        $stmt = $this->db->executar("DELETE FROM login_bloqueios WHERE id = ?", [$id]);
+        return $stmt->rowCount() > 0;
     }
 
     /**
