@@ -30,7 +30,7 @@ const FrotasManager = {
     // Elementos DOM
     elements: {
         permissionDenied: document.getElementById('permissionDenied'),
-        mainContent: document.getElementById('mainContent'),
+        mainContent: document.getElementById('pageContent'),
         loadingContainer: document.getElementById('loadingContainer'),
         errorContainer: document.getElementById('errorContainer'),
         errorMessage: document.getElementById('errorMessage'),
