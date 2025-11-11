@@ -13,8 +13,11 @@ return function($router) {
         'prefixo' => 'permissoes',
         'middleware' => ['auth', 'admin']
     ], function($router) {
-        // Listar permissões por módulo - requer permissão de visualização
+        // Obter permissões do usuário autenticado - disponível para todos os usuários
         // IMPORTANTE: Esta rota deve vir ANTES de /{id} para não conflitar
+        $router->get('/usuario', [ControllerPermissao::class, 'obterPermissoesUsuario']);
+
+        // Listar permissões por módulo - requer permissão de visualização
         $router->get('/modulos/listar', [ControllerPermissao::class, 'listarPorModulo'])
             ->middleware(MiddlewareAcl::requer('permissoes.visualizar'));
 

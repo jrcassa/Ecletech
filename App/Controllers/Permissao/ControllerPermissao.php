@@ -5,6 +5,7 @@ namespace App\Controllers\Permissao;
 use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
+use App\Middleware\MiddlewareAcl;
 
 /**
  * Controlador para gerenciar permissões
@@ -201,6 +202,23 @@ class ControllerPermissao
             } else {
                 AuxiliarResposta::erro('Não foi possível deletar a permissão', 500);
             }
+        } catch (\Exception $e) {
+            AuxiliarResposta::erroInterno($e->getMessage());
+        }
+    }
+
+    /**
+     * Obtém as permissões do usuário autenticado
+     */
+    public function obterPermissoesUsuario(): void
+    {
+        try {
+            $middleware = new MiddlewareAcl();
+            $permissoes = $middleware->obterPermissoesUsuarioAtual();
+
+            AuxiliarResposta::sucesso([
+                'permissoes' => $permissoes
+            ]);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
