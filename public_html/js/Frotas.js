@@ -415,12 +415,8 @@ const FrotasManager = {
                 alert(response.mensagem || 'Veículo salvo com sucesso!');
             }
         } catch (error) {
-            // Formata e exibe mensagem de erro considerando validações da API
-            const mensagemErro = error.data ?
-                error.data :
-                'Erro ao salvar veículo';
-
-            this.showModalError(mensagemErro);
+            // Exibe mensagem de erro com detalhes de validação
+            this.showModalError(error.data || 'Erro ao salvar veículo');
             console.error('Erro ao salvar veículo:', error);
         }
     },
