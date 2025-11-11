@@ -700,7 +700,7 @@
                     <span class="icon">🏠</span>
                     <span>Home</span>
                 </a>
-                <a href="./frotas.html">
+                <a href="./frotas.html" data-permission="frota.visualizar">
                     <span class="icon">🚗</span>
                     <span>Frotas</span>
                 </a>
@@ -709,19 +709,19 @@
             <!-- Cadastros -->
             <div class="nav-section">
                 <div class="nav-section-title">Cadastros</div>
-                <a href="./cidades.html" class="active">
+                <a href="./cidades.html" class="active" data-permission="cidades.visualizar">
                     <span class="icon">🌆</span>
                     <span>Cidades</span>
                 </a>
-                <a href="./situacoes_vendas.html">
+                <a href="./situacoes_vendas.html" data-permission="situacoes_vendas.visualizar">
                     <span class="icon">📊</span>
                     <span>Situações de Vendas</span>
                 </a>
-                <a href="./tipos_enderecos.html">
+                <a href="./tipos_enderecos.html" data-permission="tipos_enderecos.visualizar">
                     <span class="icon">📍</span>
                     <span>Tipos de Endereços</span>
                 </a>
-                <a href="./tipos_contatos.html">
+                <a href="./tipos_contatos.html" data-permission="tipos_contatos.visualizar">
                     <span class="icon">📞</span>
                     <span>Tipos de Contatos</span>
                 </a>
@@ -730,15 +730,15 @@
             <!-- Gestão -->
             <div class="nav-section">
                 <div class="nav-section-title">Gestão</div>
-                <a href="./colaboradores.html">
+                <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
                     <span class="icon">👥</span>
                     <span>Colaboradores</span>
                 </a>
-                <a href="./colaborador_management.html">
+                <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
                     <span class="icon">⚙️</span>
                     <span>Gestão de Acessos</span>
                 </a>
-                <a href="./loja.html">
+                <a href="./loja.html" data-permission="lojas.visualizar">
                     <span class="icon">🏪</span>
                     <span>Informações da Loja</span>
                 </a>
@@ -747,11 +747,11 @@
             <!-- Sistema -->
             <div class="nav-section">
                 <div class="nav-section-title">Sistema</div>
-                <a href="./brute_force.html">
+                <a href="./brute_force.html" data-permission="admin.brute_force">
                     <span class="icon">🛡️</span>
                     <span>Proteção Brute Force</span>
                 </a>
-                <a href="./auditoria.html">
+                <a href="./auditoria.html" data-permission="admin.auditoria">
                     <span class="icon">📋</span>
                     <span>Auditoria</span>
                 </a>
@@ -893,6 +893,7 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
+    <script src="js/sidebar.js"></script>
     <script>
         // Sidebar toggle
         const sidebar = document.getElementById('sidebar');
