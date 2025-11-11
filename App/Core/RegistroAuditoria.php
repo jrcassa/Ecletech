@@ -134,7 +134,21 @@ class RegistroAuditoria
         }
 
         try {
+            // Obtém o colaborador autenticado (se houver)
+            $colaboradorId = null;
+            try {
+                $autenticacao = new Autenticacao();
+                $usuario = $autenticacao->obterUsuarioAutenticado();
+                if ($usuario && isset($usuario['id'])) {
+                    $colaboradorId = $usuario['id'];
+                }
+            } catch (\Exception $e) {
+                // Ignora erro ao obter usuário autenticado
+                // Requisições não autenticadas terão colaborador_id NULL
+            }
+
             $this->db->inserir('auditoria_requisicoes', [
+                'colaborador_id' => $colaboradorId,
                 'metodo' => $_SERVER['REQUEST_METHOD'],
                 'uri' => $_SERVER['REQUEST_URI'],
                 'ip' => $this->obterIp(),
