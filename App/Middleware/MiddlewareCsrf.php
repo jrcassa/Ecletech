@@ -78,6 +78,12 @@ class MiddlewareCsrf
             return false;
         }
 
+        // Token válido: gera um novo token para a próxima requisição (uso único)
+        $novoToken = $this->csrf->gerar();
+
+        // Envia o novo token no header da resposta para que o frontend atualize automaticamente
+        header('X-New-CSRF-Token: ' . $novoToken);
+
         return true;
     }
 }
