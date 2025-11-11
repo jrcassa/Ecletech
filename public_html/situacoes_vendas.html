@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Colaboradores - Ecletech</title>
+    <title>Situações de Vendas - Ecletech</title>
     <style>
         * {
             margin: 0;
@@ -199,7 +199,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 40px auto;
             padding: 0 20px;
         }
@@ -298,6 +298,16 @@
             color: #721c24;
         }
 
+        .color-preview {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
         .actions {
             display: flex;
             gap: 8px;
@@ -384,6 +394,25 @@
             border-color: #667eea;
         }
 
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 60px;
+            height: 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+
         .form-actions {
             display: flex;
             gap: 10px;
@@ -415,14 +444,6 @@
         .error-message {
             background: #f8d7da;
             color: #721c24;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
@@ -619,11 +640,11 @@
                 <span class="icon">🌆</span>
                 <span>Cidades</span>
             </a>
-            <a href="./situacoes_vendas.html">
+            <a href="./situacoes_vendas.html" class="active">
                 <span class="icon">📊</span>
                 <span>Situações de Vendas</span>
             </a>
-            <a href="./colaboradores.html" class="active">
+            <a href="./colaboradores.html">
                 <span class="icon">👥</span>
                 <span>Colaboradores</span>
             </a>
@@ -654,7 +675,7 @@
         <header class="header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1>Gerenciar Colaboradores</h1>
+                <h1>Gerenciar Situações de Vendas</h1>
             </div>
             <div class="header-actions">
                 <button class="btn btn-secondary" onclick="window.location.href='./home.html'">Voltar</button>
@@ -670,21 +691,21 @@
         <div id="pageContent" style="display: none;">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; border: none; padding: 0;">Colaboradores</h2>
-                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Novo Colaborador</button>
+                    <h2 style="margin: 0; border: none; padding: 0;">Situações de Vendas Cadastradas</h2>
+                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Nova Situação</button>
                 </div>
 
                 <div class="filters">
                     <div class="filter-group">
                         <label>Buscar</label>
-                        <input type="text" id="filtoBusca" placeholder="Nome ou email...">
+                        <input type="text" id="filtroBusca" placeholder="Nome ou ID externo...">
                     </div>
                     <div class="filter-group">
                         <label>Status</label>
                         <select id="filtroAtivo">
                             <option value="">Todos</option>
-                            <option value="1" selected>Ativos</option>
-                            <option value="0">Inativos</option>
+                            <option value="1" selected>Ativo</option>
+                            <option value="0">Inativo</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -706,11 +727,10 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>ID Externo</th>
                                 <th>Nome</th>
-                                <th>Email</th>
-                                <th>Nível</th>
+                                <th>Cor</th>
                                 <th>Status</th>
-                                <th>Criado em</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -718,7 +738,7 @@
                     </table>
 
                     <div id="noData" class="no-data" style="display: none;">
-                        Nenhum colaborador encontrado.
+                        Nenhuma situação de venda encontrada.
                     </div>
 
                     <div class="pagination" id="pagination">
@@ -735,7 +755,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Colaborador</h3>
+                <h3 id="modalTitle">Nova Situação de Venda</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -743,34 +763,31 @@
                 <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <form id="formAdministrador">
-                <input type="hidden" id="adminId">
+            <form id="formSituacao">
+                <input type="hidden" id="situacaoId">
+
+                <div class="form-group">
+                    <label for="external_id">ID Externo</label>
+                    <input type="text" id="external_id" placeholder="ID do sistema externo (opcional)">
+                </div>
 
                 <div class="form-group">
                     <label for="nome">Nome *</label>
-                    <input type="text" id="nome" required>
+                    <input type="text" id="nome" required placeholder="Ex: Em aberto">
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" required>
+                    <label for="cor">Cor *</label>
+                    <div class="color-input-group">
+                        <input type="color" id="colorPicker" value="#999999">
+                        <input type="text" id="cor" required placeholder="#999999" maxlength="7" pattern="^#[0-9A-Fa-f]{6}$">
+                    </div>
+                    <small style="color: #666; font-size: 12px;">Formato: #RRGGBB (hexadecimal)</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="senha">Senha * <small>(mínimo 8 caracteres)</small></label>
-                    <input type="password" id="senha" minlength="8">
-                </div>
-
-                <div class="form-group">
-                    <label for="nivelId">Nível *</label>
-                    <select id="nivelId" required>
-                        <option value="">Selecione...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="ativo">Status *</label>
-                    <select id="ativo" required>
+                    <label for="ativo">Status</label>
+                    <select id="ativo">
                         <option value="1">Ativo</option>
                         <option value="0">Inativo</option>
                     </select>
@@ -817,7 +834,22 @@
                 sidebarOverlay.classList.remove('show');
             }
         });
+
+        // Sincroniza color picker com input de texto
+        const colorPicker = document.getElementById('colorPicker');
+        const corInput = document.getElementById('cor');
+
+        colorPicker.addEventListener('input', (e) => {
+            corInput.value = e.target.value.toUpperCase();
+        });
+
+        corInput.addEventListener('input', (e) => {
+            const valor = e.target.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(valor)) {
+                colorPicker.value = valor;
+            }
+        });
     </script>
-    <script src="js/colaboradores.js"></script>
+    <script src="js/SituacoesVendas.js"></script>
 </body>
 </html>

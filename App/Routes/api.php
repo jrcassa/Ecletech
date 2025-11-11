@@ -63,6 +63,10 @@ $router->grupo([
     $rotasCidade = require __DIR__ . '/cidade.php';
     $rotasCidade($router);
 
+    // Inclui rotas de situações de vendas
+    $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
+    $rotasSituacaoVenda($router);
+
     // Inclui rotas de login attempts (proteção brute force)
     $rotasLoginAttempts = require __DIR__ . '/login_attempts.php';
     $rotasLoginAttempts($router);
