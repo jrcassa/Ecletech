@@ -188,9 +188,9 @@ const AdministradoresManager = {
             const response = await API.get(`/administradores?${params.toString()}`);
 
             if (response.sucesso) {
-                this.state.administradores = response.dados || [];
-                this.state.paginacao.total = response.paginacao?.total || 0;
-                this.state.paginacao.totalPaginas = response.paginacao?.total_paginas || 0;
+                this.state.administradores = response.dados?.itens || [];
+                this.state.paginacao.total = response.dados?.paginacao?.total || 0;
+                this.state.paginacao.totalPaginas = response.dados?.paginacao?.total_paginas || 0;
 
                 this.renderizarTabela();
                 this.atualizarPaginacao();
