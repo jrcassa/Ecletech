@@ -161,14 +161,15 @@ const FornecedoresManager = {
     async carregarTiposEnderecos() {
         try {
             const response = await API.get('/tipos-enderecos');
-            console.log('Resposta tipos-enderecos:', response);
 
             if (response.sucesso && response.dados) {
-                // Garante que dados é um array
-                if (Array.isArray(response.dados)) {
-                    this.state.tiposEnderecos = response.dados;
+                // A resposta vem paginada: response.dados.itens
+                const itens = response.dados.itens || response.dados;
+
+                if (Array.isArray(itens)) {
+                    this.state.tiposEnderecos = itens;
                 } else {
-                    console.error('Resposta de tipos-enderecos não é um array:', response.dados);
+                    console.error('Resposta de tipos-enderecos não contém array de itens:', response.dados);
                     this.state.tiposEnderecos = [];
                 }
             } else {
@@ -187,14 +188,15 @@ const FornecedoresManager = {
     async carregarCidades() {
         try {
             const response = await API.get('/cidades');
-            console.log('Resposta cidades:', response);
 
             if (response.sucesso && response.dados) {
-                // Garante que dados é um array
-                if (Array.isArray(response.dados)) {
-                    this.state.cidades = response.dados;
+                // A resposta vem paginada: response.dados.itens
+                const itens = response.dados.itens || response.dados;
+
+                if (Array.isArray(itens)) {
+                    this.state.cidades = itens;
                 } else {
-                    console.error('Resposta de cidades não é um array:', response.dados);
+                    console.error('Resposta de cidades não contém array de itens:', response.dados);
                     this.state.cidades = [];
                 }
             } else {
