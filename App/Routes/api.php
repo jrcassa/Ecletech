@@ -47,6 +47,10 @@ $router->grupo([
     $rotasPermissao = require __DIR__ . '/permissao.php';
     $rotasPermissao($router);
 
+    // Inclui rotas de níveis
+    $rotasNivel = require __DIR__ . '/nivel.php';
+    $rotasNivel($router);
+
     // Inclui rotas de frota
     $rotasFrota = require __DIR__ . '/frota.php';
     $rotasFrota($router);
