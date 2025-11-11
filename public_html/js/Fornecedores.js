@@ -26,7 +26,9 @@ const FornecedoresManager = {
         },
         editandoId: null,
         contatos: [],
-        enderecos: []
+        enderecos: [],
+        tiposEnderecos: [],
+        cidades: []
     },
 
     // Elementos DOM
@@ -91,6 +93,8 @@ const FornecedoresManager = {
         this.elements.permissionDenied.style.display = 'none';
         this.elements.mainContent.style.display = 'block';
 
+        await this.carregarTiposEnderecos();
+        await this.carregarCidades();
         await this.carregarFornecedores();
     },
 
@@ -148,6 +152,34 @@ const FornecedoresManager = {
             }
         } catch (error) {
             console.error('Erro ao verificar permissões:', error);
+        }
+    },
+
+    /**
+     * Carrega tipos de endereços
+     */
+    async carregarTiposEnderecos() {
+        try {
+            const response = await API.get('/api/tipo_endereco');
+            if (response.sucesso) {
+                this.state.tiposEnderecos = response.dados || [];
+            }
+        } catch (erro) {
+            console.error('Erro ao carregar tipos de endereços:', erro);
+        }
+    },
+
+    /**
+     * Carrega cidades
+     */
+    async carregarCidades() {
+        try {
+            const response = await API.get('/api/cidade');
+            if (response.sucesso) {
+                this.state.cidades = response.dados || [];
+            }
+        } catch (erro) {
+            console.error('Erro ao carregar cidades:', erro);
         }
     },
 
@@ -656,6 +688,10 @@ const FornecedoresManager = {
             div.innerHTML = `
                 <div class="form-row">
                     <div class="form-group">
+                        <label>Tipo de Endereço</label>
+                        <select class="endereco-tipo"></select>
+                    </div>
+                    <div class="form-group">
                         <label>CEP</label>
                         <input type="text"
                                class="endereco-cep mask-cep"
@@ -677,6 +713,8 @@ const FornecedoresManager = {
                                value="${this.escapeHtml(endereco.numero || '')}"
                                placeholder="Número">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Complemento</label>
                         <input type="text"
@@ -684,8 +722,6 @@ const FornecedoresManager = {
                                value="${this.escapeHtml(endereco.complemento || '')}"
                                placeholder="Apto, Sala, etc">
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>Bairro</label>
                         <input type="text"
@@ -694,18 +730,8 @@ const FornecedoresManager = {
                                placeholder="Bairro">
                     </div>
                     <div class="form-group">
-                        <label>Cidade (ID)</label>
-                        <input type="number"
-                               class="endereco-cidade-id"
-                               value="${endereco.cidade_id || ''}"
-                               placeholder="ID da cidade">
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo Endereço (ID)</label>
-                        <input type="number"
-                               class="endereco-tipo-id"
-                               value="${endereco.tipo_endereco_id || ''}"
-                               placeholder="ID do tipo">
+                        <label>Cidade</label>
+                        <select class="endereco-cidade"></select>
                     </div>
                 </div>
                 <button type="button"
@@ -715,10 +741,52 @@ const FornecedoresManager = {
                 </button>
             `;
             this.elements.listaEnderecos.appendChild(div);
+
+            // Popular select de tipo de endereço
+            const selectTipo = div.querySelector('.endereco-tipo');
+            this.popularSelectTipoEndereco(selectTipo, endereco.tipo_endereco_id);
+
+            // Popular select de cidade
+            const selectCidade = div.querySelector('.endereco-cidade');
+            this.popularSelectCidade(selectCidade, endereco.cidade_id);
         });
 
         // Reaplica máscaras
         this.aplicarMascaras();
+    },
+
+    /**
+     * Popular select de tipo de endereço
+     */
+    popularSelectTipoEndereco(select, valorSelecionado) {
+        select.innerHTML = '<option value="">Selecione o tipo</option>';
+
+        this.state.tiposEnderecos.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.id;
+            option.textContent = Utils.DOM.escapeHtml(tipo.nome);
+            if (tipo.id == valorSelecionado) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    },
+
+    /**
+     * Popular select de cidade
+     */
+    popularSelectCidade(select, valorSelecionado) {
+        select.innerHTML = '<option value="">Selecione a cidade</option>';
+
+        this.state.cidades.forEach(cidade => {
+            const option = document.createElement('option');
+            option.value = cidade.id;
+            option.textContent = Utils.DOM.escapeHtml(cidade.nome);
+            if (cidade.id == valorSelecionado) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
     },
 
     /**
@@ -734,8 +802,8 @@ const FornecedoresManager = {
             const numero = item.querySelector('.endereco-numero').value.trim();
             const complemento = item.querySelector('.endereco-complemento').value.trim();
             const bairro = item.querySelector('.endereco-bairro').value.trim();
-            const cidadeId = item.querySelector('.endereco-cidade-id').value;
-            const tipoEnderecoId = item.querySelector('.endereco-tipo-id').value;
+            const cidadeId = item.querySelector('.endereco-cidade').value;
+            const tipoEnderecoId = item.querySelector('.endereco-tipo').value;
 
             if (cep || logradouro || cidadeId) {
                 enderecos.push({
