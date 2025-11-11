@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Controllers\TipoEndereco;
+namespace App\Controllers\TipoContato;
 
-use App\Models\TipoEndereco\ModelTipoEndereco;
+use App\Models\TipoContato\ModelTipoContato;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 use App\Helpers\AuxiliarSanitizacao;
 
 /**
- * Controller para gerenciar tipos de endereços
+ * Controller para gerenciar tipos de contatos
  */
-class ControllerTipoEndereco
+class ControllerTipoContato
 {
-    private ModelTipoEndereco $model;
+    private ModelTipoContato $model;
     private Autenticacao $auth;
 
     public function __construct()
     {
-        $this->model = new ModelTipoEndereco();
+        $this->model = new ModelTipoContato();
         $this->auth = new Autenticacao();
     }
 
     /**
-     * Lista todos os tipos de endereços
+     * Lista todos os tipos de contatos
      */
     public function listar(): void
     {
@@ -56,7 +56,7 @@ class ControllerTipoEndereco
                 $total,
                 $paginaAtual,
                 $porPagina,
-                'Tipos de endereços listados com sucesso'
+                'Tipos de contatos listados com sucesso'
             );
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
@@ -64,7 +64,7 @@ class ControllerTipoEndereco
     }
 
     /**
-     * Busca um tipo de endereço por ID
+     * Busca um tipo de contato por ID
      */
     public function buscar(string $id): void
     {
@@ -77,18 +77,18 @@ class ControllerTipoEndereco
             $tipo = $this->model->buscarPorId((int) $id);
 
             if (!$tipo) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                AuxiliarResposta::naoEncontrado('Tipo de contato não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($tipo, 'Tipo de endereço encontrado');
+            AuxiliarResposta::sucesso($tipo, 'Tipo de contato encontrado');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Cria um novo tipo de endereço
+     * Cria um novo tipo de contato
      */
     public function criar(): void
     {
@@ -124,19 +124,19 @@ class ControllerTipoEndereco
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Cria o tipo de endereço
+            // Cria o tipo de contato
             $id = $this->model->criar($dados);
 
             $tipo = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($tipo, 'Tipo de endereço cadastrado com sucesso');
+            AuxiliarResposta::criado($tipo, 'Tipo de contato cadastrado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Atualiza um tipo de endereço
+     * Atualiza um tipo de contato
      */
     public function atualizar(string $id): void
     {
@@ -146,10 +146,10 @@ class ControllerTipoEndereco
                 return;
             }
 
-            // Verifica se o tipo de endereço existe
+            // Verifica se o tipo de contato existe
             $tipoExistente = $this->model->buscarPorId((int) $id);
             if (!$tipoExistente) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                AuxiliarResposta::naoEncontrado('Tipo de contato não encontrado');
                 return;
             }
 
@@ -169,7 +169,7 @@ class ControllerTipoEndereco
             // Verifica se o nome já existe (excluindo o próprio tipo)
             if (isset($dados['nome'])) {
                 if ($this->model->nomeExiste($dados['nome'], (int) $id)) {
-                    AuxiliarResposta::conflito('Nome já cadastrado em outro tipo de endereço');
+                    AuxiliarResposta::conflito('Nome já cadastrado em outro tipo de contato');
                     return;
                 }
             }
@@ -177,7 +177,7 @@ class ControllerTipoEndereco
             // Verifica se o external_id já existe (excluindo o próprio tipo)
             if (isset($dados['external_id']) && !empty($dados['external_id'])) {
                 if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('ID externo já cadastrado em outro tipo de endereço');
+                    AuxiliarResposta::conflito('ID externo já cadastrado em outro tipo de contato');
                     return;
                 }
             }
@@ -186,24 +186,24 @@ class ControllerTipoEndereco
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $usuarioId = $usuarioAutenticado['id'] ?? null;
 
-            // Atualiza o tipo de endereço
+            // Atualiza o tipo de contato
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar tipo de endereço', 400);
+                AuxiliarResposta::erro('Erro ao atualizar tipo de contato', 400);
                 return;
             }
 
             $tipo = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($tipo, 'Tipo de endereço atualizado com sucesso');
+            AuxiliarResposta::sucesso($tipo, 'Tipo de contato atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Deleta um tipo de endereço (soft delete)
+     * Deleta um tipo de contato (soft delete)
      */
     public function deletar(string $id): void
     {
@@ -213,10 +213,10 @@ class ControllerTipoEndereco
                 return;
             }
 
-            // Verifica se o tipo de endereço existe
+            // Verifica se o tipo de contato existe
             $tipo = $this->model->buscarPorId((int) $id);
             if (!$tipo) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                AuxiliarResposta::naoEncontrado('Tipo de contato não encontrado');
                 return;
             }
 
@@ -224,29 +224,29 @@ class ControllerTipoEndereco
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $usuarioId = $usuarioAutenticado['id'] ?? null;
 
-            // Deleta o tipo de endereço
+            // Deleta o tipo de contato
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar tipo de endereço', 400);
+                AuxiliarResposta::erro('Erro ao deletar tipo de contato', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Tipo de endereço removido com sucesso');
+            AuxiliarResposta::sucesso(null, 'Tipo de contato removido com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
     }
 
     /**
-     * Obtém estatísticas de tipos de endereços
+     * Obtém estatísticas de tipos de contatos
      */
     public function obterEstatisticas(): void
     {
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de tipos de endereços obtidas com sucesso');
+            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de tipos de contatos obtidas com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
