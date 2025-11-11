@@ -408,29 +408,33 @@
             <h2>Ecletech</h2>
         </div>
         <nav class="sidebar-nav">
-            <a href="home.html">
+            <a href="./home.html">
                 <span class="icon">🏠</span>
-                Home
+                <span>Home</span>
             </a>
-            <a href="colaboradores.html">
-                <span class="icon">👥</span>
-                Colaboradores
-            </a>
-            <a href="frotas.html">
+            <a href="./frotas.html">
                 <span class="icon">🚗</span>
-                Frotas
+                <span>Frotas</span>
             </a>
-            <a href="loja.html" class="active">
+            <a href="./colaboradores.html">
+                <span class="icon">👥</span>
+                <span>Colaboradores</span>
+            </a>
+            <a href="./colaborador_management.html">
+                <span class="icon">⚙️</span>
+                <span>Gestão de Acessos</span>
+            </a>
+            <a href="./loja.html" class="active">
                 <span class="icon">🏪</span>
-                Informações da Loja
+                <span>Informações da Loja</span>
             </a>
-            <a href="auditoria.html">
+            <a href="./brute_force.html">
+                <span class="icon">🛡️</span>
+                <span>Proteção Brute Force</span>
+            </a>
+            <a href="./auditoria.html">
                 <span class="icon">📋</span>
-                Auditoria
-            </a>
-            <a href="brute_force.html">
-                <span class="icon">🔒</span>
-                Segurança
+                <span>Auditoria</span>
             </a>
         </nav>
     </aside>
@@ -447,7 +451,7 @@
                 <div class="user-info">
                     <span id="userDisplayName">Carregando...</span>
                 </div>
-                <button class="btn btn-secondary" onclick="Auth.logout()">Sair</button>
+                <button class="btn btn-secondary" onclick="AuthAPI.logout()">Sair</button>
             </div>
         </header>
 
@@ -596,7 +600,7 @@
 
                     <!-- Actions -->
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="Loja.cancelar()">Cancelar</button>
+                        <button type="button" class="btn btn-secondary" onclick="LojaManager.cancelar()">Cancelar</button>
                         <button type="submit" class="btn btn-success" id="btnSalvar">Salvar Alterações</button>
                     </div>
                 </form>
@@ -634,19 +638,19 @@
         // Inicialização
         document.addEventListener('DOMContentLoaded', async () => {
             // Verifica autenticação
-            if (!Auth.verificarAutenticacao()) {
+            if (!AuthAPI.isAuthenticated()) {
                 window.location.href = 'auth.html';
                 return;
             }
 
             // Carrega informações do usuário
-            const usuario = Auth.obterUsuario();
+            const usuario = API.getUser();
             if (usuario) {
                 document.getElementById('userDisplayName').textContent = usuario.nome || usuario.email;
             }
 
-            // Carrega informações da loja
-            await Loja.carregar();
+            // Inicializa o gerenciador da loja
+            await LojaManager.init();
         });
     </script>
 </body>
