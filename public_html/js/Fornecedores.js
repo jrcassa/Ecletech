@@ -624,6 +624,15 @@ const FornecedoresManager = {
         this.elements.listaContatos.innerHTML = '';
 
         this.state.contatos.forEach((contato, index) => {
+            // Backend retorna 'contato' mas frontend usa 'telefone'
+            const telefone = contato.contato || contato.telefone || '';
+
+            // Extrai email da observacao se existir
+            let email = contato.email || '';
+            if (!email && contato.observacao && contato.observacao.startsWith('Email: ')) {
+                email = contato.observacao.replace('Email: ', '');
+            }
+
             const div = document.createElement('div');
             div.className = 'dynamic-list-item';
             div.innerHTML = `
@@ -646,14 +655,14 @@ const FornecedoresManager = {
                         <label>Telefone</label>
                         <input type="text"
                                class="contato-telefone mask-telefone"
-                               value="${this.formatarTelefone(contato.telefone || '')}"
+                               value="${this.formatarTelefone(telefone)}"
                                placeholder="(00) 00000-0000">
                     </div>
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email"
                                class="contato-email"
-                               value="${this.escapeHtml(contato.email || '')}"
+                               value="${this.escapeHtml(email)}"
                                placeholder="email@exemplo.com">
                     </div>
                 </div>
@@ -683,8 +692,20 @@ const FornecedoresManager = {
             const telefone = item.querySelector('.contato-telefone').value.replace(/\D/g, '');
             const email = item.querySelector('.contato-email').value.trim();
 
-            if (nome || cargo || telefone || email) {
-                contatos.push({ nome, cargo, telefone, email });
+            // Precisa ter pelo menos nome E telefone para salvar
+            if (nome && telefone) {
+                const contato = {
+                    nome,
+                    contato: telefone,  // Mapeia telefone → contato
+                    cargo: cargo || null
+                };
+
+                // Se tiver email, adiciona em observacao
+                if (email) {
+                    contato.observacao = `Email: ${email}`;
+                }
+
+                contatos.push(contato);
             }
         });
 
