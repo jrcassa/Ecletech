@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saindo... - Ecletech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-container {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .logout-icon {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .countdown {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <div id="spinner" class="spinner"></div>
+        <div id="logoutIcon" class="logout-icon" style="display: none;">👋</div>
+
+        <h1 id="title">Saindo...</h1>
+        <p id="message">Aguarde enquanto fazemos logout da sua conta.</p>
+
+        <div id="successMessage" class="success-message">
+            Logout realizado com sucesso!
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            Ocorreu um erro ao fazer logout.
+        </div>
+
+        <div id="redirectInfo" style="display: none;">
+            <p>Você será redirecionado para a página de login em <span id="countdown" class="countdown">3</span> segundos...</p>
+            <a href="./auth.html" class="btn" id="loginBtn">Ir para Login Agora</a>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script>
+        const spinner = document.getElementById('spinner');
+        const logoutIcon = document.getElementById('logoutIcon');
+        const title = document.getElementById('title');
+        const message = document.getElementById('message');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const redirectInfo = document.getElementById('redirectInfo');
+        const countdownElement = document.getElementById('countdown');
+
+        async function performLogout() {
+            try {
+                // Faz o logout via AuthAPI
+                await AuthAPI.logout();
+
+                // Sucesso - mostra mensagem
+                spinner.style.display = 'none';
+                logoutIcon.style.display = 'flex';
+                title.textContent = 'Até logo!';
+                message.textContent = 'Você foi desconectado com sucesso.';
+                successMessage.style.display = 'block';
+                redirectInfo.style.display = 'block';
+
+                // Countdown e redirecionamento
+                let seconds = 3;
+                const countdownInterval = setInterval(() => {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        window.location.href = './auth.html';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+
+                // Erro - mostra mensagem mas ainda limpa sessão
+                spinner.style.display = 'none';
+                logoutIcon.style.display = 'flex';
+                title.textContent = 'Sessão Encerrada';
+                message.textContent = 'Sua sessão foi encerrada.';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Ocorreu um erro, mas sua sessão local foi limpa.';
+                redirectInfo.style.display = 'block';
+
+                // Countdown e redirecionamento mesmo com erro
+                let seconds = 3;
+                const countdownInterval = setInterval(() => {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        window.location.href = './auth.html';
+                    }
+                }, 1000);
+            }
+        }
+
+        // Executa logout automaticamente ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            performLogout();
+        });
+
+        // Previne navegação de volta
+        window.history.pushState(null, '', window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, '', window.location.href);
+        };
+    </script>
+</body>
+</html>
