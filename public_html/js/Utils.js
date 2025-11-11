@@ -318,6 +318,60 @@ const Utils = {
             telefone = telefone.replace(/[^\d]/g, '');
             // Aceita (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
             return telefone.length === 10 || telefone.length === 11;
+        },
+
+        /**
+         * Normaliza placa de veículo
+         * Remove espaços, converte para maiúsculas e aplica formato correto
+         * Suporta formato Mercosul (ABC1D23) e antigo (ABC-1234 ou ABC1234)
+         * @param {string} placa - Placa a ser normalizada
+         * @returns {string} - Placa normalizada
+         */
+        normalizarPlaca(placa) {
+            if (!placa) return '';
+
+            // Remove espaços e converte para maiúsculas
+            placa = placa.trim().toUpperCase().replace(/\s+/g, '');
+
+            // Remove caracteres especiais exceto hífen
+            placa = placa.replace(/[^A-Z0-9-]/g, '');
+
+            // Detecta e normaliza formato Mercosul: ABC1D23
+            const mercosul = /^([A-Z]{3})(\d{1})([A-Z]{1})(\d{2})$/;
+            if (mercosul.test(placa)) {
+                return placa; // Já está no formato correto
+            }
+
+            // Detecta e normaliza formato antigo: ABC-1234 ou ABC1234
+            const antigoComHifen = /^([A-Z]{3})-?(\d{4})$/;
+            const match = placa.match(antigoComHifen);
+            if (match) {
+                // Retorna no formato com hífen
+                return `${match[1]}-${match[2]}`;
+            }
+
+            // Se não está em nenhum formato reconhecido, retorna como está
+            // (deixa o backend validar e retornar erro apropriado)
+            return placa;
+        },
+
+        /**
+         * Valida placa de veículo
+         * @param {string} placa - Placa a ser validada
+         * @returns {boolean} - True se válido
+         */
+        placa(placa) {
+            if (!placa) return false;
+
+            const placaNormalizada = this.normalizarPlaca(placa);
+
+            // Formato Mercosul: ABC1D23
+            const mercosul = /^[A-Z]{3}\d[A-Z]\d{2}$/;
+
+            // Formato antigo: ABC-1234
+            const antigo = /^[A-Z]{3}-\d{4}$/;
+
+            return mercosul.test(placaNormalizada) || antigo.test(placaNormalizada);
         }
     },
 
