@@ -27,8 +27,7 @@ const FornecedoresManager = {
         editandoId: null,
         contatos: [],
         enderecos: [],
-        tiposEnderecos: [],
-        cidades: []
+        tiposEnderecos: []
     },
 
     // Elementos DOM
@@ -94,7 +93,6 @@ const FornecedoresManager = {
         this.elements.mainContent.style.display = 'block';
 
         await this.carregarTiposEnderecos();
-        await this.carregarCidades();
         await this.carregarFornecedores();
     },
 
@@ -183,29 +181,46 @@ const FornecedoresManager = {
     },
 
     /**
-     * Carrega cidades
+     * Busca cidades por nome (autocomplete)
      */
-    async carregarCidades() {
+    async buscarCidades(termo) {
         try {
-            const response = await API.get('/cidades');
+            if (!termo || termo.length < 2) {
+                return [];
+            }
+
+            const params = new URLSearchParams({
+                busca: termo,
+                por_pagina: 20
+            });
+
+            const response = await API.get(`/cidades?${params.toString()}`);
 
             if (response.sucesso && response.dados) {
-                // A resposta vem paginada: response.dados.itens
                 const itens = response.dados.itens || response.dados;
-
-                if (Array.isArray(itens)) {
-                    this.state.cidades = itens;
-                } else {
-                    console.error('Resposta de cidades não contém array de itens:', response.dados);
-                    this.state.cidades = [];
-                }
-            } else {
-                console.warn('Resposta de cidades sem sucesso ou sem dados:', response);
-                this.state.cidades = [];
+                return Array.isArray(itens) ? itens : [];
             }
+
+            return [];
         } catch (erro) {
-            console.error('Erro ao carregar cidades:', erro);
-            this.state.cidades = [];
+            console.error('Erro ao buscar cidades:', erro);
+            return [];
+        }
+    },
+
+    /**
+     * Busca cidade por ID
+     */
+    async buscarCidadePorId(id) {
+        try {
+            const response = await API.get(`/cidades/${id}`);
+            if (response.sucesso && response.dados) {
+                return response.dados;
+            }
+            return null;
+        } catch (erro) {
+            console.error('Erro ao buscar cidade por ID:', erro);
+            return null;
         }
     },
 
@@ -757,7 +772,15 @@ const FornecedoresManager = {
                     </div>
                     <div class="form-group">
                         <label>Cidade</label>
-                        <select class="endereco-cidade"></select>
+                        <div class="autocomplete-wrapper" style="position: relative;">
+                            <input type="text"
+                                   class="endereco-cidade-nome"
+                                   placeholder="Digite para buscar..."
+                                   autocomplete="off"
+                                   value="">
+                            <input type="hidden" class="endereco-cidade-id" value="${endereco.cidade_id || ''}">
+                            <div class="autocomplete-list" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; width: 100%;"></div>
+                        </div>
                     </div>
                 </div>
                 <button type="button"
@@ -772,9 +795,19 @@ const FornecedoresManager = {
             const selectTipo = div.querySelector('.endereco-tipo');
             this.popularSelectTipoEndereco(selectTipo, endereco.tipo_endereco_id);
 
-            // Popular select de cidade
-            const selectCidade = div.querySelector('.endereco-cidade');
-            this.popularSelectCidade(selectCidade, endereco.cidade_id);
+            // Configurar autocomplete de cidade
+            const inputCidadeNome = div.querySelector('.endereco-cidade-nome');
+            const inputCidadeId = div.querySelector('.endereco-cidade-id');
+            const autocompleteList = div.querySelector('.autocomplete-list');
+
+            this.configurarAutocompleteCidade(inputCidadeNome, inputCidadeId, autocompleteList);
+
+            // Se já tem cidade_id, carregar o nome da cidade
+            if (endereco.cidade_id) {
+                this.carregarNomeCidade(endereco.cidade_id, inputCidadeNome);
+            } else if (endereco.nome_cidade) {
+                inputCidadeNome.value = endereco.nome_cidade;
+            }
         });
 
         // Reaplica máscaras
@@ -806,27 +839,89 @@ const FornecedoresManager = {
     },
 
     /**
-     * Popular select de cidade
+     * Configura autocomplete de cidade
      */
-    popularSelectCidade(select, valorSelecionado) {
-        select.innerHTML = '<option value="">Selecione a cidade</option>';
+    configurarAutocompleteCidade(inputNome, inputId, listElement) {
+        let timeoutId = null;
 
-        // Verifica se cidades é um array válido
-        if (!Array.isArray(this.state.cidades)) {
-            console.error('cidades não é um array:', this.state.cidades);
-            this.state.cidades = [];
-            return;
-        }
+        // Evento de digitação
+        inputNome.addEventListener('input', async (e) => {
+            const termo = e.target.value.trim();
 
-        this.state.cidades.forEach(cidade => {
-            const option = document.createElement('option');
-            option.value = cidade.id;
-            option.textContent = Utils.DOM.escapeHtml(cidade.nome);
-            if (cidade.id == valorSelecionado) {
-                option.selected = true;
+            // Limpa timeout anterior
+            if (timeoutId) {
+                clearTimeout(timeoutId);
             }
-            select.appendChild(option);
+
+            // Se termo for muito curto, esconde a lista
+            if (termo.length < 2) {
+                listElement.style.display = 'none';
+                inputId.value = '';
+                return;
+            }
+
+            // Debounce: aguarda 300ms após parar de digitar
+            timeoutId = setTimeout(async () => {
+                const cidades = await this.buscarCidades(termo);
+
+                if (cidades.length > 0) {
+                    listElement.innerHTML = '';
+                    listElement.style.display = 'block';
+
+                    cidades.forEach(cidade => {
+                        const item = document.createElement('div');
+                        item.style.cssText = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;';
+                        item.textContent = `${cidade.nome} - ${cidade.estado || ''}`;
+                        item.dataset.cidadeId = cidade.id;
+                        item.dataset.cidadeNome = cidade.nome;
+
+                        // Hover
+                        item.addEventListener('mouseenter', () => {
+                            item.style.backgroundColor = '#f0f0f0';
+                        });
+                        item.addEventListener('mouseleave', () => {
+                            item.style.backgroundColor = 'white';
+                        });
+
+                        // Click
+                        item.addEventListener('click', () => {
+                            inputNome.value = cidade.nome;
+                            inputId.value = cidade.id;
+                            listElement.style.display = 'none';
+                        });
+
+                        listElement.appendChild(item);
+                    });
+                } else {
+                    listElement.innerHTML = '<div style="padding: 8px; color: #999;">Nenhuma cidade encontrada</div>';
+                    listElement.style.display = 'block';
+                }
+            }, 300);
         });
+
+        // Fecha a lista ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!inputNome.contains(e.target) && !listElement.contains(e.target)) {
+                listElement.style.display = 'none';
+            }
+        });
+
+        // Fecha a lista ao perder o foco
+        inputNome.addEventListener('blur', () => {
+            setTimeout(() => {
+                listElement.style.display = 'none';
+            }, 200);
+        });
+    },
+
+    /**
+     * Carrega nome da cidade por ID
+     */
+    async carregarNomeCidade(cidadeId, inputNome) {
+        const cidade = await this.buscarCidadePorId(cidadeId);
+        if (cidade && cidade.nome) {
+            inputNome.value = cidade.nome;
+        }
     },
 
     /**
@@ -842,7 +937,7 @@ const FornecedoresManager = {
             const numero = item.querySelector('.endereco-numero').value.trim();
             const complemento = item.querySelector('.endereco-complemento').value.trim();
             const bairro = item.querySelector('.endereco-bairro').value.trim();
-            const cidadeId = item.querySelector('.endereco-cidade').value;
+            const cidadeId = item.querySelector('.endereco-cidade-id').value; // Mudado para campo oculto
             const tipoEnderecoId = item.querySelector('.endereco-tipo').value;
 
             if (cep || logradouro || cidadeId) {
