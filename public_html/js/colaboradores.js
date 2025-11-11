@@ -196,8 +196,14 @@ const AdministradoresManager = {
                 this.atualizarPaginacao();
             }
         } catch (error) {
-            this.showError('Erro ao carregar colaboradores');
-            console.error(error);
+            // Usa Utils para formatar mensagem de erro
+            const mensagemErro = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao carregar colaboradores';
+
+            this.showError(mensagemErro);
+            Utils.Notificacao.erro(mensagemErro);
+            console.error('Erro ao carregar colaboradores:', error);
         }
     },
 
@@ -309,6 +315,7 @@ const AdministradoresManager = {
         document.getElementById('senha').required = true;
 
         this.elements.modalError.style.display = 'none';
+        Utils.Errors.limparCampos();
         this.elements.modalForm.classList.add('show');
     },
 
@@ -336,11 +343,17 @@ const AdministradoresManager = {
                 document.getElementById('senha').required = false;
 
                 this.elements.modalError.style.display = 'none';
+                Utils.Errors.limparCampos();
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
-            alert('Erro ao carregar colaborador');
-            console.error(error);
+            // Usa Utils para formatar mensagem de erro
+            const mensagemErro = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao carregar colaborador';
+
+            Utils.Notificacao.erro(mensagemErro);
+            console.error('Erro ao carregar colaborador:', error);
         }
     },
 
@@ -376,11 +389,13 @@ const AdministradoresManager = {
             if (response.sucesso) {
                 this.fecharModal();
                 this.carregarAdministradores();
-                alert(response.mensagem || 'Colaborador salvo com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Colaborador salvo com sucesso!');
             }
         } catch (error) {
-            this.showModalError(error.data?.erro || 'Erro ao salvar colaborador');
-            console.error(error);
+            // Exibe mensagem de erro com detalhes de validação
+            this.showModalError(error.data || 'Erro ao salvar colaborador');
+            Utils.Notificacao.erro(error.data || 'Erro ao salvar colaborador');
+            console.error('Erro ao salvar colaborador:', error);
         }
     },
 
@@ -397,11 +412,16 @@ const AdministradoresManager = {
 
             if (response.sucesso) {
                 this.carregarAdministradores();
-                alert(response.mensagem || 'Colaborador deletado com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Colaborador deletado com sucesso!');
             }
         } catch (error) {
-            alert(error.data?.erro || 'Erro ao deletar colaborador');
-            console.error(error);
+            // Usa Utils para formatar mensagem de erro
+            const mensagemErro = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao deletar colaborador';
+
+            Utils.Notificacao.erro(mensagemErro);
+            console.error('Erro ao deletar colaborador:', error);
         }
     },
 
@@ -413,6 +433,7 @@ const AdministradoresManager = {
         this.elements.formAdministrador.reset();
         this.state.editandoId = null;
         this.elements.modalError.style.display = 'none';
+        Utils.Errors.limparCampos();
     },
 
     /**
@@ -437,11 +458,32 @@ const AdministradoresManager = {
     },
 
     /**
-     * Mostra erro no modal
+     * Mostra erro no modal usando Utils
      */
-    showModalError(message) {
-        this.elements.modalError.style.display = 'block';
-        this.elements.modalErrorMessage.textContent = message;
+    showModalError(error) {
+        // Limpa destaques anteriores
+        Utils.Errors.limparCampos();
+
+        // Exibe erro usando Utils
+        Utils.Errors.exibir(
+            this.elements.modalError,
+            this.elements.modalErrorMessage,
+            error
+        );
+
+        // Destaca campos com erro
+        if (error && error.erros && typeof error.erros === 'object') {
+            // Mapeamento de campos do backend para IDs dos inputs
+            const mapeamentoCampos = {
+                'nome': 'nome',
+                'email': 'email',
+                'senha': 'senha',
+                'nivel_id': 'nivelId',
+                'ativo': 'ativo'
+            };
+
+            Utils.Errors.destacarCampos(error.erros, mapeamentoCampos);
+        }
     },
 
     /**
@@ -454,13 +496,10 @@ const AdministradoresManager = {
     },
 
     /**
-     * Escape HTML
+     * Escape HTML usando Utils
      */
     escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        return Utils.DOM.escapeHtml(text);
     }
 };
 
