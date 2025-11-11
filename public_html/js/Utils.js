@@ -526,6 +526,128 @@ const Utils = {
                 setTimeout(() => inThrottle = false, limit);
             }
         };
+    },
+
+    /**
+     * Sistema de Notificações Toast
+     */
+    Notificacao: {
+        /**
+         * Container para as notificações
+         */
+        container: null,
+
+        /**
+         * Inicializa o container de notificações
+         * @private
+         */
+        _inicializarContainer() {
+            if (!this.container) {
+                this.container = document.getElementById('toast-container');
+                if (!this.container) {
+                    this.container = document.createElement('div');
+                    this.container.id = 'toast-container';
+                    this.container.className = 'toast-container';
+                    document.body.appendChild(this.container);
+                }
+            }
+        },
+
+        /**
+         * Exibe notificação toast
+         * @param {string} mensagem - Mensagem a ser exibida
+         * @param {string} tipo - Tipo da notificação: 'sucesso', 'erro', 'aviso', 'info'
+         * @param {number} duracao - Duração em ms (padrão: 5000)
+         */
+        exibir(mensagem, tipo = 'info', duracao = 5000) {
+            this._inicializarContainer();
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${tipo}`;
+
+            // Ícone baseado no tipo
+            const icones = {
+                'sucesso': '✓',
+                'erro': '✕',
+                'aviso': '⚠',
+                'info': 'ℹ'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icones[tipo] || icones.info}</div>
+                <div class="toast-message">${this._formatarMensagem(mensagem)}</div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            this.container.appendChild(toast);
+
+            // Animação de entrada
+            setTimeout(() => toast.classList.add('toast-show'), 10);
+
+            // Remove automaticamente após a duração
+            setTimeout(() => {
+                toast.classList.remove('toast-show');
+                setTimeout(() => toast.remove(), 300);
+            }, duracao);
+        },
+
+        /**
+         * Formata mensagem preservando quebras de linha
+         * @private
+         * @param {string} mensagem - Mensagem a ser formatada
+         * @returns {string} - Mensagem formatada
+         */
+        _formatarMensagem(mensagem) {
+            if (!mensagem) return '';
+            // Substitui quebras de linha por <br> e escapa HTML
+            return Utils.DOM.escapeHtml(mensagem).replace(/\n/g, '<br>');
+        },
+
+        /**
+         * Notificação de sucesso
+         * @param {string} mensagem - Mensagem de sucesso
+         * @param {number} duracao - Duração em ms
+         */
+        sucesso(mensagem, duracao = 4000) {
+            this.exibir(mensagem, 'sucesso', duracao);
+        },
+
+        /**
+         * Notificação de erro
+         * @param {string|Object} erro - Mensagem de erro ou objeto de erro da API
+         * @param {number} duracao - Duração em ms
+         */
+        erro(erro, duracao = 6000) {
+            const mensagem = typeof erro === 'string' ? erro : Utils.Errors.formatarMensagem(erro);
+            this.exibir(mensagem, 'erro', duracao);
+        },
+
+        /**
+         * Notificação de aviso
+         * @param {string} mensagem - Mensagem de aviso
+         * @param {number} duracao - Duração em ms
+         */
+        aviso(mensagem, duracao = 5000) {
+            this.exibir(mensagem, 'aviso', duracao);
+        },
+
+        /**
+         * Notificação de informação
+         * @param {string} mensagem - Mensagem informativa
+         * @param {number} duracao - Duração em ms
+         */
+        info(mensagem, duracao = 4000) {
+            this.exibir(mensagem, 'info', duracao);
+        },
+
+        /**
+         * Remove todas as notificações
+         */
+        limparTodas() {
+            if (this.container) {
+                this.container.innerHTML = '';
+            }
+        }
     }
 };
 
