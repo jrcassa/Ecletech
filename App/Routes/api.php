@@ -59,6 +59,10 @@ $router->grupo([
     $rotasLoginAttempts = require __DIR__ . '/login_attempts.php';
     $rotasLoginAttempts($router);
 
+    // Inclui rotas de auditoria
+    $rotasAuditoria = require __DIR__ . '/auditoria.php';
+    $rotasAuditoria($router);
+
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'obterUsuarioAutenticado']);

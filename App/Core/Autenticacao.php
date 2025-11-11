@@ -83,6 +83,10 @@ class Autenticacao
         // Login bem-sucedido - registra tentativa
         $this->loginAttempt->registrarTentativa($email, $ipAddress, true, null, $userAgent);
 
+        // Registra auditoria de login
+        $auditoria = new RegistroAuditoria();
+        $auditoria->registrarLogin($usuario['id'], true);
+
         // Registra a requisição de login
         if ($this->limitador->estaHabilitado()) {
             $this->limitador->registrar("login:{$identificador}");
@@ -131,6 +135,10 @@ class Autenticacao
         if ($token) {
             $payload = $this->jwt->validar($token);
             if ($payload && isset($payload['usuario_id'])) {
+                // Registra auditoria de logout
+                $auditoria = new RegistroAuditoria();
+                $auditoria->registrarLogout($payload['usuario_id']);
+
                 $this->invalidarRefreshTokens($payload['usuario_id']);
             }
         }
