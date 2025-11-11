@@ -161,11 +161,23 @@ const FornecedoresManager = {
     async carregarTiposEnderecos() {
         try {
             const response = await API.get('/tipos-enderecos');
-            if (response.sucesso) {
-                this.state.tiposEnderecos = response.dados || [];
+            console.log('Resposta tipos-enderecos:', response);
+
+            if (response.sucesso && response.dados) {
+                // Garante que dados é um array
+                if (Array.isArray(response.dados)) {
+                    this.state.tiposEnderecos = response.dados;
+                } else {
+                    console.error('Resposta de tipos-enderecos não é um array:', response.dados);
+                    this.state.tiposEnderecos = [];
+                }
+            } else {
+                console.warn('Resposta de tipos-enderecos sem sucesso ou sem dados:', response);
+                this.state.tiposEnderecos = [];
             }
         } catch (erro) {
             console.error('Erro ao carregar tipos de endereços:', erro);
+            this.state.tiposEnderecos = [];
         }
     },
 
@@ -175,11 +187,23 @@ const FornecedoresManager = {
     async carregarCidades() {
         try {
             const response = await API.get('/cidades');
-            if (response.sucesso) {
-                this.state.cidades = response.dados || [];
+            console.log('Resposta cidades:', response);
+
+            if (response.sucesso && response.dados) {
+                // Garante que dados é um array
+                if (Array.isArray(response.dados)) {
+                    this.state.cidades = response.dados;
+                } else {
+                    console.error('Resposta de cidades não é um array:', response.dados);
+                    this.state.cidades = [];
+                }
+            } else {
+                console.warn('Resposta de cidades sem sucesso ou sem dados:', response);
+                this.state.cidades = [];
             }
         } catch (erro) {
             console.error('Erro ao carregar cidades:', erro);
+            this.state.cidades = [];
         }
     },
 
@@ -761,6 +785,13 @@ const FornecedoresManager = {
     popularSelectTipoEndereco(select, valorSelecionado) {
         select.innerHTML = '<option value="">Selecione o tipo</option>';
 
+        // Verifica se tiposEnderecos é um array válido
+        if (!Array.isArray(this.state.tiposEnderecos)) {
+            console.error('tiposEnderecos não é um array:', this.state.tiposEnderecos);
+            this.state.tiposEnderecos = [];
+            return;
+        }
+
         this.state.tiposEnderecos.forEach(tipo => {
             const option = document.createElement('option');
             option.value = tipo.id;
@@ -777,6 +808,13 @@ const FornecedoresManager = {
      */
     popularSelectCidade(select, valorSelecionado) {
         select.innerHTML = '<option value="">Selecione a cidade</option>';
+
+        // Verifica se cidades é um array válido
+        if (!Array.isArray(this.state.cidades)) {
+            console.error('cidades não é um array:', this.state.cidades);
+            this.state.cidades = [];
+            return;
+        }
 
         this.state.cidades.forEach(cidade => {
             const option = document.createElement('option');
