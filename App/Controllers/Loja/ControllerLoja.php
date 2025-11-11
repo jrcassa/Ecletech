@@ -171,10 +171,6 @@ class ControllerLoja
             'razao_social',
             'inscricao_estadual',
             'inscricao_municipal',
-            'email',
-            'telefone',
-            'celular',
-            'site',
             'responsavel',
             'endereco_logradouro',
             'endereco_numero',
@@ -185,17 +181,42 @@ class ControllerLoja
 
         foreach ($camposTexto as $campo) {
             if (isset($dados[$campo]) && is_string($dados[$campo])) {
-                $dados[$campo] = AuxiliarSanitizacao::texto($dados[$campo]);
+                $dados[$campo] = AuxiliarSanitizacao::string($dados[$campo]);
             }
         }
 
-        // Sanitiza campos numéricos
-        $camposNumericos = ['cnpj', 'cpf_responsavel', 'endereco_cep'];
+        // Sanitiza email
+        if (isset($dados['email']) && is_string($dados['email'])) {
+            $dados['email'] = AuxiliarSanitizacao::email($dados['email']);
+        }
 
-        foreach ($camposNumericos as $campo) {
-            if (isset($dados[$campo]) && is_string($dados[$campo])) {
-                $dados[$campo] = preg_replace('/[^0-9]/', '', $dados[$campo]);
-            }
+        // Sanitiza telefone e celular
+        if (isset($dados['telefone']) && is_string($dados['telefone'])) {
+            $dados['telefone'] = AuxiliarSanitizacao::telefone($dados['telefone']);
+        }
+
+        if (isset($dados['celular']) && is_string($dados['celular'])) {
+            $dados['celular'] = AuxiliarSanitizacao::telefone($dados['celular']);
+        }
+
+        // Sanitiza site
+        if (isset($dados['site']) && is_string($dados['site'])) {
+            $dados['site'] = AuxiliarSanitizacao::url($dados['site']);
+        }
+
+        // Sanitiza CNPJ
+        if (isset($dados['cnpj']) && is_string($dados['cnpj'])) {
+            $dados['cnpj'] = AuxiliarSanitizacao::cnpj($dados['cnpj']);
+        }
+
+        // Sanitiza CPF do responsável
+        if (isset($dados['cpf_responsavel']) && is_string($dados['cpf_responsavel'])) {
+            $dados['cpf_responsavel'] = AuxiliarSanitizacao::cpf($dados['cpf_responsavel']);
+        }
+
+        // Sanitiza CEP
+        if (isset($dados['endereco_cep']) && is_string($dados['endereco_cep'])) {
+            $dados['endereco_cep'] = AuxiliarSanitizacao::cep($dados['endereco_cep']);
         }
 
         return $dados;
