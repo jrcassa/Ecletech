@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `fornecedores_enderecos` (
   `numero` VARCHAR(20) DEFAULT NULL COMMENT 'Número do endereço',
   `complemento` VARCHAR(100) DEFAULT NULL COMMENT 'Complemento (apto, sala, etc)',
   `bairro` VARCHAR(100) DEFAULT NULL COMMENT 'Bairro',
-  `cidade_id` BIGINT UNSIGNED DEFAULT NULL COMMENT 'ID da cidade (referência)',
+  `cidade_id` INT UNSIGNED DEFAULT NULL COMMENT 'ID da cidade (referência)',
   `estado` VARCHAR(2) DEFAULT NULL COMMENT 'Sigla do estado (UF)',
 
   -- Campos padrão do sistema
