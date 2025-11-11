@@ -24,7 +24,7 @@ class ModelCsrfToken
         return $this->db->inserir('csrf_tokens', [
             'token' => $dados['token'],
             'session_id' => $dados['session_id'] ?? null,
-            'usuario_id' => $dados['usuario_id'] ?? null,
+            'colaborador_id' => $dados['colaborador_id'] ?? null,
             'ip_address' => $dados['ip_address'] ?? null,
             'user_agent' => $dados['user_agent'] ?? null,
             'usado' => 0,
@@ -63,7 +63,7 @@ class ModelCsrfToken
     /**
      * Valida um token CSRF
      */
-    public function validar(string $token, ?string $sessionId = null, ?int $usuarioId = null): bool
+    public function validar(string $token, ?string $sessionId = null, ?int $colaboradorId = null): bool
     {
         $sql = "SELECT * FROM csrf_tokens WHERE token = ? AND usado = 0 AND expira_em > NOW()";
         $parametros = [$token];
@@ -74,10 +74,10 @@ class ModelCsrfToken
             $parametros[] = $sessionId;
         }
 
-        // Valida também o usuario_id se fornecido
-        if ($usuarioId !== null) {
-            $sql .= " AND usuario_id = ?";
-            $parametros[] = $usuarioId;
+        // Valida também o colaborador_id se fornecido
+        if ($colaboradorId !== null) {
+            $sql .= " AND colaborador_id = ?";
+            $parametros[] = $colaboradorId;
         }
 
         $resultado = $this->db->buscarUm($sql, $parametros);
@@ -117,13 +117,13 @@ class ModelCsrfToken
     }
 
     /**
-     * Busca todos os tokens de um usuário
+     * Busca todos os tokens de um colaborador
      */
-    public function buscarPorUsuario(int $usuarioId): array
+    public function buscarPorColaborador(int $colaboradorId): array
     {
         return $this->db->buscarTodos(
-            "SELECT * FROM csrf_tokens WHERE usuario_id = ? ORDER BY criado_em DESC",
-            [$usuarioId]
+            "SELECT * FROM csrf_tokens WHERE colaborador_id = ? ORDER BY criado_em DESC",
+            [$colaboradorId]
         );
     }
 
@@ -140,14 +140,14 @@ class ModelCsrfToken
     }
 
     /**
-     * Remove todos os tokens de um usuário
+     * Remove todos os tokens de um colaborador
      */
-    public function deletarPorUsuario(int $usuarioId): int
+    public function deletarPorColaborador(int $colaboradorId): int
     {
         return $this->db->deletar(
             'csrf_tokens',
-            'usuario_id = ?',
-            [$usuarioId]
+            'colaborador_id = ?',
+            [$colaboradorId]
         );
     }
 

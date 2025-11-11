@@ -218,7 +218,7 @@ class ModelFrota
             $id,
             null,
             $dadosInsert,
-            $dados['usuario_id'] ?? null
+            $dados['colaborador_id'] ?? null
         );
 
         return $id;

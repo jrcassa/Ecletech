@@ -352,7 +352,7 @@ O sistema registra automaticamente:
 ```php
 $auditoria = new RegistroAuditoria();
 $historico = $auditoria->buscarHistorico([
-    'usuario_id' => 1,
+    'colaborador_id' => 1,
     'data_inicio' => '2025-11-01',
     'limite' => 50
 ]);

@@ -78,13 +78,13 @@ async function carregarAuditoria(pagina = 1) {
 
         const acao = document.getElementById('filtroAcao').value;
         const tabela = document.getElementById('filtroTabela').value;
-        const usuarioId = document.getElementById('filtroUsuarioId').value;
+        const colaboradorId = document.getElementById('filtroUsuarioId').value;
         const dataInicio = document.getElementById('filtroDataInicio').value;
         const dataFim = document.getElementById('filtroDataFim').value;
 
         if (acao) params.append('acao', acao);
         if (tabela) params.append('tabela', tabela);
-        if (usuarioId) params.append('usuario_id', usuarioId);
+        if (colaboradorId) params.append('colaborador_id', colaboradorId);
         if (dataInicio) params.append('data_inicio', dataInicio + ' 00:00:00');
         if (dataFim) params.append('data_fim', dataFim + ' 23:59:59');
 
@@ -166,17 +166,17 @@ function getAcaoBadge(acao) {
     return badges[acao] || `<span class="badge">${acao}</span>`;
 }
 
-// Formata informações do usuário
+// Formata informações do colaborador
 function formatarUsuario(registro) {
-    if (!registro.usuario_id) {
+    if (!registro.colaborador_id) {
         return 'Sistema';
     }
 
-    if (registro.usuario_nome) {
-        return `#${registro.usuario_id} ${registro.usuario_nome}`;
+    if (registro.colaborador_nome) {
+        return `#${registro.colaborador_id} ${registro.colaborador_nome}`;
     }
 
-    return `#${registro.usuario_id}`;
+    return `#${registro.colaborador_id}`;
 }
 
 // Mostra detalhes
