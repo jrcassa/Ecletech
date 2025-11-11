@@ -30,13 +30,13 @@ class ControllerAdministrador
 
     /**
      * Lista todos os administradores
-     * Requer permissão: administradores.visualizar
+     * Requer permissão: colaboradores.visualizar
      */
     public function listar(): void
     {
         try {
             // Verifica permissão ACL
-            if (!$this->acl->verificarPermissao('administradores.visualizar')) {
+            if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
                 AuxiliarResposta::proibido('Você não tem permissão para visualizar administradores');
                 return;
             }
@@ -79,13 +79,13 @@ class ControllerAdministrador
 
     /**
      * Busca um administrador por ID
-     * Requer permissão: administradores.visualizar
+     * Requer permissão: colaboradores.visualizar
      */
     public function buscar(string $id): void
     {
         try {
             // Verifica permissão ACL
-            if (!$this->acl->verificarPermissao('administradores.visualizar')) {
+            if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
                 AuxiliarResposta::proibido('Você não tem permissão para visualizar administradores');
                 return;
             }
@@ -108,12 +108,12 @@ class ControllerAdministrador
 
     /**
      * Cria um novo administrador
-     * Requer permissão: administradores.criar
+     * Requer permissão: colaboradores.criar
      */
     public function criar(): void
     {
         // Verifica permissão ACL
-        if (!$this->acl->verificarPermissao('administradores.criar')) {
+        if (!$this->acl->verificarPermissao('colaboradores.criar')) {
             AuxiliarResposta::proibido('Você não tem permissão para criar administradores');
             return;
         }
@@ -158,12 +158,12 @@ class ControllerAdministrador
 
     /**
      * Atualiza um administrador
-     * Requer permissão: administradores.editar
+     * Requer permissão: colaboradores.editar
      */
     public function atualizar(string $id): void
     {
         // Verifica permissão ACL
-        if (!$this->acl->verificarPermissao('administradores.editar')) {
+        if (!$this->acl->verificarPermissao('colaboradores.editar')) {
             AuxiliarResposta::proibido('Você não tem permissão para editar administradores');
             return;
         }
@@ -202,12 +202,12 @@ class ControllerAdministrador
 
     /**
      * Deleta um administrador (soft delete)
-     * Requer permissão: administradores.deletar
+     * Requer permissão: colaboradores.deletar
      */
     public function deletar(string $id): void
     {
         // Verifica permissão ACL
-        if (!$this->acl->verificarPermissao('administradores.deletar')) {
+        if (!$this->acl->verificarPermissao('colaboradores.deletar')) {
             AuxiliarResposta::proibido('Você não tem permissão para deletar administradores');
             return;
         }
@@ -244,10 +244,10 @@ class ControllerAdministrador
     {
         try {
             $permissoes = [
-                'visualizar' => $this->acl->verificarPermissao('administradores.visualizar'),
-                'criar' => $this->acl->verificarPermissao('administradores.criar'),
-                'editar' => $this->acl->verificarPermissao('administradores.editar'),
-                'deletar' => $this->acl->verificarPermissao('administradores.deletar')
+                'visualizar' => $this->acl->verificarPermissao('colaboradores.visualizar'),
+                'criar' => $this->acl->verificarPermissao('colaboradores.criar'),
+                'editar' => $this->acl->verificarPermissao('colaboradores.editar'),
+                'deletar' => $this->acl->verificarPermissao('colaboradores.deletar')
             ];
 
             AuxiliarResposta::sucesso($permissoes, 'Permissões verificadas');
