@@ -300,6 +300,7 @@ const FrotasManager = {
         document.getElementById('status').value = 'ativo';
 
         this.elements.modalError.style.display = 'none';
+        this.limparErrosCampos();
         this.elements.modalForm.classList.add('show');
     },
 
@@ -335,6 +336,7 @@ const FrotasManager = {
                 document.getElementById('observacoes').value = veiculo.observacoes || '';
 
                 this.elements.modalError.style.display = 'none';
+                this.limparErrosCampos();
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
@@ -455,6 +457,7 @@ const FrotasManager = {
         this.elements.formVeiculo.reset();
         this.state.editandoId = null;
         this.elements.modalError.style.display = 'none';
+        this.limparErrosCampos();
     },
 
     /**
@@ -502,12 +505,20 @@ const FrotasManager = {
      * Mostra erro no modal
      */
     showModalError(error) {
+        // Limpa destaques anteriores
+        this.limparErrosCampos();
+
         this.elements.modalError.style.display = 'block';
         const mensagemFinal = this.formatarMensagemErro(error);
         this.elements.modalErrorMessage.textContent = mensagemFinal;
 
         // Aplica estilo para preservar quebras de linha
         this.elements.modalErrorMessage.style.whiteSpace = 'pre-line';
+
+        // Destaca campos com erro
+        if (error && error.erros && typeof error.erros === 'object') {
+            this.destacarCamposComErro(error.erros);
+        }
     },
 
     /**
@@ -595,6 +606,57 @@ const FrotasManager = {
         if (!data) return '-';
         const date = new Date(data);
         return date.toLocaleString('pt-BR');
+    },
+
+    /**
+     * Destaca campos com erro no formulário
+     */
+    destacarCamposComErro(erros) {
+        // Mapeamento de nomes de campos do backend para IDs dos inputs
+        const mapeamentoCampos = {
+            'nome': 'nome',
+            'tipo': 'tipo',
+            'placa': 'placa',
+            'status': 'status',
+            'marca': 'marca',
+            'modelo': 'modelo',
+            'ano_fabricacao': 'anoFabricacao',
+            'ano_modelo': 'anoModelo',
+            'cor': 'cor',
+            'chassi': 'chassi',
+            'renavam': 'renavam',
+            'quilometragem': 'quilometragem',
+            'capacidade_tanque': 'capacidadeTanque',
+            'data_aquisicao': 'dataAquisicao',
+            'valor_aquisicao': 'valorAquisicao',
+            'observacoes': 'observacoes'
+        };
+
+        for (const [campo, mensagens] of Object.entries(erros)) {
+            const inputId = mapeamentoCampos[campo] || campo;
+            const inputElement = document.getElementById(inputId);
+
+            if (inputElement) {
+                // Adiciona borda vermelha
+                inputElement.style.borderColor = '#dc3545';
+                inputElement.style.borderWidth = '2px';
+
+                // Adiciona classe para identificar campos com erro
+                inputElement.classList.add('campo-com-erro');
+            }
+        }
+    },
+
+    /**
+     * Limpa destaques de erro dos campos
+     */
+    limparErrosCampos() {
+        const camposComErro = document.querySelectorAll('.campo-com-erro');
+        camposComErro.forEach(campo => {
+            campo.style.borderColor = '';
+            campo.style.borderWidth = '';
+            campo.classList.remove('campo-com-erro');
+        });
     },
 
     /**
