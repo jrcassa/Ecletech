@@ -359,7 +359,7 @@ const FrotasManager = {
         const dados = {
             nome: document.getElementById('nome').value,
             tipo: document.getElementById('tipo').value,
-            placa: document.getElementById('placa').value,
+            placa: Utils.Validation.normalizarPlaca(document.getElementById('placa').value),
             status: document.getElementById('status').value
         };
 
