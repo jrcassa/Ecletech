@@ -117,7 +117,7 @@ const AdministradoresManager = {
      */
     async verificarPermissoes() {
         try {
-            const response = await API.get('/administradores/permissoes');
+            const response = await API.get('/colaboradores/permissoes');
 
             if (response.sucesso && response.dados) {
                 this.state.permissoes = response.dados;
@@ -185,7 +185,7 @@ const AdministradoresManager = {
                 params.append('ativo', this.state.filtros.ativo);
             }
 
-            const response = await API.get(`/administradores?${params.toString()}`);
+            const response = await API.get(`/colaboradores?${params.toString()}`);
 
             if (response.sucesso) {
                 this.state.administradores = response.dados?.itens || [];
@@ -196,7 +196,7 @@ const AdministradoresManager = {
                 this.atualizarPaginacao();
             }
         } catch (error) {
-            this.showError('Erro ao carregar administradores');
+            this.showError('Erro ao carregar colaboradores');
             console.error(error);
         }
     },
@@ -302,7 +302,7 @@ const AdministradoresManager = {
      */
     abrirModalNovo() {
         this.state.editandoId = null;
-        this.elements.modalTitle.textContent = 'Novo Administrador';
+        this.elements.modalTitle.textContent = 'Novo Colaborador';
         this.elements.formAdministrador.reset();
 
         // Senha obrigatória para novo
@@ -317,13 +317,13 @@ const AdministradoresManager = {
      */
     async editar(id) {
         try {
-            const response = await API.get(`/administradores/${id}`);
+            const response = await API.get(`/colaboradores/${id}`);
 
             if (response.sucesso && response.dados) {
                 const admin = response.dados;
                 this.state.editandoId = id;
 
-                this.elements.modalTitle.textContent = 'Editar Administrador';
+                this.elements.modalTitle.textContent = 'Editar Colaborador';
 
                 document.getElementById('adminId').value = admin.id;
                 document.getElementById('nome').value = admin.nome;
@@ -339,7 +339,7 @@ const AdministradoresManager = {
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
-            alert('Erro ao carregar administrador');
+            alert('Erro ao carregar colaborador');
             console.error(error);
         }
     },
@@ -367,19 +367,19 @@ const AdministradoresManager = {
 
             if (this.state.editandoId) {
                 // Atualizar
-                response = await API.put(`/administradores/${this.state.editandoId}`, dados);
+                response = await API.put(`/colaboradores/${this.state.editandoId}`, dados);
             } else {
                 // Criar
-                response = await API.post('/administradores', dados);
+                response = await API.post('/colaboradores', dados);
             }
 
             if (response.sucesso) {
                 this.fecharModal();
                 this.carregarAdministradores();
-                alert(response.mensagem || 'Administrador salvo com sucesso!');
+                alert(response.mensagem || 'Colaborador salvo com sucesso!');
             }
         } catch (error) {
-            this.showModalError(error.data?.erro || 'Erro ao salvar administrador');
+            this.showModalError(error.data?.erro || 'Erro ao salvar colaborador');
             console.error(error);
         }
     },
@@ -388,19 +388,19 @@ const AdministradoresManager = {
      * Deleta administrador
      */
     async deletar(id) {
-        if (!confirm('Tem certeza que deseja deletar este administrador?')) {
+        if (!confirm('Tem certeza que deseja deletar este colaborador?')) {
             return;
         }
 
         try {
-            const response = await API.delete(`/administradores/${id}`);
+            const response = await API.delete(`/colaboradores/${id}`);
 
             if (response.sucesso) {
                 this.carregarAdministradores();
-                alert(response.mensagem || 'Administrador deletado com sucesso!');
+                alert(response.mensagem || 'Colaborador deletado com sucesso!');
             }
         } catch (error) {
-            alert(error.data?.erro || 'Erro ao deletar administrador');
+            alert(error.data?.erro || 'Erro ao deletar colaborador');
             console.error(error);
         }
     },
