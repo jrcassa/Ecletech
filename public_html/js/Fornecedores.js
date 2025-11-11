@@ -160,7 +160,7 @@ const FornecedoresManager = {
      */
     async carregarTiposEnderecos() {
         try {
-            const response = await API.get('/tipo_endereco');
+            const response = await API.get('/tipos-enderecos');
             if (response.sucesso) {
                 this.state.tiposEnderecos = response.dados || [];
             }
@@ -174,7 +174,7 @@ const FornecedoresManager = {
      */
     async carregarCidades() {
         try {
-            const response = await API.get('/cidade');
+            const response = await API.get('/cidades');
             if (response.sucesso) {
                 this.state.cidades = response.dados || [];
             }
