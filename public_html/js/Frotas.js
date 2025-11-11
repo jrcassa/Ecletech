@@ -171,8 +171,13 @@ const FrotasManager = {
                 this.atualizarPaginacao();
             }
         } catch (error) {
-            this.showError('Erro ao carregar veículos da frota');
-            console.error(error);
+            // Formata mensagem de erro considerando validações da API
+            const mensagemErro = error.data ?
+                this.formatarMensagemErro(error.data) :
+                'Erro ao carregar veículos da frota';
+
+            this.showError(mensagemErro);
+            console.error('Erro ao carregar veículos:', error);
         }
     },
 
@@ -333,8 +338,13 @@ const FrotasManager = {
                 this.elements.modalForm.classList.add('show');
             }
         } catch (error) {
-            alert('Erro ao carregar veículo');
-            console.error(error);
+            // Formata mensagem de erro considerando validações da API
+            const mensagemErro = error.data ?
+                this.formatarMensagemErro(error.data) :
+                'Erro ao carregar veículo';
+
+            alert(mensagemErro);
+            console.error('Erro ao carregar veículo:', error);
         }
     },
 
@@ -405,16 +415,12 @@ const FrotasManager = {
                 alert(response.mensagem || 'Veículo salvo com sucesso!');
             }
         } catch (error) {
-            // Passa o objeto completo de erro para ter acesso aos erros de validação
-            const errorData = error.data || {};
+            // Formata e exibe mensagem de erro considerando validações da API
+            const mensagemErro = error.data ?
+                error.data :
+                'Erro ao salvar veículo';
 
-            // Se não tem dados estruturados, usa mensagem simples
-            if (!errorData.erros && !errorData.mensagem) {
-                this.showModalError('Erro ao salvar veículo');
-            } else {
-                this.showModalError(errorData);
-            }
-
+            this.showModalError(mensagemErro);
             console.error('Erro ao salvar veículo:', error);
         }
     },
@@ -435,8 +441,13 @@ const FrotasManager = {
                 alert(response.mensagem || 'Veículo deletado com sucesso!');
             }
         } catch (error) {
-            alert(error.data?.erro || error.data?.mensagem || 'Erro ao deletar veículo');
-            console.error(error);
+            // Formata mensagem de erro considerando validações da API
+            const mensagemErro = error.data ?
+                this.formatarMensagemErro(error.data) :
+                'Erro ao deletar veículo';
+
+            alert(mensagemErro);
+            console.error('Erro ao deletar veículo:', error);
         }
     },
 
@@ -496,31 +507,39 @@ const FrotasManager = {
      */
     showModalError(error) {
         this.elements.modalError.style.display = 'block';
-
-        let mensagemFinal;
-
-        // Verifica se é um objeto de erro da API com validações
-        if (error && typeof error === 'object') {
-            // Tenta pegar os erros de validação detalhados
-            const errosValidacao = this.formatarErrosValidacao(error.erros);
-
-            if (errosValidacao) {
-                // Se tem erros de validação, mostra eles formatados
-                const titulo = error.mensagem || 'Erro de validação';
-                mensagemFinal = `${titulo}:\n\n${errosValidacao}`;
-            } else {
-                // Se não tem erros detalhados, usa a mensagem geral
-                mensagemFinal = error.mensagem || error.erro || 'Erro ao processar requisição';
-            }
-        } else {
-            // Se é uma string simples
-            mensagemFinal = error;
-        }
-
+        const mensagemFinal = this.formatarMensagemErro(error);
         this.elements.modalErrorMessage.textContent = mensagemFinal;
 
         // Aplica estilo para preservar quebras de linha
         this.elements.modalErrorMessage.style.whiteSpace = 'pre-line';
+    },
+
+    /**
+     * Formata mensagem de erro de forma consistente
+     * Suporta erros da API com estrutura: { sucesso: false, mensagem: "...", erros: {...} }
+     */
+    formatarMensagemErro(error) {
+        // Se é uma string simples
+        if (typeof error === 'string') {
+            return error;
+        }
+
+        // Se não é um objeto, retorna mensagem padrão
+        if (!error || typeof error !== 'object') {
+            return 'Erro ao processar requisição';
+        }
+
+        // Verifica se é um objeto de erro da API com validações
+        const errosValidacao = this.formatarErrosValidacao(error.erros);
+
+        if (errosValidacao) {
+            // Se tem erros de validação, mostra eles formatados
+            const titulo = error.mensagem || 'Erro de validação';
+            return `${titulo}:\n\n${errosValidacao}`;
+        }
+
+        // Se não tem erros detalhados, usa a mensagem geral
+        return error.mensagem || error.erro || 'Erro ao processar requisição';
     },
 
     /**
