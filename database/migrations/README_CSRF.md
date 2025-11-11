@@ -127,6 +127,65 @@ A classe `TokenCsrf` (`App/Core/TokenCsrf.php`) foi atualizada para:
 3. **One-time tokens** - tokens são marcados como "usado" após validação
 4. **Rastreamento completo** - armazena IP, user agent, session_id e colaborador_id
 5. **Tokens de uso único** - cada token só pode ser validado uma vez
+6. **Renovação automática** - novo token é gerado e enviado após cada validação bem-sucedida
+
+## Renovação Automática de Tokens
+
+✅ **IMPLEMENTADO**
+
+O sistema implementa renovação automática de tokens CSRF para máxima segurança:
+
+### Como Funciona
+
+1. Cliente envia requisição POST/PUT/PATCH/DELETE com token CSRF no header `X-CSRF-Token`
+2. Middleware valida o token e marca como usado (one-time)
+3. Middleware gera automaticamente um novo token
+4. Novo token é enviado no header `X-New-CSRF-Token` da resposta
+5. Cliente JavaScript captura e armazena o novo token automaticamente
+
+### Fluxo de Renovação
+
+```
+┌─────────────┐                      ┌─────────────┐
+│   Cliente   │                      │   Servidor  │
+└──────┬──────┘                      └──────┬──────┘
+       │                                    │
+       │ POST /api/colaboradores            │
+       │ X-CSRF-Token: abc123               │
+       ├───────────────────────────────────>│
+       │                                    │
+       │                                    │ 1. Valida token abc123
+       │                                    │ 2. Marca como usado
+       │                                    │ 3. Gera novo token xyz789
+       │                                    │
+       │ 200 OK                             │
+       │ X-New-CSRF-Token: xyz789           │
+       │<───────────────────────────────────┤
+       │                                    │
+       │ (JavaScript armazena xyz789)       │
+       │                                    │
+       │ próxima requisição usa xyz789      │
+       │                                    │
+```
+
+### Integração com Frontend
+
+O JavaScript (`public_html/js/API.js`) já está configurado para:
+
+```javascript
+// Captura automaticamente o novo token após cada requisição
+const newCsrfToken = response.headers.get('X-New-CSRF-Token');
+if (newCsrfToken) {
+    this.setCsrfToken(newCsrfToken);
+}
+```
+
+### Benefícios
+
+- **Máxima Segurança**: Cada token só pode ser usado uma vez
+- **Transparente**: Renovação é automática, sem intervenção do desenvolvedor
+- **Sem Interrupções**: Cliente sempre tem um token válido
+- **Proteção contra Replay Attacks**: Tokens antigos não podem ser reutilizados
 
 ## Limpeza Automática
 
