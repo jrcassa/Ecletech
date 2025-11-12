@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contas Bancárias - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-cog"></i>
+            </div>
+            <div class="logo-text">
+                <h2>Ecletech</h2>
+                <span>Sistema ERP</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="clientes.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Clientes</span>
+            </a>
+            <a href="fornecedores.html" class="nav-item">
+                <i class="fas fa-truck"></i>
+                <span>Fornecedores</span>
+            </a>
+            <a href="produtos.html" class="nav-item">
+                <i class="fas fa-box"></i>
+                <span>Produtos</span>
+            </a>
+            <a href="contas_bancarias.html" class="nav-item active">
+                <i class="fas fa-university"></i>
+                <span>Contas Bancárias</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Usuário</span>
+            </div>
+            <button class="btn-logout" onclick="Auth.logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                Sair
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <button class="btn-toggle-sidebar" id="btnToggleSidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="container">
+            <header class="page-header">
+                <div class="page-title-wrapper">
+                    <h1 class="page-title">
+                        <i class="fas fa-university"></i>
+                        Contas Bancárias
+                    </h1>
+                    <p class="page-subtitle">Gerencie as contas bancárias da empresa</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" id="btnNovo">
+                        <i class="fas fa-plus"></i>
+                        Nova Conta
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filtros -->
+            <div class="filters-card">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="inputBusca" placeholder="Buscar por nome, banco, conta...">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Tipo de Conta</label>
+                        <select id="selectTipoConta">
+                            <option value="">Todos</option>
+                            <option value="corrente">Conta Corrente</option>
+                            <option value="poupanca">Poupança</option>
+                            <option value="investimento">Investimento</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="selectAtivo">
+                            <option value="">Todos</option>
+                            <option value="1" selected>Ativos</option>
+                            <option value="0">Inativos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-secondary" id="btnLimparFiltros">
+                            <i class="fas fa-eraser"></i>
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Banco</th>
+                                <th>Agência</th>
+                                <th>Conta</th>
+                                <th>Tipo</th>
+                                <th>Saldo Inicial</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr class="loading-row">
+                                <td colspan="9">
+                                    <div class="loading">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        Carregando...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação -->
+                <div class="table-footer">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando 0 de 0 registros</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn-pagination" id="btnPrevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            Anterior
+                        </button>
+                        <span class="pagination-current">Página <span id="currentPage">1</span> de <span
+                                id="totalPages">1</span></span>
+                        <button class="btn-pagination" id="btnNextPage" disabled>
+                            Próxima
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Formulário -->
+    <div class="modal" id="modalForm">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Nova Conta Bancária</h3>
+                    <button class="btn-close-modal" id="btnCloseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formConta">
+                        <input type="hidden" id="contaId">
+
+                        <!-- Informações Básicas -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Informações Básicas</h4>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="inputNome">Nome da Conta <span class="required">*</span></label>
+                                    <input type="text" id="inputNome" class="form-control"
+                                        placeholder="Ex: Conta Caixa Principal" required>
+                                    <small class="form-text">Nome identificador da conta</small>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="inputExternalId">ID Externo</label>
+                                    <input type="text" id="inputExternalId" class="form-control"
+                                        placeholder="ID do sistema externo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dados Bancários -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Dados Bancários</h4>
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="inputBancoCodigo">Código do Banco</label>
+                                    <input type="text" id="inputBancoCodigo" class="form-control"
+                                        placeholder="Ex: 104, 237, 001" maxlength="10">
+                                </div>
+                                <div class="form-group col-md-8">
+                                    <label for="inputBancoNome">Nome do Banco</label>
+                                    <input type="text" id="inputBancoNome" class="form-control"
+                                        placeholder="Ex: Caixa Econômica Federal" maxlength="100">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="inputAgencia">Agência</label>
+                                    <input type="text" id="inputAgencia" class="form-control" placeholder="0000"
+                                        maxlength="20">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="inputAgenciaDv">DV</label>
+                                    <input type="text" id="inputAgenciaDv" class="form-control" placeholder="0"
+                                        maxlength="2">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="inputConta">Conta</label>
+                                    <input type="text" id="inputConta" class="form-control" placeholder="00000000"
+                                        maxlength="30">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="inputContaDv">DV</label>
+                                    <input type="text" id="inputContaDv" class="form-control" placeholder="0"
+                                        maxlength="2">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="selectTipoContaForm">Tipo de Conta</label>
+                                    <select id="selectTipoContaForm" class="form-control">
+                                        <option value="corrente">Conta Corrente</option>
+                                        <option value="poupanca">Poupança</option>
+                                        <option value="investimento">Investimento</option>
+                                        <option value="outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="inputSaldoInicial">Saldo Inicial</label>
+                                    <input type="text" id="inputSaldoInicial" class="form-control" placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observações e Status -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Observações e Status</h4>
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <label for="inputObservacoes">Observações</label>
+                                    <textarea id="inputObservacoes" class="form-control" rows="3"
+                                        placeholder="Observações adicionais sobre a conta"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="checkAtivo" class="form-check-input" checked>
+                                        <label for="checkAtivo" class="form-check-label">Conta ativa</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSalvar">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal" id="modalConfirm">
+        <div class="modal-backdrop"></div>
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirmar Exclusão</h3>
+                    <button class="btn-close-modal" onclick="ContasBancariasManager.fecharModalConfirm()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir esta conta bancária?</p>
+                    <p class="text-muted">Esta ação não poderá ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ContasBancariasManager.fecharModalConfirm()">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                        <i class="fas fa-trash"></i>
+                        Excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/ContasBancarias.js"></script>
+    <script>
+        // Inicializa o gerenciador quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            ContasBancariasManager.init();
+        });
+    </script>
+</body>
+
+</html>
