@@ -58,7 +58,7 @@ const ContasBancariasManager = {
      */
     async init() {
         // Verifica autenticação
-        if (!Auth.verificarAutenticacao()) {
+        if (!AuthAPI.isAuthenticated()) {
             return;
         }
 
@@ -128,7 +128,7 @@ const ContasBancariasManager = {
      */
     async verificarPermissoes() {
         try {
-            const permissoes = Auth.obterPermissoes();
+            const permissoes = AuthAPI.getPermissions();
 
             if (permissoes) {
                 this.state.permissoes = {
