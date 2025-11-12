@@ -123,7 +123,8 @@ const EstadosManager = {
      */
     async verificarPermissoes() {
         try {
-            const permissoes = window.permissoesUsuario;
+            // Aguarda as permissões serem carregadas pelo sidebar
+            const permissoes = await aguardarPermissoes();
 
             if (permissoes) {
                 this.state.permissoes = {
