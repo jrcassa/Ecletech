@@ -117,14 +117,19 @@ const AdministradoresManager = {
      */
     async verificarPermissoes() {
         try {
-            const response = await API.get('/colaboradores/permissoes');
+            const permissoes = window.permissoesUsuario;
 
-            if (response.sucesso && response.dados) {
-                this.state.permissoes = response.dados;
+            if (permissoes) {
+                this.state.permissoes = {
+                    visualizar: permissoes.includes('colaboradores.visualizar'),
+                    criar: permissoes.includes('colaboradores.criar'),
+                    editar: permissoes.includes('colaboradores.editar'),
+                    deletar: permissoes.includes('colaboradores.deletar')
+                };
 
-                // Mostra/esconde botão de novo baseado na permissão
-                if (this.state.permissoes.criar && this.elements.btnNovo) {
-                    this.elements.btnNovo.style.display = 'block';
+                // Esconde botão novo se não tem permissão de criar
+                if (!this.state.permissoes.criar && this.elements.btnNovo) {
+                    this.elements.btnNovo.style.display = 'none';
                 }
             }
         } catch (error) {

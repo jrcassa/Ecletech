@@ -129,15 +129,14 @@ const GruposProdutosManager = {
      */
     async verificarPermissoes() {
         try {
-            const response = await API.get('/me');
-            const usuario = response.dados;
+            const permissoes = window.permissoesUsuario;
 
-            if (usuario && usuario.permissoes) {
+            if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: usuario.permissoes.includes('grupos_produtos.visualizar'),
-                    criar: usuario.permissoes.includes('grupos_produtos.criar'),
-                    editar: usuario.permissoes.includes('grupos_produtos.editar'),
-                    deletar: usuario.permissoes.includes('grupos_produtos.deletar')
+                    visualizar: permissoes.includes('grupos_produtos.visualizar'),
+                    criar: permissoes.includes('grupos_produtos.criar'),
+                    editar: permissoes.includes('grupos_produtos.editar'),
+                    deletar: permissoes.includes('grupos_produtos.deletar')
                 };
             }
 
