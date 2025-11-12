@@ -207,10 +207,10 @@ const ContasBancariasManager = {
         this.elements.tableBody.innerHTML = this.state.contas.map(conta => `
             <tr>
                 <td>${conta.id}</td>
-                <td><strong>${Utils.escapeHtml(conta.nome)}</strong></td>
+                <td><strong>${this.escapeHtml(conta.nome)}</strong></td>
                 <td>
                     ${conta.banco_codigo ? `<span class="badge badge-secondary">${conta.banco_codigo}</span>` : '-'}
-                    ${conta.banco_nome ? `<br><small>${Utils.escapeHtml(conta.banco_nome)}</small>` : ''}
+                    ${conta.banco_nome ? `<br><small>${this.escapeHtml(conta.banco_nome)}</small>` : ''}
                 </td>
                 <td>${conta.agencia || '-'}${conta.agencia_dv ? '-' + conta.agencia_dv : ''}</td>
                 <td>${conta.conta || '-'}${conta.conta_dv ? '-' + conta.conta_dv : ''}</td>
@@ -548,5 +548,16 @@ const ContasBancariasManager = {
             this.elements.modalConfirm.classList.remove('show');
         }
         this.state.contaParaDeletar = null;
+    },
+
+    /**
+     * Escapa HTML para prevenir XSS
+     */
+    escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };
