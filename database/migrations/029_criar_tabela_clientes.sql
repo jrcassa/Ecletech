@@ -52,30 +52,40 @@ INSERT INTO `colaborador_permissions` (`nome`, `codigo`, `descricao`, `modulo`, 
 -- Atribuir permissões aos roles
 -- =====================================================
 
--- Obter IDs das permissões
-SET @perm_visualizar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.visualizar');
-SET @perm_criar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.criar');
-SET @perm_editar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.editar');
-SET @perm_deletar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.deletar');
+-- Obter IDs das permissões de clientes
+SET @perm_cliente_visualizar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.visualizar');
+SET @perm_cliente_criar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.criar');
+SET @perm_cliente_editar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.editar');
+SET @perm_cliente_deletar = (SELECT id FROM colaborador_permissions WHERE codigo = 'cliente.deletar');
 
 -- Obter IDs dos roles
-SET @role_admin = (SELECT id FROM colaborador_roles WHERE codigo = 'admin');
-SET @role_gerente = (SELECT id FROM colaborador_roles WHERE codigo = 'gerente');
-SET @role_usuario = (SELECT id FROM colaborador_roles WHERE codigo = 'usuario');
+SET @role_superadmin = (SELECT id FROM colaborador_roles WHERE codigo = 'superadmin_full');
+SET @role_admin_full = (SELECT id FROM colaborador_roles WHERE codigo = 'admin_full');
+SET @role_gerente = (SELECT id FROM colaborador_roles WHERE codigo = 'gerente_usuarios');
+SET @role_full_access = (SELECT id FROM colaborador_roles WHERE codigo = 'full_access_nivel_2');
 
--- Atribuir todas as permissões ao Admin
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
-(@role_admin, @perm_visualizar, NOW()),
-(@role_admin, @perm_criar, NOW()),
-(@role_admin, @perm_editar, NOW()),
-(@role_admin, @perm_deletar, NOW());
+-- Atribuir todas as permissões ao Super Admin (role_id = 1)
+INSERT IGNORE INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
+(@role_superadmin, @perm_cliente_visualizar, NOW()),
+(@role_superadmin, @perm_cliente_criar, NOW()),
+(@role_superadmin, @perm_cliente_editar, NOW()),
+(@role_superadmin, @perm_cliente_deletar, NOW());
 
--- Atribuir permissões de visualizar, criar e editar ao Gerente
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
-(@role_gerente, @perm_visualizar, NOW()),
-(@role_gerente, @perm_criar, NOW()),
-(@role_gerente, @perm_editar, NOW());
+-- Atribuir todas as permissões ao Admin Full Access (role_id = 2)
+INSERT IGNORE INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
+(@role_admin_full, @perm_cliente_visualizar, NOW()),
+(@role_admin_full, @perm_cliente_criar, NOW()),
+(@role_admin_full, @perm_cliente_editar, NOW()),
+(@role_admin_full, @perm_cliente_deletar, NOW());
 
--- Atribuir apenas visualizar ao Usuário
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
-(@role_usuario, @perm_visualizar, NOW());
+-- Atribuir permissões de visualizar e editar ao Gerente (role_id = 3)
+INSERT IGNORE INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
+(@role_gerente, @perm_cliente_visualizar, NOW()),
+(@role_gerente, @perm_cliente_editar, NOW());
+
+-- Atribuir todas as permissões ao Full Access Nivel 2 (role_id = 6)
+INSERT IGNORE INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`) VALUES
+(@role_full_access, @perm_cliente_visualizar, NOW()),
+(@role_full_access, @perm_cliente_criar, NOW()),
+(@role_full_access, @perm_cliente_editar, NOW()),
+(@role_full_access, @perm_cliente_deletar, NOW());
