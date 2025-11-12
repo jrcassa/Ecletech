@@ -87,6 +87,10 @@ $router->grupo([
     $rotasContaBancaria = require __DIR__ . '/conta_bancaria.php';
     $rotasContaBancaria($router);
 
+    // Inclui rotas de plano de contas
+    $rotasPlanoDeContas = require __DIR__ . '/plano_de_contas.php';
+    $rotasPlanoDeContas($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
