@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `grupos_produtos` (
 -- Inserir permissões para o módulo de grupos de produtos
 -- =====================================================
 
-INSERT INTO `colaborador_permissions` (`nome`, `codigo`, `descricao`, `modulo`, `ativo`, `criado_em`) VALUES
+INSERT IGNORE INTO `colaborador_permissions` (`nome`, `codigo`, `descricao`, `modulo`, `ativo`, `criado_em`) VALUES
 ('Visualizar Grupos de Produtos', 'grupos_produtos.visualizar', 'Permite visualizar a lista de grupos de produtos e detalhes', 'grupos_produtos', 1, NOW()),
 ('Criar Grupos de Produtos', 'grupos_produtos.criar', 'Permite cadastrar novos grupos de produtos', 'grupos_produtos', 1, NOW()),
 ('Editar Grupos de Produtos', 'grupos_produtos.editar', 'Permite editar informações dos grupos de produtos', 'grupos_produtos', 1, NOW()),
