@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fornecedores - Ecletech</title>
+    <title>Clientees - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1680,13 +1680,13 @@
                             <span>Frotas</span>
                         </div>
                     </a>
-                    <a href="./fornecedores.html" class="active" data-permission="fornecedor.visualizar">
+                    <a href="./fornecedores.html" data-permission="fornecedor.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-truck"></i></span>
                             <span>Fornecedores</span>
                         </div>
                     </a>
-                    <a href="./clientes.html" data-permission="cliente.visualizar">
+                    <a href="./clientes.html" class="active" data-permission="cliente.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-users"></i></span>
                             <span>Clientes</span>
@@ -1825,7 +1825,7 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Fornecedores</h1>
+                <h1>Clientees</h1>
             </div>
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
@@ -1846,9 +1846,9 @@
             <div id="pageContent" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Fornecedores</h2>
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Clientees</h2>
                         <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
-                            Novo Fornecedor</button>
+                            Novo Cliente</button>
                     </div>
 
                     <div class="filters">
@@ -1904,7 +1904,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum fornecedor encontrado.
+                            Nenhum cliente encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -1922,7 +1922,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Fornecedor</h3>
+                <h3 id="modalTitle">Novo Cliente</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -1943,8 +1943,8 @@
                 </button>
             </div>
 
-            <form id="formFornecedor">
-                <input type="hidden" id="fornecedorId">
+            <form id="formCliente">
+                <input type="hidden" id="clienteId">
 
                 <!-- Aba 1: Dados Gerais -->
                 <div class="tab-content active" id="tabDadosGerais">
@@ -2262,7 +2262,7 @@
             }
         });
     </script>
-    <script src="js/Fornecedores.js"></script>
+    <script src="js/Clientees.js"></script>
 </body>
 
 </html>
