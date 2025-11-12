@@ -10,6 +10,8 @@ const ProdutosManager = {
         gruposProdutos: [],
         fornecedores: [],
         fornecedoresSelecionados: [], // Lista de fornecedores selecionados
+        valores: [], // Lista de valores/preços
+        variacoes: [], // Lista de variações
         permissoes: {
             visualizar: false,
             criar: false,
@@ -58,7 +60,11 @@ const ProdutosManager = {
         pageInfo: document.getElementById('pageInfo'),
         logoutBtn: document.getElementById('logoutBtn'),
         btnAdicionarFornecedor: document.getElementById('btnAdicionarFornecedor'),
-        fornecedoresList: document.getElementById('fornecedoresList')
+        fornecedoresList: document.getElementById('fornecedoresList'),
+        btnAdicionarValor: document.getElementById('btnAdicionarValor'),
+        valoresList: document.getElementById('valoresList'),
+        btnAdicionarVariacao: document.getElementById('btnAdicionarVariacao'),
+        variacoesList: document.getElementById('variacoesList')
     },
 
     /**
@@ -127,6 +133,12 @@ const ProdutosManager = {
 
         // Adicionar fornecedor
         this.elements.btnAdicionarFornecedor?.addEventListener('click', () => this.abrirModalFornecedores());
+
+        // Adicionar valor
+        this.elements.btnAdicionarValor?.addEventListener('click', () => this.adicionarValor());
+
+        // Adicionar variação
+        this.elements.btnAdicionarVariacao?.addEventListener('click', () => this.adicionarVariacao());
 
         // Fechar modal ao clicar fora
         window.addEventListener('click', (e) => {
@@ -358,14 +370,21 @@ const ProdutosManager = {
 
         this.state.editandoId = null;
         this.state.fornecedoresSelecionados = [];
+        this.state.valores = [];
+        this.state.variacoes = [];
         this.elements.modalTitle.textContent = 'Novo Produto';
         this.elements.formProduto.reset();
         document.getElementById('produtoId').value = '';
         document.getElementById('ativo').value = '1';
         document.getElementById('estoque').value = '0';
+        document.getElementById('possuiVariacao').value = '0';
+        document.getElementById('possuiComposicao').value = '0';
+        document.getElementById('movimentaEstoque').value = '1';
 
-        // Limpa lista de fornecedores
+        // Limpa listas
         this.renderizarFornecedores();
+        this.renderizarValores();
+        this.renderizarVariacoes();
 
         // Volta para a primeira aba
         this.trocarAba('gerais');
@@ -408,6 +427,10 @@ const ProdutosManager = {
             document.getElementById('valorVenda').value = produto.valor_venda || '';
             document.getElementById('descricao').value = produto.descricao || '';
             document.getElementById('ativo').value = produto.ativo;
+            document.getElementById('possuiVariacao').value = produto.possui_variacao || '0';
+            document.getElementById('possuiComposicao').value = produto.possui_composicao || '0';
+            document.getElementById('movimentaEstoque').value = produto.movimenta_estoque ?? '1';
+            document.getElementById('peso').value = produto.peso || '';
 
             // Campos fiscais
             document.getElementById('ncm').value = produto.ncm || '';
@@ -420,8 +443,14 @@ const ProdutosManager = {
             document.getElementById('valorFixoConfins').value = produto.valor_fixo_confins || '';
             document.getElementById('valorFixoConfinsSt').value = produto.valor_fixo_confins_st || '';
 
-            // Renderiza fornecedores
+            // Carrega valores e variações
+            this.state.valores = produto.valores || [];
+            this.state.variacoes = produto.variacoes || [];
+
+            // Renderiza listas
             this.renderizarFornecedores();
+            this.renderizarValores();
+            this.renderizarVariacoes();
 
             // Volta para a primeira aba
             this.trocarAba('gerais');
@@ -506,6 +535,152 @@ const ProdutosManager = {
     },
 
     /**
+     * Adiciona um novo valor/preço
+     */
+    adicionarValor() {
+        const tipoId = prompt('Digite o ID do tipo de preço (ex: 90864):');
+        if (!tipoId) return;
+
+        const nomeTipo = prompt('Digite o nome do tipo (ex: Varejo, Atacado):');
+        if (!nomeTipo) return;
+
+        const lucro = prompt('Digite o percentual de lucro (ex: 15.00):');
+        const valorCusto = prompt('Digite o valor de custo:');
+        const valorVenda = prompt('Digite o valor de venda:');
+
+        if (valorCusto && valorVenda) {
+            this.state.valores.push({
+                tipo_id: tipoId,
+                nome_tipo: nomeTipo,
+                lucro_utilizado: lucro || null,
+                valor_custo: parseFloat(valorCusto),
+                valor_venda: parseFloat(valorVenda)
+            });
+            this.renderizarValores();
+        }
+    },
+
+    /**
+     * Remove um valor
+     */
+    removerValor(index) {
+        this.state.valores.splice(index, 1);
+        this.renderizarValores();
+    },
+
+    /**
+     * Renderiza lista de valores
+     */
+    renderizarValores() {
+        if (this.state.valores.length === 0) {
+            this.elements.valoresList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Nenhum valor adicionado.</p>';
+            return;
+        }
+
+        this.elements.valoresList.innerHTML = this.state.valores.map((valor, index) => `
+            <div class="dynamic-list-item">
+                <div class="dynamic-list-item-header">
+                    <span class="dynamic-list-item-title">
+                        ${this.escaparHtml(valor.nome_tipo)} - Custo: R$ ${this.formatarNumero(valor.valor_custo)} | Venda: R$ ${this.formatarNumero(valor.valor_venda)}
+                    </span>
+                    <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerValor(${index})">
+                        <i class="fas fa-trash"></i> Remover
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    /**
+     * Adiciona uma nova variação
+     */
+    adicionarVariacao() {
+        const nome = prompt('Digite o nome da variação (ex: Creme, Azul Escuro):');
+        if (!nome) return;
+
+        const estoque = prompt('Digite o estoque da variação:');
+
+        const variacao = {
+            variacao: {
+                nome: nome,
+                estoque: parseFloat(estoque) || 0,
+                valores: []
+            }
+        };
+
+        // Pergunta se quer adicionar valores específicos para essa variação
+        if (confirm('Deseja adicionar valores/preços específicos para esta variação?')) {
+            while (true) {
+                const tipoId = prompt('Digite o ID do tipo de preço (ou deixe em branco para finalizar):');
+                if (!tipoId) break;
+
+                const nomeTipo = prompt('Digite o nome do tipo:');
+                const lucro = prompt('Digite o percentual de lucro:');
+                const valorCusto = prompt('Digite o valor de custo:');
+                const valorVenda = prompt('Digite o valor de venda:');
+
+                if (nomeTipo && valorCusto && valorVenda) {
+                    variacao.variacao.valores.push({
+                        tipo_id: tipoId,
+                        nome_tipo: nomeTipo,
+                        lucro_utilizado: lucro || null,
+                        valor_custo: parseFloat(valorCusto),
+                        valor_venda: parseFloat(valorVenda)
+                    });
+                }
+            }
+        }
+
+        this.state.variacoes.push(variacao);
+        this.renderizarVariacoes();
+    },
+
+    /**
+     * Remove uma variação
+     */
+    removerVariacao(index) {
+        this.state.variacoes.splice(index, 1);
+        this.renderizarVariacoes();
+    },
+
+    /**
+     * Renderiza lista de variações
+     */
+    renderizarVariacoes() {
+        if (this.state.variacoes.length === 0) {
+            this.elements.variacoesList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Nenhuma variação adicionada.</p>';
+            return;
+        }
+
+        this.elements.variacoesList.innerHTML = this.state.variacoes.map((item, index) => {
+            const variacao = item.variacao || item;
+            const valoresHtml = variacao.valores && variacao.valores.length > 0
+                ? `<div style="margin-top: 10px; padding-left: 15px;">
+                    ${variacao.valores.map(v => `
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            • ${v.nome_tipo}: Custo R$ ${this.formatarNumero(v.valor_custo)} | Venda R$ ${this.formatarNumero(v.valor_venda)}
+                        </div>
+                    `).join('')}
+                </div>`
+                : '';
+
+            return `
+                <div class="dynamic-list-item">
+                    <div class="dynamic-list-item-header">
+                        <span class="dynamic-list-item-title">
+                            ${this.escaparHtml(variacao.nome)} - Estoque: ${this.formatarNumero(variacao.estoque)}
+                        </span>
+                        <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerVariacao(${index})">
+                            <i class="fas fa-trash"></i> Remover
+                        </button>
+                    </div>
+                    ${valoresHtml}
+                </div>
+            `;
+        }).join('');
+    },
+
+    /**
      * Salva o produto
      */
     async salvar(e) {
@@ -517,6 +692,10 @@ const ProdutosManager = {
                 nome: document.getElementById('nome').value,
                 codigo_interno: document.getElementById('codigoInterno').value || null,
                 codigo_barra: document.getElementById('codigoBarra').value || null,
+                possui_variacao: parseInt(document.getElementById('possuiVariacao').value) || 0,
+                possui_composicao: parseInt(document.getElementById('possuiComposicao').value) || 0,
+                movimenta_estoque: parseInt(document.getElementById('movimentaEstoque').value) || 1,
+                peso: document.getElementById('peso').value || null,
                 grupo_id: document.getElementById('grupoId').value || null,
                 largura: document.getElementById('largura').value || null,
                 altura: document.getElementById('altura').value || null,
@@ -539,7 +718,11 @@ const ProdutosManager = {
                 // Fornecedores
                 fornecedores: this.state.fornecedoresSelecionados.map(f => ({
                     fornecedor_id: f.fornecedor_id
-                }))
+                })),
+                // Valores/Preços
+                valores: this.state.valores,
+                // Variações
+                variacoes: this.state.variacoes
             };
 
             if (this.state.editandoId) {
@@ -600,6 +783,8 @@ const ProdutosManager = {
         this.elements.modalError.style.display = 'none';
         this.state.editandoId = null;
         this.state.fornecedoresSelecionados = [];
+        this.state.valores = [];
+        this.state.variacoes = [];
     },
 
     /**

@@ -1945,6 +1945,12 @@
                 <button type="button" class="tab-button active" data-tab="gerais">
                     <i class="fas fa-box"></i> Dados Gerais
                 </button>
+                <button type="button" class="tab-button" data-tab="valores">
+                    <i class="fas fa-tags"></i> Valores/Preços
+                </button>
+                <button type="button" class="tab-button" data-tab="variacoes">
+                    <i class="fas fa-palette"></i> Variações
+                </button>
                 <button type="button" class="tab-button" data-tab="fiscal">
                     <i class="fas fa-file-invoice"></i> Fiscal
                 </button>
@@ -2065,6 +2071,32 @@
                     <div class="form-group">
                         <label for="descricao">Descrição</label>
                         <textarea id="descricao" rows="4" placeholder="Descrição do produto (opcional)"></textarea>
+                    </div>
+                </div>
+
+                <!-- Aba: Valores/Preços -->
+                <div id="tabValores" class="tab-content">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Valores por Tipo de Preço (Varejo, Atacado, etc)</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarValor">
+                                <i class="fas fa-plus"></i> Adicionar Valor
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="valoresList"></div>
+                    </div>
+                </div>
+
+                <!-- Aba: Variações -->
+                <div id="tabVariacoes" class="tab-content">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Variações do Produto</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarVariacao">
+                                <i class="fas fa-plus"></i> Adicionar Variação
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="variacoesList"></div>
                     </div>
                 </div>
 
