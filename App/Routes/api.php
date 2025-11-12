@@ -91,6 +91,10 @@ $router->grupo([
     $rotasPlanoDeContas = require __DIR__ . '/plano_de_contas.php';
     $rotasPlanoDeContas($router);
 
+    // Inclui rotas de centro de custo
+    $rotasCentroDeCusto = require __DIR__ . '/centro_de_custo.php';
+    $rotasCentroDeCusto($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
