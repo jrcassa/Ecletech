@@ -6,6 +6,7 @@ use App\Models\Fornecedor\ModelFornecedor;
 use App\Models\Fornecedor\ModelFornecedorContato;
 use App\Models\Fornecedor\ModelFornecedorEndereco;
 use App\Core\Autenticacao;
+use App\Core\BancoDados;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -18,6 +19,7 @@ class ControllerFornecedor
     private ModelFornecedorContato $modelContato;
     private ModelFornecedorEndereco $modelEndereco;
     private Autenticacao $auth;
+    private BancoDados $db;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class ControllerFornecedor
         $this->modelContato = new ModelFornecedorContato();
         $this->modelEndereco = new ModelFornecedorEndereco();
         $this->auth = new Autenticacao();
+        $this->db = BancoDados::obterInstancia();
     }
 
     /**
@@ -175,30 +178,42 @@ class ControllerFornecedor
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Cria o fornecedor
-            $id = $this->model->criar($dados);
+            // Inicia transação
+            $this->db->iniciarTransacao();
 
-            // Processa contatos se existirem
-            if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                foreach ($dados['contatos'] as $contato) {
-                    if (isset($contato['nome']) && isset($contato['contato'])) {
-                        $contato['fornecedor_id'] = $id;
-                        $this->modelContato->criar($contato);
+            try {
+                // Cria o fornecedor
+                $id = $this->model->criar($dados);
+
+                // Processa contatos se existirem
+                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
+                    foreach ($dados['contatos'] as $contato) {
+                        if (isset($contato['nome']) && isset($contato['contato'])) {
+                            $contato['fornecedor_id'] = $id;
+                            $this->modelContato->criar($contato);
+                        }
                     }
                 }
-            }
 
-            // Processa endereços se existirem
-            if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                foreach ($dados['enderecos'] as $endereco) {
-                    $endereco['fornecedor_id'] = $id;
-                    $this->modelEndereco->criar($endereco);
+                // Processa endereços se existirem
+                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
+                    foreach ($dados['enderecos'] as $endereco) {
+                        $endereco['fornecedor_id'] = $id;
+                        $this->modelEndereco->criar($endereco);
+                    }
                 }
+
+                // Confirma a transação
+                $this->db->commit();
+
+                $fornecedor = $this->model->buscarComRelacionamentos($id);
+
+                AuxiliarResposta::criado($fornecedor, 'Fornecedor cadastrado com sucesso');
+            } catch (\Exception $e) {
+                // Reverte a transação em caso de erro
+                $this->db->rollback();
+                throw $e;
             }
-
-            $fornecedor = $this->model->buscarComRelacionamentos($id);
-
-            AuxiliarResposta::criado($fornecedor, 'Fornecedor cadastrado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -293,43 +308,54 @@ class ControllerFornecedor
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $usuarioId = $usuarioAutenticado['id'] ?? null;
 
-            // Atualiza o fornecedor
-            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
+            // Inicia transação
+            $this->db->iniciarTransacao();
 
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar fornecedor', 400);
-                return;
-            }
+            try {
+                // Atualiza o fornecedor
+                $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
-            // Processa contatos se existirem
-            if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                // Remove contatos antigos
-                $this->modelContato->deletarPorFornecedor((int) $id);
+                if (!$resultado) {
+                    throw new \Exception('Erro ao atualizar fornecedor');
+                }
 
-                // Adiciona novos contatos
-                foreach ($dados['contatos'] as $contato) {
-                    if (isset($contato['nome']) && isset($contato['contato'])) {
-                        $contato['fornecedor_id'] = (int) $id;
-                        $this->modelContato->criar($contato);
+                // Processa contatos se existirem
+                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
+                    // Remove contatos antigos
+                    $this->modelContato->deletarPorFornecedor((int) $id);
+
+                    // Adiciona novos contatos
+                    foreach ($dados['contatos'] as $contato) {
+                        if (isset($contato['nome']) && isset($contato['contato'])) {
+                            $contato['fornecedor_id'] = (int) $id;
+                            $this->modelContato->criar($contato);
+                        }
                     }
                 }
-            }
 
-            // Processa endereços se existirem
-            if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                // Remove endereços antigos
-                $this->modelEndereco->deletarPorFornecedor((int) $id);
+                // Processa endereços se existirem
+                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
+                    // Remove endereços antigos
+                    $this->modelEndereco->deletarPorFornecedor((int) $id);
 
-                // Adiciona novos endereços
-                foreach ($dados['enderecos'] as $endereco) {
-                    $endereco['fornecedor_id'] = (int) $id;
-                    $this->modelEndereco->criar($endereco);
+                    // Adiciona novos endereços
+                    foreach ($dados['enderecos'] as $endereco) {
+                        $endereco['fornecedor_id'] = (int) $id;
+                        $this->modelEndereco->criar($endereco);
+                    }
                 }
+
+                // Confirma a transação
+                $this->db->commit();
+
+                $fornecedor = $this->model->buscarComRelacionamentos((int) $id);
+
+                AuxiliarResposta::sucesso($fornecedor, 'Fornecedor atualizado com sucesso');
+            } catch (\Exception $e) {
+                // Reverte a transação em caso de erro
+                $this->db->rollback();
+                throw $e;
             }
-
-            $fornecedor = $this->model->buscarComRelacionamentos((int) $id);
-
-            AuxiliarResposta::sucesso($fornecedor, 'Fornecedor atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
