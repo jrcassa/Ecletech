@@ -1,0 +1,183 @@
+<?php
+
+namespace App\Controllers\Whatsapp;
+
+use App\Models\Whatsapp\ModelWhatsappConfiguracao;
+use App\Services\Whatsapp\ServiceWhatsappEntidade;
+use App\Helpers\AuxiliarResposta;
+use App\Helpers\AuxiliarValidacao;
+
+/**
+ * Controller para gerenciar configurações do WhatsApp
+ */
+class ControllerWhatsappConfiguracao
+{
+    private ModelWhatsappConfiguracao $model;
+    private ServiceWhatsappEntidade $entidadeService;
+
+    public function __construct()
+    {
+        $this->model = new ModelWhatsappConfiguracao();
+        $this->entidadeService = new ServiceWhatsappEntidade();
+    }
+
+    /**
+     * Lista todas as configurações
+     */
+    public function listar(): void
+    {
+        try {
+            $categoria = $_GET['categoria'] ?? null;
+
+            if ($categoria) {
+                $configs = $this->model->buscarPorCategoria($categoria);
+            } else {
+                $configs = $this->model->buscarTodas();
+            }
+
+            // Organiza por categoria
+            $organizadas = [];
+            foreach ($configs as $config) {
+                $cat = $config['categoria'];
+                if (!isset($organizadas[$cat])) {
+                    $organizadas[$cat] = [];
+                }
+                $organizadas[$cat][] = $config;
+            }
+
+            AuxiliarResposta::sucesso($organizadas, 'Configurações carregadas');
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtém configuração específica
+     */
+    public function obter(string $chave): void
+    {
+        try {
+            $config = $this->model->buscarPorChave($chave);
+
+            if (!$config) {
+                AuxiliarResposta::naoEncontrado('Configuração não encontrada');
+                return;
+            }
+
+            AuxiliarResposta::sucesso($config, 'Configuração encontrada');
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Salva configuração
+     */
+    public function salvar(): void
+    {
+        try {
+            $dados = AuxiliarResposta::obterDados();
+
+            $erros = AuxiliarValidacao::validar($dados, [
+                'chave' => 'obrigatorio',
+                'valor' => 'obrigatorio'
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::validacao($erros);
+                return;
+            }
+
+            $sucesso = $this->model->salvar($dados['chave'], $dados['valor']);
+
+            if ($sucesso) {
+                AuxiliarResposta::sucesso(null, 'Configuração salva com sucesso');
+            } else {
+                AuxiliarResposta::erro('Erro ao salvar configuração', 400);
+            }
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Reseta configuração para padrão
+     */
+    public function resetar(string $chave): void
+    {
+        try {
+            $sucesso = $this->model->resetar($chave);
+
+            if ($sucesso) {
+                AuxiliarResposta::sucesso(null, 'Configuração resetada');
+            } else {
+                AuxiliarResposta::erro('Configuração não encontrada', 404);
+            }
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Sincroniza entidade
+     */
+    public function sincronizarEntidade(): void
+    {
+        try {
+            $dados = AuxiliarResposta::obterDados();
+
+            $erros = AuxiliarValidacao::validar($dados, [
+                'tipo' => 'obrigatorio',
+                'id' => 'obrigatorio|inteiro'
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::validacao($erros);
+                return;
+            }
+
+            $resultado = $this->entidadeService->sincronizarEntidade($dados['tipo'], (int) $dados['id']);
+
+            AuxiliarResposta::sucesso($resultado, 'Entidade sincronizada');
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Sincroniza lote de entidades
+     */
+    public function sincronizarLote(): void
+    {
+        try {
+            $dados = AuxiliarResposta::obterDados();
+
+            $erros = AuxiliarValidacao::validar($dados, [
+                'tipo' => 'obrigatorio'
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::validacao($erros);
+                return;
+            }
+
+            $limit = (int) ($dados['limit'] ?? 100);
+            $offset = (int) ($dados['offset'] ?? 0);
+
+            $resultado = $this->entidadeService->sincronizarLote($dados['tipo'], $limit, $offset);
+
+            AuxiliarResposta::sucesso(
+                $resultado,
+                "Sincronizados: {$resultado['sincronizados']}, Erros: {$resultado['erros']}"
+            );
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+}

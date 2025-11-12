@@ -1,35 +1,33 @@
 <?php
 
-namespace Services\Whatsapp;
+namespace App\Services\Whatsapp;
 
-use Models\Whatsapp\WhatsAppEntidade;
-use Models\Whatsapp\WhatsAppConfiguracao;
-use Helpers\Utils;
+use App\Models\Whatsapp\ModelWhatsappEntidade;
+use App\Models\Whatsapp\ModelWhatsappConfiguracao;
+use App\Core\BancoDados;
+use App\Helpers\AuxiliarWhatsapp;
 
-class WhatsAppEntidadeService
+/**
+ * Service para gerenciar entidades do WhatsApp
+ */
+class ServiceWhatsappEntidade
 {
-    private $conn;
-    private $entidadeModel;
-    private $config;
-    private $cache = [];
+    private ModelWhatsappEntidade $model;
+    private ModelWhatsappConfiguracao $config;
+    private BancoDados $db;
+    private array $cache = [];
 
-    // Mapeamento de tipos válidos
-    private $tiposValidos = ['cliente', 'colaborador', 'fornecedor', 'transportadora'];
-
-    public function __construct($db)
+    public function __construct()
     {
-        $this->conn = $db;
-        $this->entidadeModel = new WhatsAppEntidade($db);
-        $this->config = new WhatsAppConfiguracao($db);
+        $this->model = new ModelWhatsappEntidade();
+        $this->config = new ModelWhatsappConfiguracao();
+        $this->db = BancoDados::obterInstancia();
     }
 
     /**
-     * Resolve entidade para número de WhatsApp
-     *
-     * @param string|array $destinatario - Pode ser "cliente:123", ["tipo" => "cliente", "id" => 123], ou número direto
-     * @return array ['numero', 'nome', 'tipo_entidade', 'entidade_id']
+     * Resolve destinatário (entidade ou número direto)
      */
-    public function resolverDestinatario($destinatario)
+    public function resolverDestinatario(string|array $destinatario): array
     {
         // Caso 1: Array estruturado
         if (is_array($destinatario)) {
@@ -40,15 +38,15 @@ class WhatsAppEntidadeService
         }
 
         // Caso 2: String no formato "tipo:id"
-        if (is_string($destinatario) && strpos($destinatario, ':') !== false) {
-            list($tipo, $id) = explode(':', $destinatario, 2);
-            return $this->resolverPorEntidade($tipo, $id);
+        $parsed = AuxiliarWhatsapp::parseEntidade($destinatario);
+        if ($parsed !== null) {
+            return $this->resolverPorEntidade($parsed['tipo'], $parsed['id']);
         }
 
         // Caso 3: Número direto (fallback)
         if ($this->config->obter('entidade_permitir_numero_direto', true)) {
             return [
-                'numero' => $this->limparNumero($destinatario),
+                'numero' => AuxiliarWhatsapp::limparNumero($destinatario),
                 'nome' => null,
                 'email' => null,
                 'tipo_entidade' => null,
@@ -62,10 +60,10 @@ class WhatsAppEntidadeService
     /**
      * Resolve por tipo e ID da entidade
      */
-    private function resolverPorEntidade($tipo, $id)
+    private function resolverPorEntidade(string $tipo, int $id): array
     {
         // Valida tipo
-        if (!in_array($tipo, $this->tiposValidos)) {
+        if (!AuxiliarWhatsapp::tipoEntidadeValido($tipo)) {
             throw new \Exception("Tipo de entidade inválido: {$tipo}");
         }
 
@@ -76,12 +74,12 @@ class WhatsAppEntidadeService
         }
 
         // Busca na tabela whatsapp_entidades
-        $entidade = $this->entidadeModel->buscarPorEntidade($tipo, $id);
+        $entidade = $this->model->buscarPorEntidade($tipo, $id);
 
         // Se não encontrou, tenta sincronizar
         if (!$entidade && $this->config->obter('entidade_auto_sync', true)) {
             $this->sincronizarEntidade($tipo, $id);
-            $entidade = $this->entidadeModel->buscarPorEntidade($tipo, $id);
+            $entidade = $this->model->buscarPorEntidade($tipo, $id);
         }
 
         if (!$entidade) {
@@ -115,7 +113,7 @@ class WhatsAppEntidadeService
     /**
      * Sincroniza entidade da tabela de origem
      */
-    public function sincronizarEntidade($tipo, $id)
+    public function sincronizarEntidade(string $tipo, int $id): array
     {
         // Busca configurações da entidade
         $tabela = $this->config->obter("entidade_{$tipo}_tabela");
@@ -129,17 +127,16 @@ class WhatsAppEntidadeService
         }
 
         // Busca na tabela de origem
-        $query = "SELECT
-            {$campoId} as id,
-            {$campoNome} as nome,
-            {$campoTelefone} as telefone,
-            {$campoEmail} as email
+        $registro = $this->db->buscarUm(
+            "SELECT
+                {$campoId} as id,
+                {$campoNome} as nome,
+                {$campoTelefone} as telefone,
+                {$campoEmail} as email
             FROM {$tabela}
-            WHERE {$campoId} = :id";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute([':id' => $id]);
-        $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            WHERE {$campoId} = ?",
+            [$id]
+        );
 
         if (!$registro) {
             throw new \Exception("Registro não encontrado na tabela {$tabela} com ID {$id}");
@@ -151,11 +148,11 @@ class WhatsAppEntidadeService
         }
 
         // Limpa e formata número
-        $numeroLimpo = $this->limparNumero($registro['telefone']);
-        $numeroFormatado = $this->formatarNumero($numeroLimpo);
+        $numeroLimpo = AuxiliarWhatsapp::limparNumero($registro['telefone']);
+        $numeroFormatado = AuxiliarWhatsapp::formatarNumero($numeroLimpo);
 
         // Sincroniza
-        $this->entidadeModel->sincronizar([
+        $this->model->sincronizar([
             'tipo_entidade' => $tipo,
             'entidade_id' => $id,
             'numero_whatsapp' => $numeroLimpo,
@@ -175,7 +172,7 @@ class WhatsAppEntidadeService
     /**
      * Sincronização em lote
      */
-    public function sincronizarLote($tipo, $limit = 100, $offset = 0)
+    public function sincronizarLote(string $tipo, int $limit = 100, int $offset = 0): array
     {
         $tabela = $this->config->obter("entidade_{$tipo}_tabela");
         $campoId = $this->config->obter("entidade_{$tipo}_campo_id", 'id');
@@ -187,30 +184,28 @@ class WhatsAppEntidadeService
             throw new \Exception("Tabela não configurada para tipo: {$tipo}");
         }
 
-        $query = "SELECT
-            {$campoId} as id,
-            {$campoNome} as nome,
-            {$campoTelefone} as telefone,
-            {$campoEmail} as email
+        $registros = $this->db->buscarTodos(
+            "SELECT
+                {$campoId} as id,
+                {$campoNome} as nome,
+                {$campoTelefone} as telefone,
+                {$campoEmail} as email
             FROM {$tabela}
             WHERE {$campoTelefone} IS NOT NULL
             AND {$campoTelefone} != ''
-            LIMIT :limit OFFSET :offset";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
-        $stmt->execute();
+            LIMIT ? OFFSET ?",
+            [$limit, $offset]
+        );
 
         $sincronizados = 0;
         $erros = 0;
 
-        while ($registro = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        foreach ($registros as $registro) {
             try {
-                $numeroLimpo = $this->limparNumero($registro['telefone']);
-                $numeroFormatado = $this->formatarNumero($numeroLimpo);
+                $numeroLimpo = AuxiliarWhatsapp::limparNumero($registro['telefone']);
+                $numeroFormatado = AuxiliarWhatsapp::formatarNumero($numeroLimpo);
 
-                $this->entidadeModel->sincronizar([
+                $this->model->sincronizar([
                     'tipo_entidade' => $tipo,
                     'entidade_id' => $registro['id'],
                     'numero_whatsapp' => $numeroLimpo,
@@ -232,45 +227,12 @@ class WhatsAppEntidadeService
     }
 
     /**
-     * Limpa número (remove caracteres especiais)
+     * Registra envio bem-sucedido
      */
-    private function limparNumero($numero)
-    {
-        // Remove tudo exceto números
-        $numero = preg_replace('/[^0-9]/', '', $numero);
-
-        // Remove 0 do início (DDD)
-        $numero = ltrim($numero, '0');
-
-        // Adiciona código do país se não tiver (55 = Brasil)
-        if (strlen($numero) <= 11) {
-            $numero = '55' . $numero;
-        }
-
-        return $numero;
-    }
-
-    /**
-     * Formata número para exibição
-     */
-    private function formatarNumero($numero)
-    {
-        // Formato: +55 (15) 99999-9999
-        if (strlen($numero) == 13) { // Com código país
-            return '+' . substr($numero, 0, 2) . ' (' . substr($numero, 2, 2) . ') ' .
-                   substr($numero, 4, 5) . '-' . substr($numero, 9);
-        }
-
-        return $numero;
-    }
-
-    /**
-     * Registrar envio bem-sucedido
-     */
-    public function registrarEnvio($tipoEntidade, $entidadeId)
+    public function registrarEnvio(?string $tipoEntidade, ?int $entidadeId): void
     {
         if ($tipoEntidade && $entidadeId) {
-            $this->entidadeModel->registrarEnvio($tipoEntidade, $entidadeId);
+            $this->model->registrarEnvio($tipoEntidade, $entidadeId);
         }
     }
 }

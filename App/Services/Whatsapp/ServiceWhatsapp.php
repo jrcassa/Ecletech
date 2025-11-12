@@ -1,0 +1,352 @@
+<?php
+
+namespace App\Services\Whatsapp;
+
+use App\Models\Whatsapp\ModelWhatsappQueue;
+use App\Models\Whatsapp\ModelWhatsappConfiguracao;
+use App\Models\Whatsapp\ModelWhatsappHistorico;
+use App\Models\Whatsapp\ModelWhatsappBaileys;
+use App\Models\Whatsapp\ModelWhatsappWebhook;
+use App\Services\Whatsapp\ServiceWhatsappEntidade;
+use App\Core\BancoDados;
+use App\Helpers\AuxiliarWhatsapp;
+
+/**
+ * Service principal para gerenciar todo o sistema WhatsApp
+ */
+class ServiceWhatsapp
+{
+    private BancoDados $db;
+    private ModelWhatsappQueue $queueModel;
+    private ModelWhatsappConfiguracao $configModel;
+    private ModelWhatsappHistorico $historicoModel;
+    private ModelWhatsappBaileys $baileys;
+    private ServiceWhatsappEntidade $entidadeService;
+
+    public function __construct()
+    {
+        $this->db = BancoDados::obterInstancia();
+        $this->queueModel = new ModelWhatsappQueue();
+        $this->configModel = new ModelWhatsappConfiguracao();
+        $this->historicoModel = new ModelWhatsappHistorico();
+        $this->baileys = new ModelWhatsappBaileys();
+        $this->entidadeService = new ServiceWhatsappEntidade();
+    }
+
+    /**
+     * Envia mensagem (adiciona à fila)
+     */
+    public function enviarMensagem(array $dados): array
+    {
+        try {
+            // Resolve destinatário
+            $destino = $this->entidadeService->resolverDestinatario($dados['destinatario']);
+
+            // Valida número
+            if (!AuxiliarWhatsapp::validarNumero($destino['numero'])) {
+                throw new \Exception('Número de WhatsApp inválido');
+            }
+
+            // Prepara dados da fila
+            $dadosFila = [
+                'tipo_entidade' => $destino['tipo_entidade'],
+                'entidade_id' => $destino['entidade_id'],
+                'entidade_nome' => $destino['nome'],
+                'tipo_mensagem' => $dados['tipo'],
+                'destinatario' => $destino['numero'],
+                'destinatario_nome' => $destino['nome'],
+                'conteudo' => $dados['mensagem'] ?? $dados['conteudo'] ?? null,
+                'arquivo_url' => $dados['arquivo_url'] ?? null,
+                'arquivo_base64' => $dados['arquivo_base64'] ?? null,
+                'arquivo_nome' => $dados['arquivo_nome'] ?? null,
+                'prioridade' => $dados['prioridade'] ?? 5,
+                'agendado_para' => $dados['agendado_para'] ?? null,
+                'metadata' => isset($dados['metadata']) ? json_encode($dados['metadata']) : null,
+                'status_code' => 1,
+                'tentativas' => 0
+            ];
+
+            // Adiciona à fila
+            $queueId = $this->queueModel->adicionar($dadosFila);
+
+            // Registra no histórico
+            $this->historicoModel->adicionar([
+                'queue_id' => $queueId,
+                'tipo_evento' => 'adicionado_fila',
+                'dados' => json_encode([
+                    'destinatario' => $destino['numero'],
+                    'tipo' => $dados['tipo']
+                ])
+            ]);
+
+            return [
+                'sucesso' => true,
+                'mensagem' => 'Mensagem adicionada à fila',
+                'queue_id' => $queueId
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'sucesso' => false,
+                'erro' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Processa fila de mensagens
+     */
+    public function processarFila(int $limit = 10): array
+    {
+        $mensagens = $this->queueModel->buscarPendentes($limit);
+
+        $resultado = [
+            'processadas' => 0,
+            'sucesso' => 0,
+            'erro' => 0,
+            'detalhes' => []
+        ];
+
+        foreach ($mensagens as $mensagem) {
+            $envioResultado = $this->processarMensagem($mensagem);
+
+            $resultado['processadas']++;
+
+            if ($envioResultado['sucesso']) {
+                $resultado['sucesso']++;
+            } else {
+                $resultado['erro']++;
+            }
+
+            $resultado['detalhes'][] = $envioResultado;
+
+            // Delay anti-ban
+            $this->aplicarDelay();
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Processa mensagem individual
+     */
+    private function processarMensagem(array $mensagem): array
+    {
+        try {
+            $response = null;
+
+            // Envia conforme tipo
+            switch ($mensagem['tipo_mensagem']) {
+                case 'text':
+                    $response = $this->baileys->sendText(
+                        $mensagem['destinatario'],
+                        $mensagem['conteudo']
+                    );
+                    break;
+
+                case 'image':
+                case 'pdf':
+                case 'audio':
+                case 'video':
+                case 'document':
+                    $response = $this->baileys->sendFile(
+                        $mensagem['destinatario'],
+                        $mensagem['tipo_mensagem'],
+                        $mensagem['arquivo_url'] ?? null,
+                        $mensagem['arquivo_base64'] ?? null,
+                        $mensagem['conteudo'] ?? null,
+                        $mensagem['arquivo_nome'] ?? null
+                    );
+                    break;
+
+                default:
+                    throw new \Exception('Tipo de mensagem não suportado');
+            }
+
+            $responseData = json_decode($response, true);
+
+            // Verifica sucesso
+            if (isset($responseData['error']) && $responseData['error'] === false) {
+                $messageId = $responseData['data']['key']['id'] ?? null;
+
+                // Atualiza como enviado
+                $this->queueModel->atualizarStatus($mensagem['id'], 2, null, $messageId);
+
+                // Registra envio
+                $this->entidadeService->registrarEnvio(
+                    $mensagem['tipo_entidade'],
+                    $mensagem['entidade_id']
+                );
+
+                // Histórico
+                $this->historicoModel->adicionar([
+                    'queue_id' => $mensagem['id'],
+                    'message_id' => $messageId,
+                    'tipo_evento' => 'enviado',
+                    'dados' => json_encode(['response' => $responseData])
+                ]);
+
+                return [
+                    'sucesso' => true,
+                    'queue_id' => $mensagem['id'],
+                    'message_id' => $messageId
+                ];
+            } else {
+                $erro = $responseData['message'] ?? 'Erro desconhecido';
+                $this->registrarErro($mensagem['id'], $erro);
+
+                return [
+                    'sucesso' => false,
+                    'queue_id' => $mensagem['id'],
+                    'erro' => $erro
+                ];
+            }
+
+        } catch (\Exception $e) {
+            $this->registrarErro($mensagem['id'], $e->getMessage());
+
+            return [
+                'sucesso' => false,
+                'queue_id' => $mensagem['id'],
+                'erro' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Registra erro e agenda retry
+     */
+    private function registrarErro(int $queueId, string $erro): void
+    {
+        $mensagem = $this->queueModel->buscarPorId($queueId);
+        $novasTentativas = $mensagem['tentativas'] + 1;
+        $maxTentativas = $this->configModel->obter('retry_max_tentativas', 3);
+
+        if ($novasTentativas >= $maxTentativas) {
+            // Falha definitiva
+            $this->queueModel->atualizarStatus($queueId, 0, $erro);
+        } else {
+            // Agenda retry
+            $delay = $this->calcularBackoff($novasTentativas);
+            $proximaTentativa = date('Y-m-d H:i:s', time() + $delay);
+
+            $this->queueModel->atualizar($queueId, [
+                'tentativas' => $novasTentativas,
+                'ultima_tentativa' => date('Y-m-d H:i:s'),
+                'proxima_tentativa' => $proximaTentativa,
+                'erro' => $erro,
+                'status_code' => 0
+            ]);
+        }
+    }
+
+    /**
+     * Calcula tempo de backoff exponencial
+     */
+    private function calcularBackoff(int $tentativa): int
+    {
+        $base = $this->configModel->obter('retry_base_delay', 60);
+        $multiplicador = $this->configModel->obter('retry_multiplicador', 2);
+        return $base * pow($multiplicador, $tentativa);
+    }
+
+    /**
+     * Aplica delay anti-ban
+     */
+    private function aplicarDelay(): void
+    {
+        $min = $this->configModel->obter('antiban_delay_min', 3);
+        $max = $this->configModel->obter('antiban_delay_max', 7);
+        sleep(rand($min, $max));
+    }
+
+    /**
+     * Processa webhook
+     */
+    public function processarWebhook(array $payload): array
+    {
+        $webhookModel = new ModelWhatsappWebhook();
+
+        try {
+            // Armazena webhook
+            $webhookId = $webhookModel->adicionar([
+                'payload' => json_encode($payload),
+                'processado' => false
+            ]);
+
+            // Extrai informações
+            $info = $this->extrairInfoWebhook($payload);
+
+            if (!$info) {
+                $webhookModel->marcarProcessado($webhookId, true, 'Webhook não relevante');
+                return ['sucesso' => true, 'processado' => false];
+            }
+
+            // Atualiza status na fila
+            $statusCode = AuxiliarWhatsapp::webhookParaStatusCode($info['status']);
+            $mensagem = $this->queueModel->buscarPorMessageId($info['message_id']);
+
+            if ($mensagem && $statusCode > $mensagem['status_code']) {
+                $updates = ['status_code' => $statusCode];
+
+                if ($statusCode === 3) {
+                    $updates['data_entrega'] = date('Y-m-d H:i:s');
+                } elseif ($statusCode === 4) {
+                    $updates['data_leitura'] = date('Y-m-d H:i:s');
+                }
+
+                $this->queueModel->atualizar($mensagem['id'], $updates);
+            }
+
+            $webhookModel->marcarProcessado($webhookId, true);
+            $webhookModel->atualizar($webhookId, [
+                'message_id' => $info['message_id'],
+                'status' => $info['status']
+            ]);
+
+            return ['sucesso' => true, 'processado' => true];
+
+        } catch (\Exception $e) {
+            if (isset($webhookId)) {
+                $webhookModel->marcarProcessado($webhookId, false, $e->getMessage());
+            }
+            return ['sucesso' => false, 'erro' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Extrai informações do webhook
+     */
+    private function extrairInfoWebhook(array $payload): ?array
+    {
+        if (!isset($payload['event']) || !isset($payload['data'])) {
+            return null;
+        }
+
+        $messageId = $payload['data']['key']['id'] ?? $payload['data']['id'] ?? null;
+        $status = $payload['data']['update']['status'] ?? $payload['data']['status'] ?? null;
+
+        if (!$messageId || !$status) {
+            return null;
+        }
+
+        return [
+            'message_id' => $messageId,
+            'status' => $status
+        ];
+    }
+
+    /**
+     * Obtém estatísticas
+     */
+    public function obterEstatisticas(): array
+    {
+        return [
+            'pendentes' => $this->queueModel->contarPendentes(),
+            'erro' => $this->queueModel->contarPorStatus(0),
+            'enviado' => $this->queueModel->contarPorStatus(2),
+            'entregue' => $this->queueModel->contarPorStatus(3),
+            'lido' => $this->queueModel->contarPorStatus(4)
+        ];
+    }
+}
