@@ -239,15 +239,22 @@ O sistema cria automaticamente 3 permissões:
 
 As permissões são automaticamente atribuídas aos roles Super Admin e Admin.
 
-### 3. Configurar Token da API
+### 3. Configurar API Baileys
 ```sql
-UPDATE whatsapp_configuracoes
-SET valor = 'SEU_TOKEN_AQUI'
-WHERE chave = 'instancia_token';
-
+-- URL base da API
 UPDATE whatsapp_configuracoes
 SET valor = 'https://api.baileys.com'
-WHERE chave = 'api_url';
+WHERE chave = 'api_base_url';
+
+-- Token da instância
+UPDATE whatsapp_configuracoes
+SET valor = 'SEU_INSTANCE_TOKEN_AQUI'
+WHERE chave = 'instancia_token';
+
+-- Token de segurança (Bearer)
+UPDATE whatsapp_configuracoes
+SET valor = 'SEU_SECURE_TOKEN_AQUI'
+WHERE chave = 'api_secure_token';
 ```
 
 ### 4. Configurar Webhook

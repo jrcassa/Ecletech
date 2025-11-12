@@ -79,14 +79,20 @@ O sistema WhatsApp utiliza 3 permissões:
 ### 3. Configurar API Baileys
 
 ```sql
--- Configurar URL e Token da API Baileys
+-- URL base da API Baileys
 UPDATE whatsapp_configuracoes
 SET valor = 'https://api.baileys.com'
-WHERE chave = 'api_url';
+WHERE chave = 'api_base_url';
 
+-- Token da instância WhatsApp
 UPDATE whatsapp_configuracoes
-SET valor = 'SEU_TOKEN_AQUI'
+SET valor = 'SEU_INSTANCE_TOKEN_AQUI'
 WHERE chave = 'instancia_token';
+
+-- Token de segurança para autenticação (Bearer)
+UPDATE whatsapp_configuracoes
+SET valor = 'SEU_SECURE_TOKEN_AQUI'
+WHERE chave = 'api_secure_token';
 
 -- Configurar Webhook
 UPDATE whatsapp_configuracoes

@@ -10,14 +10,16 @@ use App\Models\Whatsapp\ModelWhatsappConfiguracao;
 class ModelWhatsappBaileys
 {
     private ModelWhatsappConfiguracao $config;
-    private ?string $apiUrl;
+    private ?string $apiBaseUrl;
     private ?string $instanceToken;
+    private ?string $secureToken;
 
     public function __construct()
     {
         $this->config = new ModelWhatsappConfiguracao();
-        $this->apiUrl = $this->config->obter('api_url', null);
+        $this->apiBaseUrl = $this->config->obter('api_base_url', null);
         $this->instanceToken = $this->config->obter('instancia_token', null);
+        $this->secureToken = $this->config->obter('api_secure_token', null);
     }
 
     /**
@@ -25,12 +27,16 @@ class ModelWhatsappBaileys
      */
     private function verificarConfiguracao(): void
     {
-        if (empty($this->apiUrl)) {
-            throw new \Exception('API URL não configurada. Configure a chave "api_url" nas configurações do WhatsApp.');
+        if (empty($this->apiBaseUrl)) {
+            throw new \Exception('API Base URL não configurada. Configure a chave "api_base_url" nas configurações do WhatsApp.');
         }
 
         if (empty($this->instanceToken)) {
             throw new \Exception('Token da instância não configurado. Configure a chave "instancia_token" nas configurações do WhatsApp.');
+        }
+
+        if (empty($this->secureToken)) {
+            throw new \Exception('Token de segurança não configurado. Configure a chave "api_secure_token" nas configurações do WhatsApp.');
         }
     }
 
@@ -40,13 +46,16 @@ class ModelWhatsappBaileys
      */
     public function estaConfigurado(): array
     {
+        $configurado = !empty($this->apiBaseUrl) && !empty($this->instanceToken) && !empty($this->secureToken);
+
         return [
-            'configurado' => !empty($this->apiUrl) && !empty($this->instanceToken),
-            'api_url_configurada' => !empty($this->apiUrl),
-            'token_configurado' => !empty($this->instanceToken),
-            'mensagem' => empty($this->apiUrl) || empty($this->instanceToken)
-                ? 'Configure a API URL e o Token da instância nas configurações do WhatsApp'
-                : 'API configurada corretamente'
+            'configurado' => $configurado,
+            'api_base_url_configurada' => !empty($this->apiBaseUrl),
+            'instancia_token_configurado' => !empty($this->instanceToken),
+            'secure_token_configurado' => !empty($this->secureToken),
+            'mensagem' => $configurado
+                ? 'API configurada corretamente'
+                : 'Configure api_base_url, instancia_token e api_secure_token nas configurações do WhatsApp'
         ];
     }
 
@@ -61,7 +70,7 @@ class ModelWhatsappBaileys
         $maxRetries = $this->config->obter('api_max_retries', 3);
         $retryDelay = $this->config->obter('api_retry_delay', 2);
 
-        $url = rtrim($this->apiUrl, '/') . '/' . ltrim($endpoint, '/');
+        $url = rtrim($this->apiBaseUrl, '/') . '/' . ltrim($endpoint, '/');
 
         $ch = curl_init();
 
@@ -70,7 +79,11 @@ class ModelWhatsappBaileys
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->config->obter('api_timeout', 30));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
-        $headers = ['Content-Type: application/json'];
+        // Headers com Authorization Bearer
+        $headers = [
+            'Authorization: Bearer ' . $this->secureToken,
+            'Content-Type: application/json'
+        ];
 
         if ($data !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
