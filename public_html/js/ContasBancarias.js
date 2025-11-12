@@ -119,7 +119,7 @@ const ContasBancariasManager = {
 
         // Máscara de saldo
         this.elements.formConta?.querySelector('#inputSaldoInicial')?.addEventListener('input', (e) => {
-            e.target.value = Utils.formatarMoeda(e.target.value);
+            e.target.value = this.formatarMoeda(e.target.value);
         });
     },
 
@@ -218,7 +218,7 @@ const ContasBancariasManager = {
                     <span class="badge badge-info">${this.formatarTipoConta(conta.tipo_conta)}</span>
                 </td>
                 <td style="text-align: right;">
-                    ${Utils.formatarValor(conta.saldo_inicial || 0)}
+                    R$ ${this.formatarNumero(conta.saldo_inicial || 0)}
                 </td>
                 <td>
                     <span class="badge ${conta.ativo == 1 ? 'badge-success' : 'badge-danger'}">
@@ -462,7 +462,7 @@ const ContasBancariasManager = {
             conta: form.querySelector('#inputConta')?.value || null,
             conta_dv: form.querySelector('#inputContaDv')?.value || null,
             tipo_conta: form.querySelector('#selectTipoContaForm')?.value || 'corrente',
-            saldo_inicial: Utils.parseMoeda(saldoInicial),
+            saldo_inicial: this.parseMoeda(saldoInicial),
             observacoes: form.querySelector('#inputObservacoes')?.value || null,
             ativo: form.querySelector('#checkAtivo')?.checked ? 1 : 0
         };
@@ -485,7 +485,7 @@ const ContasBancariasManager = {
         form.querySelector('#inputConta').value = conta.conta || '';
         form.querySelector('#inputContaDv').value = conta.conta_dv || '';
         form.querySelector('#selectTipoContaForm').value = conta.tipo_conta || 'corrente';
-        form.querySelector('#inputSaldoInicial').value = Utils.formatarValor(conta.saldo_inicial || 0);
+        form.querySelector('#inputSaldoInicial').value = this.formatarNumero(conta.saldo_inicial || 0);
         form.querySelector('#inputObservacoes').value = conta.observacoes || '';
         form.querySelector('#checkAtivo').checked = conta.ativo == 1;
     },
@@ -559,5 +559,46 @@ const ContasBancariasManager = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    /**
+     * Formata número para exibição (1234.56 -> "1234,56")
+     */
+    formatarNumero(numero) {
+        if (!numero && numero !== 0) return '-';
+        return parseFloat(numero).toFixed(2).replace('.', ',');
+    },
+
+    /**
+     * Formata valor monetário para input (máscaraao digitar)
+     */
+    formatarMoeda(valor) {
+        if (!valor) return '';
+
+        // Remove tudo que não é dígito
+        let numero = valor.toString().replace(/\D/g, '');
+
+        // Se vazio, retorna vazio
+        if (numero === '') return '';
+
+        // Converte para float e divide por 100 para ter 2 casas decimais
+        numero = (parseFloat(numero) / 100).toFixed(2);
+
+        // Formata com separadores
+        return numero.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+
+    /**
+     * Parse de moeda formatada para float ("1.234,56" -> 1234.56)
+     */
+    parseMoeda(valor) {
+        if (!valor) return 0;
+
+        // Remove tudo que não é dígito ou vírgula
+        const numero = valor.toString()
+            .replace(/[^\d,]/g, '')  // Remove tudo exceto dígitos e vírgula
+            .replace(',', '.');       // Troca vírgula por ponto
+
+        return parseFloat(numero) || 0;
     }
 };
