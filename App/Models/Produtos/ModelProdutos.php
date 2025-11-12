@@ -7,7 +7,7 @@ use App\Core\RegistroAuditoria;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Model para gerenciar produtos
+ * Model para gerenciar produtos (estrutura refatorada - 2 tabelas)
  */
 class ModelProdutos
 {
@@ -21,17 +21,21 @@ class ModelProdutos
     }
 
     /**
-     * Busca um produto por ID
+     * Busca um produto por ID com fornecedores
      */
     public function buscarPorId(int $id): ?array
     {
-        return $this->db->buscarUm(
-            "SELECT p.*, g.nome as nome_grupo
-             FROM produtos p
-             LEFT JOIN grupos_produtos g ON p.grupo_id = g.id
-             WHERE p.id = ? AND p.deletado_em IS NULL",
+        $produto = $this->db->buscarUm(
+            "SELECT * FROM produtos WHERE id = ? AND deleted_at IS NULL",
             [$id]
         );
+
+        if ($produto) {
+            // Busca fornecedores
+            $produto['fornecedores'] = $this->buscarFornecedoresDoProduto($id);
+        }
+
+        return $produto;
     }
 
     /**
@@ -39,13 +43,16 @@ class ModelProdutos
      */
     public function buscarPorExternalId(string $externalId): ?array
     {
-        return $this->db->buscarUm(
-            "SELECT p.*, g.nome as nome_grupo
-             FROM produtos p
-             LEFT JOIN grupos_produtos g ON p.grupo_id = g.id
-             WHERE p.external_id = ? AND p.deletado_em IS NULL",
+        $produto = $this->db->buscarUm(
+            "SELECT * FROM produtos WHERE external_id = ? AND deleted_at IS NULL",
             [$externalId]
         );
+
+        if ($produto) {
+            $produto['fornecedores'] = $this->buscarFornecedoresDoProduto($produto['id']);
+        }
+
+        return $produto;
     }
 
     /**
@@ -53,41 +60,56 @@ class ModelProdutos
      */
     public function buscarPorCodigoInterno(string $codigoInterno): ?array
     {
-        return $this->db->buscarUm(
-            "SELECT p.*, g.nome as nome_grupo
-             FROM produtos p
-             LEFT JOIN grupos_produtos g ON p.grupo_id = g.id
-             WHERE p.codigo_interno = ? AND p.deletado_em IS NULL",
+        $produto = $this->db->buscarUm(
+            "SELECT * FROM produtos WHERE codigo_interno = ? AND deleted_at IS NULL",
             [$codigoInterno]
+        );
+
+        if ($produto) {
+            $produto['fornecedores'] = $this->buscarFornecedoresDoProduto($produto['id']);
+        }
+
+        return $produto;
+    }
+
+    /**
+     * Busca fornecedores de um produto
+     */
+    private function buscarFornecedoresDoProduto(int $produtoId): array
+    {
+        return $this->db->buscarTodos(
+            "SELECT pf.*, f.nome as fornecedor_nome
+             FROM produtos_fornecedores pf
+             INNER JOIN fornecedores f ON pf.fornecedor_id = f.id
+             WHERE pf.produto_id = ?
+             ORDER BY f.nome",
+            [$produtoId]
         );
     }
 
     /**
-     * Lista todos os produtos com relacionamentos
+     * Lista todos os produtos
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT p.*, g.nome as nome_grupo
-                FROM produtos p
-                LEFT JOIN grupos_produtos g ON p.grupo_id = g.id
-                WHERE p.deletado_em IS NULL";
+        $sql = "SELECT * FROM produtos WHERE deleted_at IS NULL";
         $parametros = [];
 
         // Filtro por ativo
         if (isset($filtros['ativo'])) {
-            $sql .= " AND p.ativo = ?";
+            $sql .= " AND ativo = ?";
             $parametros[] = $filtros['ativo'];
         }
 
         // Filtro por grupo
         if (isset($filtros['grupo_id']) && $filtros['grupo_id'] !== '') {
-            $sql .= " AND p.grupo_id = ?";
+            $sql .= " AND grupo_id = ?";
             $parametros[] = $filtros['grupo_id'];
         }
 
-        // Busca textual (nome, código interno, código de barras)
+        // Busca textual
         if (isset($filtros['busca'])) {
-            $sql .= " AND (p.nome LIKE ? OR p.codigo_interno LIKE ? OR p.codigo_barra LIKE ? OR p.descricao LIKE ?)";
+            $sql .= " AND (nome LIKE ? OR codigo_interno LIKE ? OR codigo_barra LIKE ? OR descricao LIKE ?)";
             $busca = "%{$filtros['busca']}%";
             $parametros[] = $busca;
             $parametros[] = $busca;
@@ -95,9 +117,9 @@ class ModelProdutos
             $parametros[] = $busca;
         }
 
-        // Ordenação (validada contra SQL Injection)
+        // Ordenação
         $camposPermitidos = [
-            'id', 'nome', 'codigo_interno', 'estoque', 'valor_venda', 'ativo', 'cadastrado_em', 'modificado_em'
+            'id', 'nome', 'codigo_interno', 'estoque', 'valor_venda', 'ativo', 'created_at', 'updated_at'
         ];
         $ordenacaoValidada = AuxiliarValidacao::validarOrdenacao(
             $filtros['ordenacao'] ?? 'nome',
@@ -105,7 +127,7 @@ class ModelProdutos
             $camposPermitidos,
             'nome'
         );
-        $sql .= " ORDER BY p.{$ordenacaoValidada['campo']} {$ordenacaoValidada['direcao']}";
+        $sql .= " ORDER BY {$ordenacaoValidada['campo']} {$ordenacaoValidada['direcao']}";
 
         // Paginação
         if (isset($filtros['limite'])) {
@@ -126,24 +148,21 @@ class ModelProdutos
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM produtos p WHERE p.deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM produtos WHERE deleted_at IS NULL";
         $parametros = [];
 
-        // Filtro por ativo
         if (isset($filtros['ativo'])) {
-            $sql .= " AND p.ativo = ?";
+            $sql .= " AND ativo = ?";
             $parametros[] = $filtros['ativo'];
         }
 
-        // Filtro por grupo
         if (isset($filtros['grupo_id']) && $filtros['grupo_id'] !== '') {
-            $sql .= " AND p.grupo_id = ?";
+            $sql .= " AND grupo_id = ?";
             $parametros[] = $filtros['grupo_id'];
         }
 
-        // Busca textual
         if (isset($filtros['busca'])) {
-            $sql .= " AND (p.nome LIKE ? OR p.codigo_interno LIKE ? OR p.codigo_barra LIKE ? OR p.descricao LIKE ?)";
+            $sql .= " AND (nome LIKE ? OR codigo_interno LIKE ? OR codigo_barra LIKE ? OR descricao LIKE ?)";
             $busca = "%{$filtros['busca']}%";
             $parametros[] = $busca;
             $parametros[] = $busca;
@@ -163,18 +182,19 @@ class ModelProdutos
         $dadosInsert = [
             'nome' => $dados['nome'],
             'ativo' => $dados['ativo'] ?? 1,
-            'possui_variacao' => $dados['possui_variacao'] ?? 0,
-            'possui_composicao' => $dados['possui_composicao'] ?? 0,
-            'movimenta_estoque' => $dados['movimenta_estoque'] ?? 1,
             'estoque' => $dados['estoque'] ?? 0,
-            'cadastrado_em' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s')
         ];
 
         // Campos opcionais
         $camposOpcionais = [
-            'external_id', 'codigo_interno', 'codigo_barra',
-            'peso', 'largura', 'altura', 'comprimento',
-            'grupo_id', 'descricao', 'valor_custo', 'valor_venda'
+            'external_id', 'codigo_interno', 'codigo_barra', 'descricao',
+            'largura', 'altura', 'comprimento',
+            'grupo_id', 'nome_grupo',
+            'valor_custo', 'valor_venda',
+            'ncm', 'cest', 'peso_liquido', 'peso_bruto',
+            'valor_aproximado_tributos', 'valor_fixo_pis', 'valor_fixo_pis_st',
+            'valor_fixo_confins', 'valor_fixo_confins_st'
         ];
 
         foreach ($camposOpcionais as $campo) {
@@ -184,6 +204,11 @@ class ModelProdutos
         }
 
         $id = $this->db->inserir('produtos', $dadosInsert);
+
+        // Insere fornecedores se fornecidos
+        if (isset($dados['fornecedores']) && is_array($dados['fornecedores'])) {
+            $this->sincronizarFornecedores($id, $dados['fornecedores']);
+        }
 
         // Registra auditoria
         $this->auditoria->registrar(
@@ -203,22 +228,25 @@ class ModelProdutos
      */
     public function atualizar(int $id, array $dados, ?int $usuarioId = null): bool
     {
-        // Busca dados atuais para auditoria
         $dadosAtuais = $this->buscarPorId($id);
         if (!$dadosAtuais) {
             return false;
         }
 
         $dadosUpdate = [
-            'modificado_em' => date('Y-m-d H:i:s')
+            'updated_at' => date('Y-m-d H:i:s')
         ];
 
         // Campos que podem ser atualizados
         $camposAtualizaveis = [
-            'external_id', 'nome', 'codigo_interno', 'codigo_barra',
-            'possui_variacao', 'possui_composicao', 'movimenta_estoque',
-            'peso', 'largura', 'altura', 'comprimento',
-            'grupo_id', 'descricao', 'estoque', 'valor_custo', 'valor_venda', 'ativo'
+            'external_id', 'nome', 'codigo_interno', 'codigo_barra', 'descricao',
+            'largura', 'altura', 'comprimento',
+            'grupo_id', 'nome_grupo',
+            'estoque', 'valor_custo', 'valor_venda',
+            'ncm', 'cest', 'peso_liquido', 'peso_bruto',
+            'valor_aproximado_tributos', 'valor_fixo_pis', 'valor_fixo_pis_st',
+            'valor_fixo_confins', 'valor_fixo_confins_st',
+            'ativo'
         ];
 
         foreach ($camposAtualizaveis as $campo) {
@@ -228,6 +256,11 @@ class ModelProdutos
         }
 
         $resultado = $this->db->atualizar('produtos', $dadosUpdate, 'id = ?', [$id]);
+
+        // Atualiza fornecedores se fornecidos
+        if (isset($dados['fornecedores']) && is_array($dados['fornecedores'])) {
+            $this->sincronizarFornecedores($id, $dados['fornecedores']);
+        }
 
         // Registra auditoria
         if ($resultado) {
@@ -245,11 +278,37 @@ class ModelProdutos
     }
 
     /**
+     * Sincroniza fornecedores do produto
+     */
+    private function sincronizarFornecedores(int $produtoId, array $fornecedores): void
+    {
+        // Remove todos os fornecedores atuais
+        $this->db->executar(
+            "DELETE FROM produtos_fornecedores WHERE produto_id = ?",
+            [$produtoId]
+        );
+
+        // Insere novos fornecedores
+        foreach ($fornecedores as $fornecedor) {
+            $fornecedorId = is_array($fornecedor)
+                ? ($fornecedor['fornecedor_id'] ?? $fornecedor['id'] ?? null)
+                : $fornecedor;
+
+            if ($fornecedorId) {
+                $this->db->inserir('produtos_fornecedores', [
+                    'produto_id' => $produtoId,
+                    'fornecedor_id' => $fornecedorId,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+    }
+
+    /**
      * Deleta um produto (soft delete)
      */
     public function deletar(int $id, ?int $usuarioId = null): bool
     {
-        // Busca dados atuais para auditoria
         $dadosAtuais = $this->buscarPorId($id);
         if (!$dadosAtuais) {
             return false;
@@ -258,7 +317,7 @@ class ModelProdutos
         $resultado = $this->db->atualizar(
             'produtos',
             [
-                'deletado_em' => date('Y-m-d H:i:s'),
+                'deleted_at' => date('Y-m-d H:i:s'),
                 'ativo' => 0
             ],
             'id = ?',
@@ -272,7 +331,7 @@ class ModelProdutos
                 'produtos',
                 $id,
                 $dadosAtuais,
-                ['deletado_em' => date('Y-m-d H:i:s')],
+                ['deleted_at' => date('Y-m-d H:i:s')],
                 $usuarioId
             );
         }
@@ -285,7 +344,7 @@ class ModelProdutos
      */
     public function externalIdExiste(string $externalId, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM produtos WHERE external_id = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM produtos WHERE external_id = ? AND deleted_at IS NULL";
         $parametros = [$externalId];
 
         if ($excluirId) {
@@ -302,7 +361,7 @@ class ModelProdutos
      */
     public function codigoInternoExiste(string $codigoInterno, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM produtos WHERE codigo_interno = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM produtos WHERE codigo_interno = ? AND deleted_at IS NULL";
         $parametros = [$codigoInterno];
 
         if ($excluirId) {
@@ -323,13 +382,13 @@ class ModelProdutos
 
         // Total de produtos ativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM produtos WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM produtos WHERE ativo = 1 AND deleted_at IS NULL"
         );
         $stats['total_ativos'] = (int) $resultado['total'];
 
         // Total de produtos inativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM produtos WHERE ativo = 0 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM produtos WHERE ativo = 0 AND deleted_at IS NULL"
         );
         $stats['total_inativos'] = (int) $resultado['total'];
 
@@ -338,7 +397,7 @@ class ModelProdutos
 
         // Valor total em estoque
         $resultado = $this->db->buscarUm(
-            "SELECT SUM(estoque * valor_venda) as total FROM produtos WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT SUM(estoque * valor_venda) as total FROM produtos WHERE ativo = 1 AND deleted_at IS NULL"
         );
         $stats['valor_total_estoque'] = (float) ($resultado['total'] ?? 0);
 

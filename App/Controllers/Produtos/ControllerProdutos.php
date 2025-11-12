@@ -3,29 +3,23 @@
 namespace App\Controllers\Produtos;
 
 use App\Models\Produtos\ModelProdutos;
-use App\Models\Produtos\ModelProdutoValores;
-use App\Models\Produtos\ModelProdutoFiscal;
 use App\Core\Autenticacao;
 use App\Core\BancoDados;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Controller para gerenciar produtos
+ * Controller para gerenciar produtos (estrutura refatorada - 2 tabelas)
  */
 class ControllerProdutos
 {
     private ModelProdutos $model;
-    private ModelProdutoValores $modelValores;
-    private ModelProdutoFiscal $modelFiscal;
     private Autenticacao $auth;
     private BancoDados $db;
 
     public function __construct()
     {
         $this->model = new ModelProdutos();
-        $this->modelValores = new ModelProdutoValores();
-        $this->modelFiscal = new ModelProdutoFiscal();
         $this->auth = new Autenticacao();
         $this->db = BancoDados::obterInstancia();
     }
@@ -90,19 +84,6 @@ class ControllerProdutos
                 return;
             }
 
-            // Busca valores
-            $produto['valores'] = $this->modelValores->buscarPorProduto((int) $id);
-
-            // Busca fiscal
-            $fiscal = $this->modelFiscal->buscarPorProduto((int) $id);
-            $produto['fiscal'] = $fiscal ?? [
-                'ncm' => '',
-                'cest' => '',
-                'peso_liquido' => '',
-                'peso_bruto' => '',
-                'valor_aproximado_tributos' => ''
-            ];
-
             AuxiliarResposta::sucesso($produto, 'Produto encontrado');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
@@ -147,39 +128,13 @@ class ControllerProdutos
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Inicia transação
-            $this->db->iniciarTransacao();
+            // Cria o produto (agora tudo numa única tabela + fornecedores)
+            $produtoId = $this->model->criar($dados);
 
-            try {
-                // Cria o produto
-                $produtoId = $this->model->criar($dados);
+            // Busca o produto completo
+            $produto = $this->model->buscarPorId($produtoId);
 
-                // Cria valores se fornecidos
-                if (isset($dados['valores']) && is_array($dados['valores'])) {
-                    foreach ($dados['valores'] as $valor) {
-                        $valor['produto_id'] = $produtoId;
-                        $this->modelValores->criar($valor);
-                    }
-                }
-
-                // Cria informações fiscais se fornecidas
-                if (isset($dados['fiscal']) && is_array($dados['fiscal'])) {
-                    $dados['fiscal']['produto_id'] = $produtoId;
-                    $this->modelFiscal->criar($dados['fiscal']);
-                }
-
-                $this->db->commit();
-
-                // Busca o produto completo
-                $produto = $this->model->buscarPorId($produtoId);
-                $produto['valores'] = $this->modelValores->buscarPorProduto($produtoId);
-                $produto['fiscal'] = $this->modelFiscal->buscarPorProduto($produtoId);
-
-                AuxiliarResposta::criado($produto, 'Produto cadastrado com sucesso');
-            } catch (\Exception $e) {
-                $this->db->rollback();
-                throw $e;
-            }
+            AuxiliarResposta::criado($produto, 'Produto cadastrado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -239,39 +194,17 @@ class ControllerProdutos
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $usuarioId = $usuarioAutenticado['id'] ?? null;
 
-            // Inicia transação
-            $this->db->iniciarTransacao();
+            // Atualiza o produto
+            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
-            try {
-                // Atualiza o produto
-                $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-                if (!$resultado) {
-                    throw new \Exception('Erro ao atualizar produto');
-                }
-
-                // Atualiza valores se fornecidos
-                if (isset($dados['valores']) && is_array($dados['valores'])) {
-                    $this->modelValores->sincronizar((int) $id, $dados['valores']);
-                }
-
-                // Atualiza informações fiscais se fornecidas
-                if (isset($dados['fiscal']) && is_array($dados['fiscal'])) {
-                    $this->modelFiscal->atualizarOuCriar((int) $id, $dados['fiscal']);
-                }
-
-                $this->db->commit();
-
-                // Busca o produto completo
-                $produto = $this->model->buscarPorId((int) $id);
-                $produto['valores'] = $this->modelValores->buscarPorProduto((int) $id);
-                $produto['fiscal'] = $this->modelFiscal->buscarPorProduto((int) $id);
-
-                AuxiliarResposta::sucesso($produto, 'Produto atualizado com sucesso');
-            } catch (\Exception $e) {
-                $this->db->rollback();
-                throw $e;
+            if (!$resultado) {
+                throw new \Exception('Erro ao atualizar produto');
             }
+
+            // Busca o produto completo
+            $produto = $this->model->buscarPorId((int) $id);
+
+            AuxiliarResposta::sucesso($produto, 'Produto atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }

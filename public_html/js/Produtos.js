@@ -1,7 +1,6 @@
 /**
- * Gerenciador de Produtos
+ * Gerenciador de Produtos - Refatorado (2 tabelas)
  * Implementa CRUD completo de produtos com validação de permissões ACL
- * Inclui gerenciamento de valores e informações fiscais
  */
 
 const ProdutosManager = {
@@ -9,7 +8,8 @@ const ProdutosManager = {
     state: {
         produtos: [],
         gruposProdutos: [],
-        valores: [], // Lista de valores adicionados
+        fornecedores: [],
+        fornecedoresSelecionados: [], // Lista de fornecedores selecionados
         permissoes: {
             visualizar: false,
             criar: false,
@@ -27,8 +27,7 @@ const ProdutosManager = {
             grupo_id: '',
             ativo: '1'
         },
-        editandoId: null,
-        valorCounter: 0 // Contador para IDs temporários de valores
+        editandoId: null
     },
 
     // Elementos DOM
@@ -58,8 +57,8 @@ const ProdutosManager = {
         btnNext: document.getElementById('btnNext'),
         pageInfo: document.getElementById('pageInfo'),
         logoutBtn: document.getElementById('logoutBtn'),
-        btnAdicionarValor: document.getElementById('btnAdicionarValor'),
-        valoresList: document.getElementById('valoresList')
+        btnAdicionarFornecedor: document.getElementById('btnAdicionarFornecedor'),
+        fornecedoresList: document.getElementById('fornecedoresList')
     },
 
     /**
@@ -91,6 +90,7 @@ const ProdutosManager = {
         this.elements.mainContent.style.display = 'block';
 
         await this.carregarGruposProdutos();
+        await this.carregarFornecedores();
         await this.carregarProdutos();
     },
 
@@ -125,8 +125,8 @@ const ProdutosManager = {
         // Logout
         this.elements.logoutBtn?.addEventListener('click', () => this.logout());
 
-        // Adicionar valor
-        this.elements.btnAdicionarValor?.addEventListener('click', () => this.adicionarValor());
+        // Adicionar fornecedor
+        this.elements.btnAdicionarFornecedor?.addEventListener('click', () => this.abrirModalFornecedores());
 
         // Fechar modal ao clicar fora
         window.addEventListener('click', (e) => {
@@ -146,7 +146,6 @@ const ProdutosManager = {
      */
     async verificarPermissoes() {
         try {
-            // Aguarda as permissões serem carregadas pelo sidebar
             const permissoes = await aguardarPermissoes();
 
             if (permissoes) {
@@ -158,7 +157,7 @@ const ProdutosManager = {
                 };
             }
 
-            // Controla visibilidade do botão novo baseado na permissão de criar
+            // Controla visibilidade do botão novo
             if (this.elements.btnNovo) {
                 if (this.state.permissoes.criar) {
                     this.elements.btnNovo.style.display = 'inline-flex';
@@ -203,6 +202,19 @@ const ProdutosManager = {
             }
         } catch (erro) {
             console.error('Erro ao carregar grupos de produtos:', erro);
+        }
+    },
+
+    /**
+     * Carrega fornecedores
+     */
+    async carregarFornecedores() {
+        try {
+            const response = await API.get('/fornecedores?ativo=1&por_pagina=1000');
+            this.state.fornecedores = response.dados.itens || [];
+        } catch (erro) {
+            console.error('Erro ao carregar fornecedores:', erro);
+            this.state.fornecedores = [];
         }
     },
 
@@ -331,8 +343,8 @@ const ProdutosManager = {
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
         // Adiciona active na aba clicada
-        document.querySelector(`[data-tab="${nomeAba}"]`).classList.add('active');
-        document.getElementById(`tab${nomeAba.charAt(0).toUpperCase() + nomeAba.slice(1)}`).classList.add('active');
+        document.querySelector(`[data-tab="${nomeAba}"]`)?.classList.add('active');
+        document.getElementById(`tab${nomeAba.charAt(0).toUpperCase() + nomeAba.slice(1)}`)?.classList.add('active');
     },
 
     /**
@@ -345,19 +357,15 @@ const ProdutosManager = {
         }
 
         this.state.editandoId = null;
-        this.state.valores = [];
-        this.state.valorCounter = 0;
+        this.state.fornecedoresSelecionados = [];
         this.elements.modalTitle.textContent = 'Novo Produto';
         this.elements.formProduto.reset();
         document.getElementById('produtoId').value = '';
         document.getElementById('ativo').value = '1';
-        document.getElementById('possuiVariacao').value = '0';
-        document.getElementById('possuiComposicao').value = '0';
-        document.getElementById('movimentaEstoque').value = '1';
         document.getElementById('estoque').value = '0';
 
-        // Limpa lista de valores
-        this.elements.valoresList.innerHTML = '';
+        // Limpa lista de fornecedores
+        this.renderizarFornecedores();
 
         // Volta para a primeira aba
         this.trocarAba('gerais');
@@ -382,20 +390,16 @@ const ProdutosManager = {
             const produto = response.dados;
 
             this.state.editandoId = id;
-            this.state.valores = produto.valores || [];
+            this.state.fornecedoresSelecionados = produto.fornecedores || [];
             this.elements.modalTitle.textContent = 'Editar Produto';
 
-            // Preenche aba: Dados Gerais
+            // Preenche formulário
             document.getElementById('produtoId').value = produto.id;
             document.getElementById('externalId').value = produto.external_id || '';
             document.getElementById('nome').value = produto.nome;
             document.getElementById('codigoInterno').value = produto.codigo_interno || '';
             document.getElementById('codigoBarra').value = produto.codigo_barra || '';
             document.getElementById('grupoId').value = produto.grupo_id || '';
-            document.getElementById('possuiVariacao').value = produto.possui_variacao || 0;
-            document.getElementById('possuiComposicao').value = produto.possui_composicao || 0;
-            document.getElementById('movimentaEstoque').value = produto.movimenta_estoque || 1;
-            document.getElementById('peso').value = produto.peso || '';
             document.getElementById('largura').value = produto.largura || '';
             document.getElementById('altura').value = produto.altura || '';
             document.getElementById('comprimento').value = produto.comprimento || '';
@@ -405,17 +409,19 @@ const ProdutosManager = {
             document.getElementById('descricao').value = produto.descricao || '';
             document.getElementById('ativo').value = produto.ativo;
 
-            // Preenche aba: Valores
-            this.renderizarValores();
+            // Campos fiscais
+            document.getElementById('ncm').value = produto.ncm || '';
+            document.getElementById('cest').value = produto.cest || '';
+            document.getElementById('pesoLiquido').value = produto.peso_liquido || '';
+            document.getElementById('pesoBruto').value = produto.peso_bruto || '';
+            document.getElementById('valorAproximadoTributos').value = produto.valor_aproximado_tributos || '';
+            document.getElementById('valorFixoPis').value = produto.valor_fixo_pis || '';
+            document.getElementById('valorFixoPisSt').value = produto.valor_fixo_pis_st || '';
+            document.getElementById('valorFixoConfins').value = produto.valor_fixo_confins || '';
+            document.getElementById('valorFixoConfinsSt').value = produto.valor_fixo_confins_st || '';
 
-            // Preenche aba: Fiscal
-            if (produto.fiscal) {
-                document.getElementById('ncm').value = produto.fiscal.ncm || '';
-                document.getElementById('cest').value = produto.fiscal.cest || '';
-                document.getElementById('pesoLiquido').value = produto.fiscal.peso_liquido || '';
-                document.getElementById('pesoBruto').value = produto.fiscal.peso_bruto || '';
-                document.getElementById('valorAproximadoTributos').value = produto.fiscal.valor_aproximado_tributos || '';
-            }
+            // Renderiza fornecedores
+            this.renderizarFornecedores();
 
             // Volta para a primeira aba
             this.trocarAba('gerais');
@@ -430,100 +436,73 @@ const ProdutosManager = {
     },
 
     /**
-     * Adiciona um novo valor à lista
+     * Abre modal para adicionar fornecedores
      */
-    adicionarValor() {
-        const valorId = `temp_${this.state.valorCounter++}`;
-        this.state.valores.push({
-            id: valorId,
-            tipo_id: '',
-            nome_tipo: '',
-            lucro_utilizado: '',
-            valor_custo: 0,
-            valor_venda: 0
-        });
-        this.renderizarValores();
-    },
-
-    /**
-     * Remove um valor da lista
-     */
-    removerValor(valorId) {
-        this.state.valores = this.state.valores.filter(v => v.id !== valorId);
-        this.renderizarValores();
-    },
-
-    /**
-     * Renderiza a lista de valores
-     */
-    renderizarValores() {
-        if (this.state.valores.length === 0) {
-            this.elements.valoresList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Nenhum tipo de preço cadastrado.</p>';
+    abrirModalFornecedores() {
+        if (this.state.fornecedores.length === 0) {
+            alert('Nenhum fornecedor cadastrado no sistema');
             return;
         }
 
-        this.elements.valoresList.innerHTML = this.state.valores.map((valor, index) => `
-            <div class="dynamic-list-item" data-valor-id="${valor.id}">
-                <div class="dynamic-list-item-header">
-                    <span class="dynamic-list-item-title">Tipo de Preço #${index + 1}</span>
-                    <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerValor('${valor.id}')">
-                        <i class="fas fa-trash"></i> Remover
-                    </button>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Tipo ID *</label>
-                        <input type="text" class="valor-tipo-id" value="${this.escaparHtml(valor.tipo_id || '')}" placeholder="Ex: 203440" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Nome do Tipo *</label>
-                        <input type="text" class="valor-nome-tipo" value="${this.escaparHtml(valor.nome_tipo || '')}" placeholder="Ex: Varejo" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Lucro (%)</label>
-                        <input type="number" step="0.01" class="valor-lucro" value="${valor.lucro_utilizado || ''}" placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Valor Custo</label>
-                        <input type="number" step="0.01" class="valor-custo" value="${valor.valor_custo || 0}" placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Valor Venda</label>
-                        <input type="number" step="0.01" class="valor-venda" value="${valor.valor_venda || 0}" placeholder="0.00">
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        // Cria um modal simples com lista de fornecedores
+        const fornecedoresDisponiveis = this.state.fornecedores.filter(f =>
+            !this.state.fornecedoresSelecionados.find(fs => fs.fornecedor_id == f.id)
+        );
+
+        if (fornecedoresDisponiveis.length === 0) {
+            alert('Todos os fornecedores já foram adicionados');
+            return;
+        }
+
+        const fornecedorId = prompt('Digite o ID do fornecedor ou selecione:\n\n' +
+            fornecedoresDisponiveis.map(f => `ID: ${f.id} - ${f.nome}`).join('\n')
+        );
+
+        if (fornecedorId) {
+            const fornecedor = this.state.fornecedores.find(f => f.id == fornecedorId);
+            if (fornecedor) {
+                this.state.fornecedoresSelecionados.push({
+                    fornecedor_id: fornecedor.id,
+                    fornecedor_nome: fornecedor.nome
+                });
+                this.renderizarFornecedores();
+            } else {
+                alert('Fornecedor não encontrado');
+            }
+        }
     },
 
     /**
-     * Coleta valores do formulário
+     * Remove fornecedor da lista
      */
-    coletarValores() {
-        const valores = [];
-        const items = this.elements.valoresList.querySelectorAll('.dynamic-list-item');
+    removerFornecedor(fornecedorId) {
+        this.state.fornecedoresSelecionados = this.state.fornecedoresSelecionados.filter(
+            f => f.fornecedor_id != fornecedorId
+        );
+        this.renderizarFornecedores();
+    },
 
-        items.forEach(item => {
-            const tipoId = item.querySelector('.valor-tipo-id').value;
-            const nomeTipo = item.querySelector('.valor-nome-tipo').value;
-            const lucro = item.querySelector('.valor-lucro').value;
-            const custo = item.querySelector('.valor-custo').value;
-            const venda = item.querySelector('.valor-venda').value;
+    /**
+     * Renderiza lista de fornecedores
+     */
+    renderizarFornecedores() {
+        if (this.state.fornecedoresSelecionados.length === 0) {
+            this.elements.fornecedoresList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Nenhum fornecedor adicionado.</p>';
+            return;
+        }
 
-            if (tipoId && nomeTipo) {
-                valores.push({
-                    tipo_id: tipoId,
-                    nome_tipo: nomeTipo,
-                    lucro_utilizado: lucro || null,
-                    valor_custo: parseFloat(custo) || 0,
-                    valor_venda: parseFloat(venda) || 0
-                });
-            }
-        });
-
-        return valores;
+        this.elements.fornecedoresList.innerHTML = this.state.fornecedoresSelecionados.map((fornecedor, index) => `
+            <div class="dynamic-list-item">
+                <div class="dynamic-list-item-header">
+                    <span class="dynamic-list-item-title">
+                        ${this.escaparHtml(fornecedor.fornecedor_nome || `Fornecedor ID: ${fornecedor.fornecedor_id}`)}
+                    </span>
+                    <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerFornecedor(${fornecedor.fornecedor_id})">
+                        <i class="fas fa-trash"></i> Remover
+                    </button>
+                </div>
+            </div>
+        `).join('');
     },
 
     /**
@@ -539,10 +518,6 @@ const ProdutosManager = {
                 codigo_interno: document.getElementById('codigoInterno').value || null,
                 codigo_barra: document.getElementById('codigoBarra').value || null,
                 grupo_id: document.getElementById('grupoId').value || null,
-                possui_variacao: parseInt(document.getElementById('possuiVariacao').value),
-                possui_composicao: parseInt(document.getElementById('possuiComposicao').value),
-                movimenta_estoque: parseInt(document.getElementById('movimentaEstoque').value),
-                peso: document.getElementById('peso').value || null,
                 largura: document.getElementById('largura').value || null,
                 altura: document.getElementById('altura').value || null,
                 comprimento: document.getElementById('comprimento').value || null,
@@ -550,19 +525,21 @@ const ProdutosManager = {
                 valor_custo: document.getElementById('valorCusto').value || null,
                 valor_venda: document.getElementById('valorVenda').value || null,
                 descricao: document.getElementById('descricao').value || null,
-                ativo: parseInt(document.getElementById('ativo').value)
-            };
-
-            // Adiciona valores
-            dados.valores = this.coletarValores();
-
-            // Adiciona informações fiscais
-            dados.fiscal = {
+                ativo: parseInt(document.getElementById('ativo').value),
+                // Campos fiscais
                 ncm: document.getElementById('ncm').value || null,
                 cest: document.getElementById('cest').value || null,
                 peso_liquido: document.getElementById('pesoLiquido').value || null,
                 peso_bruto: document.getElementById('pesoBruto').value || null,
-                valor_aproximado_tributos: document.getElementById('valorAproximadoTributos').value || null
+                valor_aproximado_tributos: document.getElementById('valorAproximadoTributos').value || null,
+                valor_fixo_pis: document.getElementById('valorFixoPis').value || null,
+                valor_fixo_pis_st: document.getElementById('valorFixoPisSt').value || null,
+                valor_fixo_confins: document.getElementById('valorFixoConfins').value || null,
+                valor_fixo_confins_st: document.getElementById('valorFixoConfinsSt').value || null,
+                // Fornecedores
+                fornecedores: this.state.fornecedoresSelecionados.map(f => ({
+                    fornecedor_id: f.fornecedor_id
+                }))
             };
 
             if (this.state.editandoId) {
@@ -622,8 +599,7 @@ const ProdutosManager = {
         this.elements.formProduto.reset();
         this.elements.modalError.style.display = 'none';
         this.state.editandoId = null;
-        this.state.valores = [];
-        this.state.valorCounter = 0;
+        this.state.fornecedoresSelecionados = [];
     },
 
     /**
@@ -684,15 +660,6 @@ const ProdutosManager = {
     formatarNumero(numero) {
         if (!numero && numero !== 0) return '-';
         return parseFloat(numero).toFixed(2).replace('.', ',');
-    },
-
-    /**
-     * Formata data
-     */
-    formatarData(dataString) {
-        if (!dataString) return '-';
-        const data = new Date(dataString);
-        return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR');
     },
 
     /**
