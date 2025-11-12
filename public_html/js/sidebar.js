@@ -359,3 +359,73 @@ window.aguardarPermissoes = async function(timeout = 5000) {
 
     return window.permissoesUsuario;
 };
+
+/**
+ * Gerenciador de Dados do Usuário no Sidebar
+ */
+const UserDataManager = {
+    /**
+     * Exibe os dados do usuário no sidebar
+     * @param {Object} user - Dados do usuário
+     */
+    showUserData(user) {
+        if (!user) return;
+
+        const nome = user.nome || user.name || user.email?.split('@')[0] || 'Usuário';
+
+        // Atualiza avatar
+        const userAvatarEl = document.getElementById('userAvatar');
+        if (userAvatarEl) {
+            const initial = nome.charAt(0).toUpperCase();
+            userAvatarEl.textContent = initial;
+        }
+
+        // Atualiza nome do usuário
+        const userNameSidebarEl = document.getElementById('userNameSidebar');
+        if (userNameSidebarEl) {
+            userNameSidebarEl.textContent = nome;
+        }
+
+        // Atualiza tipo/role do usuário
+        const userRoleSidebarEl = document.getElementById('userRoleSidebar');
+        if (userRoleSidebarEl) {
+            userRoleSidebarEl.textContent = user.tipo_usuario || 'Usuário';
+        }
+    },
+
+    /**
+     * Carrega os dados do usuário da API
+     */
+    async loadUserData() {
+        try {
+            if (!AuthAPI.isAuthenticated()) {
+                window.location.href = './auth.html';
+                return;
+            }
+
+            const user = await AuthAPI.getMe();
+
+            if (user) {
+                this.showUserData(user);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados do usuário:', error);
+        }
+    }
+};
+
+/**
+ * Inicialização dos dados do usuário
+ */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        UserDataManager.loadUserData();
+    });
+} else {
+    UserDataManager.loadUserData();
+}
+
+/**
+ * Expõe globalmente
+ */
+window.UserDataManager = UserDataManager;
