@@ -291,6 +291,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 7. `b099604` - **FIX:** Move views para public_html/
 8. `0bd02f8` - Docs: Adiciona informações completas do Pull Request
 9. `afe205d` - **FIX:** Corrige endpoints da API para estrutura correta (/public_html/api)
+10. `449fd2d` - Docs: Atualiza PR info com commits de correção de endpoints
+11. `79c3673` - **FIX:** Registra rotas WhatsApp no sistema e corrige case sensitivity
 
 ---
 
