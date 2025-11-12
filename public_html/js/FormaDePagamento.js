@@ -472,7 +472,7 @@ const FormaDePagamentoManager = {
             conta_bancaria_id: form.querySelector('#selectContaBancaria')?.value || null,
             maximo_parcelas: parseInt(form.querySelector('#inputMaximoParcelas')?.value) || 1,
             intervalo_parcelas: parseInt(form.querySelector('#inputIntervaloParcelas')?.value) || 0,
-            intervalo_primeira_parcela: parseInt(form.querySelector('#inputIntervaloPrimeiraParcela')?.value) || 0,
+            intervalo_primeira_parcela: parseInt(form.querySelector('#inputIntervaloPrimeira')?.value) || 0,
             external_id: form.querySelector('#inputExternalId')?.value || null,
             observacoes: form.querySelector('#inputObservacoes')?.value || null,
             ativo: form.querySelector('#checkAtivo')?.checked ? 1 : 0
@@ -491,7 +491,7 @@ const FormaDePagamentoManager = {
         form.querySelector('#selectContaBancaria').value = forma.conta_bancaria_id || '';
         form.querySelector('#inputMaximoParcelas').value = forma.maximo_parcelas || 1;
         form.querySelector('#inputIntervaloParcelas').value = forma.intervalo_parcelas || 0;
-        form.querySelector('#inputIntervaloPrimeiraParcela').value = forma.intervalo_primeira_parcela || 0;
+        form.querySelector('#inputIntervaloPrimeira').value = forma.intervalo_primeira_parcela || 0;
         form.querySelector('#inputExternalId').value = forma.external_id || '';
         form.querySelector('#inputObservacoes').value = forma.observacoes || '';
         form.querySelector('#checkAtivo').checked = forma.ativo == 1;
@@ -509,7 +509,7 @@ const FormaDePagamentoManager = {
         form.querySelector('#selectContaBancaria').value = '';
         form.querySelector('#inputMaximoParcelas').value = '1';
         form.querySelector('#inputIntervaloParcelas').value = '0';
-        form.querySelector('#inputIntervaloPrimeiraParcela').value = '0';
+        form.querySelector('#inputIntervaloPrimeira').value = '0';
         form.querySelector('#inputExternalId').value = '';
         form.querySelector('#inputObservacoes').value = '';
         form.querySelector('#checkAtivo').checked = true;
