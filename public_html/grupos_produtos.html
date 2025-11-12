@@ -1692,7 +1692,7 @@
                             <span>Clientes</span>
                         </div>
                     </a>
-                    <a href="./grupos_produtos.html" class="active" data-permission="grupo_produtos.visualizar">
+                    <a href="./grupos_produtos.html" class="active" data-permission="grupos_produtos.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-shipping-fast"></i></span>
                             <span>Grupos de Produtos</span>
@@ -1860,15 +1860,7 @@
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="filtroBusca" placeholder="Nome, CNPJ/CPF, email...">
-                        </div>
-                        <div class="filter-group">
-                            <label>Tipo de Pessoa</label>
-                            <select id="filtroTipoPessoa">
-                                <option value="">Todos</option>
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
-                            </select>
+                            <input type="text" id="filtroBusca" placeholder="Nome ou descrição...">
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
@@ -1897,12 +1889,11 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>ID Externo</th>
                                     <th>Nome</th>
-                                    <th>Tipo</th>
-                                    <th>CNPJ/CPF</th>
-                                    <th>Email</th>
-                                    <th>Telefone</th>
+                                    <th>Descrição</th>
                                     <th>Status</th>
+                                    <th>Data de Cadastro</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -1910,7 +1901,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum grupo_produtos encontrado.
+                            Nenhum grupo de produtos encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
