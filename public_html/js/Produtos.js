@@ -210,7 +210,7 @@ const ProdutosManager = {
      */
     async carregarFornecedores() {
         try {
-            const response = await API.get('/fornecedores?ativo=1&por_pagina=1000');
+            const response = await API.get('/fornecedor?ativo=1&por_pagina=1000');
             this.state.fornecedores = response.dados.itens || [];
         } catch (erro) {
             console.error('Erro ao carregar fornecedores:', erro);
