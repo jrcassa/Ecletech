@@ -76,19 +76,26 @@ const ManagementApp = {
         // Para simplificar, vamos usar as permissões de colaboradores
         // Em um sistema real, você criaria permissões específicas
         try {
-            const response = await API.get('/colaboradores/permissoes');
-            if (response.sucesso && response.dados) {
+            const permissoes = window.permissoesUsuario;
+
+            if (permissoes) {
                 // Usa as permissões de colaboradores como base
-                const perms = response.dados;
+                const perms = {
+                    visualizar: permissoes.includes('colaboradores.visualizar'),
+                    criar: permissoes.includes('colaboradores.criar'),
+                    editar: permissoes.includes('colaboradores.editar'),
+                    deletar: permissoes.includes('colaboradores.deletar')
+                };
+
                 this.state.permissoes.niveis = perms;
                 this.state.permissoes.roles = perms;
                 this.state.permissoes.permissoes = perms;
 
-                // Mostra botões baseado nas permissões
-                if (perms.criar) {
-                    document.getElementById('btnNovoNivel').style.display = 'block';
-                    document.getElementById('btnNovoRole').style.display = 'block';
-                    document.getElementById('btnNovaPermissao').style.display = 'block';
+                // Esconde botões se não tem permissão de criar
+                if (!perms.criar) {
+                    document.getElementById('btnNovoNivel').style.display = 'none';
+                    document.getElementById('btnNovoRole').style.display = 'none';
+                    document.getElementById('btnNovaPermissao').style.display = 'none';
                 }
             }
         } catch (error) {

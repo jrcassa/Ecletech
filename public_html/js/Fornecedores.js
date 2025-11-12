@@ -134,19 +134,20 @@ const FornecedoresManager = {
      */
     async verificarPermissoes() {
         try {
-            // Verifica se o usuário tem as permissões necessárias
-            // Como o backend usa middleware ACL, vamos assumir permissões básicas
-            // e deixar o backend fazer a validação real
-            this.state.permissoes = {
-                visualizar: true,
-                criar: true,
-                editar: true,
-                deletar: true
-            };
+            const permissoes = window.permissoesUsuario;
 
-            // Mostra/esconde botão de novo baseado na permissão
-            if (this.state.permissoes.criar && this.elements.btnNovo) {
-                this.elements.btnNovo.style.display = 'block';
+            if (permissoes) {
+                this.state.permissoes = {
+                    visualizar: permissoes.includes('fornecedores.visualizar'),
+                    criar: permissoes.includes('fornecedores.criar'),
+                    editar: permissoes.includes('fornecedores.editar'),
+                    deletar: permissoes.includes('fornecedores.deletar')
+                };
+            }
+
+            // Esconde botão novo se não tem permissão de criar
+            if (!this.state.permissoes.criar && this.elements.btnNovo) {
+                this.elements.btnNovo.style.display = 'none';
             }
         } catch (error) {
             console.error('Erro ao verificar permissões:', error);

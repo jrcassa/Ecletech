@@ -95,6 +95,8 @@ const SidebarManager = {
 
             if (response.sucesso && response.dados) {
                 this.state.permissoes = response.dados.permissoes || [];
+                // Salva permissões globalmente para uso em outros módulos
+                window.permissoesUsuario = response.dados.permissoes || [];
                 this.log('Permissões carregadas:', this.state.permissoes);
             } else {
                 throw new Error('Resposta inválida da API');
