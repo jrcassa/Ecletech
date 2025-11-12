@@ -59,6 +59,10 @@ $router->grupo([
     $rotasFornecedor = require __DIR__ . '/fornecedor.php';
     $rotasFornecedor($router);
 
+    // Inclui rotas de clientes
+    $rotasCliente = require __DIR__ . '/cliente.php';
+    $rotasCliente($router);
+
     // Inclui rotas de loja
     $rotasLoja = require __DIR__ . '/loja.php';
     $rotasLoja($router);
