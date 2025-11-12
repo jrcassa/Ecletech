@@ -1722,17 +1722,6 @@
             const nome = user.nome || user.name || user.email?.split('@')[0] || 'Usuário';
             welcomeMessage.textContent = `Bem-vindo, ${nome}!`;
 
-            const userAvatarEl = document.getElementById('userAvatar');
-            const userNameSidebarEl = document.getElementById('userNameSidebar');
-            const userRoleSidebarEl = document.getElementById('userRoleSidebar');
-
-            if (userAvatarEl) {
-                const initial = nome.charAt(0).toUpperCase();
-                userAvatarEl.textContent = initial;
-            }
-            if (userNameSidebarEl) userNameSidebarEl.textContent = nome;
-            if (userRoleSidebarEl) userRoleSidebarEl.textContent = user.tipo_usuario || 'Usuário';
-
             infoGrid.innerHTML = '';
 
             const campos = [
@@ -1805,7 +1794,8 @@
             rawData.textContent = JSON.stringify(user, null, 2);
         }
 
-        async function loadUserData() {
+        // Carrega dados do usuário para exibição na página home
+        async function loadHomeUserData() {
             try {
                 if (!AuthAPI.isAuthenticated()) {
                     window.location.href = './auth.html';
@@ -1832,7 +1822,7 @@
             }
         });
 
-        loadUserData();
+        loadHomeUserData();
     </script>
 </body>
 
