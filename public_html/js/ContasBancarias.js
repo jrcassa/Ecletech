@@ -44,13 +44,16 @@ const ContasBancariasManager = {
         formConta: document.getElementById('formConta'),
         modalConfirm: document.getElementById('modalConfirm'),
         btnConfirmDelete: document.getElementById('btnConfirmDelete'),
-        paginationInfo: document.getElementById('paginationInfo'),
-        currentPage: document.getElementById('currentPage'),
-        totalPages: document.getElementById('totalPages'),
-        btnPrevPage: document.getElementById('btnPrevPage'),
-        btnNextPage: document.getElementById('btnNextPage'),
-        btnToggleSidebar: document.getElementById('btnToggleSidebar'),
-        sidebar: document.getElementById('sidebar')
+        btnFiltrar: document.getElementById('btnFiltrar'),
+        btnPrevious: document.getElementById('btnPrevious'),
+        btnNext: document.getElementById('btnNext'),
+        pageInfo: document.getElementById('pageInfo'),
+        loadingContainer: document.getElementById('loadingContainer'),
+        errorContainer: document.getElementById('errorContainer'),
+        errorMessage: document.getElementById('errorMessage'),
+        tableContainer: document.getElementById('tableContainer'),
+        noData: document.getElementById('noData'),
+        pagination: document.getElementById('pagination')
     },
 
     /**
@@ -70,8 +73,17 @@ const ContasBancariasManager = {
 
         // Se não tem permissão de visualizar, exibe mensagem
         if (!this.state.permissoes.visualizar) {
+            document.getElementById('permissionDenied').style.display = 'block';
             API.showError('Você não tem permissão para visualizar contas bancárias');
             return;
+        }
+
+        // Mostra o conteúdo da página
+        document.getElementById('pageContent').style.display = 'block';
+
+        // Mostra botão de novo se tiver permissão
+        if (this.state.permissoes.criar && this.elements.btnNovo) {
+            this.elements.btnNovo.style.display = 'inline-flex';
         }
 
         // Carrega dados iniciais
@@ -93,7 +105,7 @@ const ContasBancariasManager = {
         });
         this.elements.selectTipoConta?.addEventListener('change', () => this.aplicarFiltros());
         this.elements.selectAtivo?.addEventListener('change', () => this.aplicarFiltros());
-        this.elements.btnLimparFiltros?.addEventListener('click', () => this.limparFiltros());
+        this.elements.btnFiltrar?.addEventListener('click', () => this.aplicarFiltros());
 
         // Modal
         this.elements.btnCloseModal?.addEventListener('click', () => this.fecharModal());
@@ -104,13 +116,8 @@ const ContasBancariasManager = {
         this.elements.btnConfirmDelete?.addEventListener('click', () => this.confirmarDeletar());
 
         // Paginação
-        this.elements.btnPrevPage?.addEventListener('click', () => this.paginaAnterior());
-        this.elements.btnNextPage?.addEventListener('click', () => this.proximaPagina());
-
-        // Toggle sidebar
-        this.elements.btnToggleSidebar?.addEventListener('click', () => {
-            this.elements.sidebar?.classList.toggle('closed');
-        });
+        this.elements.btnPrevious?.addEventListener('click', () => this.paginaAnterior());
+        this.elements.btnNext?.addEventListener('click', () => this.proximaPagina());
 
         // Fecha modal ao clicar no backdrop
         this.elements.modalForm?.querySelector('.modal-backdrop')?.addEventListener('click', () => {
@@ -154,6 +161,11 @@ const ContasBancariasManager = {
      */
     async carregarDados() {
         try {
+            // Mostra loading
+            this.elements.loadingContainer.style.display = 'block';
+            this.elements.errorContainer.style.display = 'none';
+            this.elements.tableContainer.style.display = 'none';
+
             // Monta query string com filtros e paginação
             const params = new URLSearchParams({
                 pagina: this.state.paginacao.pagina,
@@ -175,14 +187,22 @@ const ContasBancariasManager = {
                 this.state.paginacao.total = response.dados.total || 0;
                 this.state.paginacao.totalPaginas = response.dados.total_paginas || 1;
 
+                // Esconde loading e mostra tabela
+                this.elements.loadingContainer.style.display = 'none';
+                this.elements.tableContainer.style.display = 'block';
+
                 this.renderizarTabela();
                 this.atualizarPaginacao();
             } else {
-                API.showError(response.mensagem || 'Erro ao carregar contas bancárias');
+                this.elements.loadingContainer.style.display = 'none';
+                this.elements.errorContainer.style.display = 'block';
+                this.elements.errorMessage.textContent = response.mensagem || 'Erro ao carregar contas bancárias';
             }
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
-            API.showError('Erro ao carregar contas bancárias');
+            this.elements.loadingContainer.style.display = 'none';
+            this.elements.errorContainer.style.display = 'block';
+            this.elements.errorMessage.textContent = 'Erro ao carregar contas bancárias';
         }
     },
 
@@ -260,28 +280,17 @@ const ContasBancariasManager = {
      * Atualiza informações de paginação
      */
     atualizarPaginacao() {
-        const inicio = (this.state.paginacao.pagina - 1) * this.state.paginacao.porPagina + 1;
-        const fim = Math.min(this.state.paginacao.pagina * this.state.paginacao.porPagina, this.state.paginacao.total);
-
-        if (this.elements.paginationInfo) {
-            this.elements.paginationInfo.textContent = `Mostrando ${inicio} a ${fim} de ${this.state.paginacao.total} registros`;
-        }
-
-        if (this.elements.currentPage) {
-            this.elements.currentPage.textContent = this.state.paginacao.pagina;
-        }
-
-        if (this.elements.totalPages) {
-            this.elements.totalPages.textContent = this.state.paginacao.totalPaginas;
+        if (this.elements.pageInfo) {
+            this.elements.pageInfo.textContent = `Página ${this.state.paginacao.pagina} de ${this.state.paginacao.totalPaginas}`;
         }
 
         // Controla botões de navegação
-        if (this.elements.btnPrevPage) {
-            this.elements.btnPrevPage.disabled = this.state.paginacao.pagina === 1;
+        if (this.elements.btnPrevious) {
+            this.elements.btnPrevious.disabled = this.state.paginacao.pagina === 1;
         }
 
-        if (this.elements.btnNextPage) {
-            this.elements.btnNextPage.disabled = this.state.paginacao.pagina >= this.state.paginacao.totalPaginas;
+        if (this.elements.btnNext) {
+            this.elements.btnNext.disabled = this.state.paginacao.pagina >= this.state.paginacao.totalPaginas;
         }
     },
 
