@@ -76,7 +76,8 @@ const ManagementApp = {
         // Para simplificar, vamos usar as permissões de colaboradores
         // Em um sistema real, você criaria permissões específicas
         try {
-            const permissoes = window.permissoesUsuario;
+            // Aguarda as permissões serem carregadas pelo sidebar
+            const permissoes = await aguardarPermissoes();
 
             if (permissoes) {
                 // Usa as permissões de colaboradores como base

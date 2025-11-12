@@ -298,6 +298,27 @@ const SidebarManager = {
     setDebug(ativo) {
         this.config.logDebug = ativo;
         this.log('Modo debug ' + (ativo ? 'ativado' : 'desativado'));
+    },
+
+    /**
+     * Aguarda as permissões serem carregadas
+     * Retorna uma Promise que resolve quando window.permissoesUsuario está disponível
+     */
+    async aguardarPermissoes(timeout = 5000) {
+        const startTime = Date.now();
+
+        while (!window.permissoesUsuario) {
+            // Timeout para evitar loop infinito
+            if (Date.now() - startTime > timeout) {
+                console.error('Timeout ao aguardar permissões');
+                return [];
+            }
+
+            // Aguarda 50ms antes de verificar novamente
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        return window.permissoesUsuario;
     }
 };
 
@@ -317,3 +338,24 @@ if (document.readyState === 'loading') {
  * Expõe globalmente para uso em outros scripts
  */
 window.SidebarManager = SidebarManager;
+
+/**
+ * Helper global para aguardar permissões
+ * Uso: const permissoes = await aguardarPermissoes();
+ */
+window.aguardarPermissoes = async function(timeout = 5000) {
+    const startTime = Date.now();
+
+    while (!window.permissoesUsuario) {
+        // Timeout para evitar loop infinito
+        if (Date.now() - startTime > timeout) {
+            console.error('Timeout ao aguardar permissões');
+            return [];
+        }
+
+        // Aguarda 50ms antes de verificar novamente
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    return window.permissoesUsuario;
+};
