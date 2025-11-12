@@ -10,14 +10,44 @@ use App\Models\Whatsapp\ModelWhatsappConfiguracao;
 class ModelWhatsappBaileys
 {
     private ModelWhatsappConfiguracao $config;
-    private string $apiUrl;
-    private string $instanceToken;
+    private ?string $apiUrl;
+    private ?string $instanceToken;
 
     public function __construct()
     {
         $this->config = new ModelWhatsappConfiguracao();
-        $this->apiUrl = $this->config->obter('api_url');
-        $this->instanceToken = $this->config->obter('instancia_token');
+        $this->apiUrl = $this->config->obter('api_url', null);
+        $this->instanceToken = $this->config->obter('instancia_token', null);
+    }
+
+    /**
+     * Verifica se a API está configurada
+     */
+    private function verificarConfiguracao(): void
+    {
+        if (empty($this->apiUrl)) {
+            throw new \Exception('API URL não configurada. Configure a chave "api_url" nas configurações do WhatsApp.');
+        }
+
+        if (empty($this->instanceToken)) {
+            throw new \Exception('Token da instância não configurado. Configure a chave "instancia_token" nas configurações do WhatsApp.');
+        }
+    }
+
+    /**
+     * Verifica se a API está configurada (método público)
+     * Retorna array com status da configuração
+     */
+    public function estaConfigurado(): array
+    {
+        return [
+            'configurado' => !empty($this->apiUrl) && !empty($this->instanceToken),
+            'api_url_configurada' => !empty($this->apiUrl),
+            'token_configurado' => !empty($this->instanceToken),
+            'mensagem' => empty($this->apiUrl) || empty($this->instanceToken)
+                ? 'Configure a API URL e o Token da instância nas configurações do WhatsApp'
+                : 'API configurada corretamente'
+        ];
     }
 
     /**
@@ -25,6 +55,9 @@ class ModelWhatsappBaileys
      */
     private function request(string $endpoint, string $method = 'GET', ?array $data = null, int $tentativa = 1): string
     {
+        // Verifica se a API está configurada
+        $this->verificarConfiguracao();
+
         $maxRetries = $this->config->obter('api_max_retries', 3);
         $retryDelay = $this->config->obter('api_retry_delay', 2);
 
