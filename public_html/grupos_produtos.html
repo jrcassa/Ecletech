@@ -2108,38 +2108,6 @@
                 document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
             });
         });
-
-        // Controle de campos condicionais baseado no tipo de pessoa
-        document.getElementById('tipoPessoa').addEventListener('change', function () {
-            const tipoPessoa = this.value;
-            const camposPF = document.querySelectorAll('.campo-pf');
-            const camposPJ = document.querySelectorAll('.campo-pj');
-
-            // Esconde todos primeiro
-            camposPF.forEach(campo => {
-                campo.classList.remove('show');
-                const input = campo.querySelector('input, select');
-                if (input) input.removeAttribute('required');
-            });
-            camposPJ.forEach(campo => {
-                campo.classList.remove('show');
-                const input = campo.querySelector('input, select');
-                if (input) input.removeAttribute('required');
-            });
-
-            // Mostra os campos apropriados
-            if (tipoPessoa === 'PF') {
-                camposPF.forEach(campo => {
-                    campo.classList.add('show');
-                });
-                document.getElementById('cpf').setAttribute('required', 'required');
-            } else if (tipoPessoa === 'PJ') {
-                camposPJ.forEach(campo => {
-                    campo.classList.add('show');
-                });
-                document.getElementById('cnpj').setAttribute('required', 'required');
-            }
-        });
     </script>
     <script src="js/GruposProdutos.js"></script>
 </body>
