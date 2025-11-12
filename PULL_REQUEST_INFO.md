@@ -308,6 +308,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 11. `79c3673` - **FIX:** Registra rotas WhatsApp no sistema e corrige case sensitivity
 12. `2131a75` - Docs: Atualiza PR info com commit de correção de rotas
 13. `ec339dd` - **Feat:** Adiciona migration de permissões ACL para WhatsApp
+14. `229f761` - Docs: Atualiza PR info com commit de permissões ACL
+15. `a73ceee` - **FIX:** Corrige erro de configurações nulas no ModelWhatsappBaileys
 
 ---
 
