@@ -95,6 +95,10 @@ $router->grupo([
     $rotasCentroDeCusto = require __DIR__ . '/centro_de_custo.php';
     $rotasCentroDeCusto($router);
 
+    // Inclui rotas de forma de pagamento
+    $rotasFormaDePagamento = require __DIR__ . '/forma_de_pagamento.php';
+    $rotasFormaDePagamento($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
