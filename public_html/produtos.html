@@ -1945,11 +1945,11 @@
                 <button type="button" class="tab-button active" data-tab="gerais">
                     <i class="fas fa-box"></i> Dados Gerais
                 </button>
-                <button type="button" class="tab-button" data-tab="valores">
-                    <i class="fas fa-dollar-sign"></i> Valores
-                </button>
                 <button type="button" class="tab-button" data-tab="fiscal">
                     <i class="fas fa-file-invoice"></i> Fiscal
+                </button>
+                <button type="button" class="tab-button" data-tab="fornecedores">
+                    <i class="fas fa-truck"></i> Fornecedores
                 </button>
             </div>
 
@@ -2068,19 +2068,6 @@
                     </div>
                 </div>
 
-                <!-- Aba: Valores -->
-                <div id="tabValores" class="tab-content">
-                    <div class="dynamic-list">
-                        <div class="dynamic-list-header">
-                            <h4>Tipos de Preço</h4>
-                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarValor">
-                                <i class="fas fa-plus"></i> Adicionar Tipo de Preço
-                            </button>
-                        </div>
-                        <div class="dynamic-list-items" id="valoresList"></div>
-                    </div>
-                </div>
-
                 <!-- Aba: Fiscal -->
                 <div id="tabFiscal" class="tab-content">
                     <div class="form-row">
@@ -2110,6 +2097,41 @@
                             <label for="valorAproximadoTributos">Valor Aproximado Tributos</label>
                             <input type="number" step="0.01" id="valorAproximadoTributos" placeholder="0.00">
                         </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valorFixoPis">Valor Fixo PIS</label>
+                            <input type="number" step="0.0001" id="valorFixoPis" placeholder="0.0000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoPisSt">Valor Fixo PIS ST</label>
+                            <input type="number" step="0.01" id="valorFixoPisSt" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoConfins">Valor Fixo COFINS</label>
+                            <input type="number" step="0.01" id="valorFixoConfins" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoConfinsSt">Valor Fixo COFINS ST</label>
+                            <input type="number" step="0.01" id="valorFixoConfinsSt" placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba: Fornecedores -->
+                <div id="tabFornecedores" class="tab-content">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Fornecedores do Produto</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarFornecedor">
+                                <i class="fas fa-plus"></i> Adicionar Fornecedor
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="fornecedoresList"></div>
                     </div>
                 </div>
 
