@@ -86,19 +86,29 @@ CREATE TABLE IF NOT EXISTS `produto_variacao_valores` (
 -- Adicionar campos faltantes na tabela produtos
 -- =====================================================
 
--- Adicionar campos de controle que não existem
+-- Adicionar campos de controle (use apenas se as colunas não existirem)
+-- Se der erro "Duplicate column name", comente essas linhas
+
 ALTER TABLE `produtos`
-ADD COLUMN IF NOT EXISTS `possui_variacao` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Produto possui variação' AFTER `codigo_barra`,
-ADD COLUMN IF NOT EXISTS `possui_composicao` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Produto possui composição' AFTER `possui_variacao`,
-ADD COLUMN IF NOT EXISTS `movimenta_estoque` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Movimenta estoque' AFTER `possui_composicao`,
-ADD COLUMN IF NOT EXISTS `peso` DECIMAL(10,3) DEFAULT NULL COMMENT 'Peso do produto (kg)' AFTER `movimenta_estoque`;
+ADD COLUMN `possui_variacao` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Produto possui variação' AFTER `codigo_barra`;
+
+ALTER TABLE `produtos`
+ADD COLUMN `possui_composicao` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Produto possui composição' AFTER `possui_variacao`;
+
+ALTER TABLE `produtos`
+ADD COLUMN `movimenta_estoque` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Movimenta estoque' AFTER `possui_composicao`;
+
+ALTER TABLE `produtos`
+ADD COLUMN `peso` DECIMAL(10,3) DEFAULT NULL COMMENT 'Peso do produto (kg)' AFTER `movimenta_estoque`;
 
 -- =====================================================
 -- Índices adicionais para otimização
 -- =====================================================
 
 -- Índice composto para busca de valores por produto e tipo
-CREATE INDEX IF NOT EXISTS `idx_produto_tipo` ON `produto_valores` (`produto_id`, `tipo_id`);
+ALTER TABLE `produto_valores`
+ADD INDEX `idx_produto_tipo` (`produto_id`, `tipo_id`);
 
 -- Índice composto para busca de valores de variação
-CREATE INDEX IF NOT EXISTS `idx_variacao_tipo` ON `produto_variacao_valores` (`variacao_id`, `tipo_id`);
+ALTER TABLE `produto_variacao_valores`
+ADD INDEX `idx_variacao_tipo` (`variacao_id`, `tipo_id`);
