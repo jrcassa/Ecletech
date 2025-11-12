@@ -22,7 +22,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 spl_autoload_register(function ($classe) {
     // Converte namespace para caminho de arquivo
     $prefixo = 'App\\';
-    $diretorioBase = __DIR__ . '/../../app/';
+    $diretorioBase = __DIR__ . '/../../App/';
 
     // Verifica se a classe usa o namespace base
     $tamanho = strlen($prefixo);
@@ -80,7 +80,7 @@ try {
     });
 
     // Carrega as rotas
-    $router = require __DIR__ . '/../../app/routes/api.php';
+    $router = require __DIR__ . '/../../App/routes/api.php';
 
     // Despacha a requisição
     $router->despachar();

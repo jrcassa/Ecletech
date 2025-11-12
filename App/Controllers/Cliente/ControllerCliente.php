@@ -6,6 +6,7 @@ use App\Models\Cliente\ModelCliente;
 use App\Models\Cliente\ModelClienteContato;
 use App\Models\Cliente\ModelClienteEndereco;
 use App\Core\Autenticacao;
+use App\Core\BancoDados;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -18,6 +19,7 @@ class ControllerCliente
     private ModelClienteContato $modelContato;
     private ModelClienteEndereco $modelEndereco;
     private Autenticacao $auth;
+    private BancoDados $db;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class ControllerCliente
         $this->modelContato = new ModelClienteContato();
         $this->modelEndereco = new ModelClienteEndereco();
         $this->auth = new Autenticacao();
+        $this->db = BancoDados::obterInstancia();
     }
 
     /**
@@ -175,30 +178,42 @@ class ControllerCliente
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
 
-            // Cria o cliente
-            $id = $this->model->criar($dados);
+            // Inicia transação
+            $this->db->iniciarTransacao();
 
-            // Processa contatos se existirem
-            if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                foreach ($dados['contatos'] as $contato) {
-                    if (isset($contato['nome']) && isset($contato['contato'])) {
-                        $contato['cliente_id'] = $id;
-                        $this->modelContato->criar($contato);
+            try {
+                // Cria o cliente
+                $id = $this->model->criar($dados);
+
+                // Processa contatos se existirem
+                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
+                    foreach ($dados['contatos'] as $contato) {
+                        if (isset($contato['nome']) && isset($contato['contato'])) {
+                            $contato['cliente_id'] = $id;
+                            $this->modelContato->criar($contato);
+                        }
                     }
                 }
-            }
 
-            // Processa endereços se existirem
-            if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                foreach ($dados['enderecos'] as $endereco) {
-                    $endereco['cliente_id'] = $id;
-                    $this->modelEndereco->criar($endereco);
+                // Processa endereços se existirem
+                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
+                    foreach ($dados['enderecos'] as $endereco) {
+                        $endereco['cliente_id'] = $id;
+                        $this->modelEndereco->criar($endereco);
+                    }
                 }
+
+                // Confirma a transação
+                $this->db->commit();
+
+                $cliente = $this->model->buscarComRelacionamentos($id);
+
+                AuxiliarResposta::criado($cliente, 'Cliente cadastrado com sucesso');
+            } catch (\Exception $e) {
+                // Reverte a transação em caso de erro
+                $this->db->rollback();
+                throw $e;
             }
-
-            $cliente = $this->model->buscarComRelacionamentos($id);
-
-            AuxiliarResposta::criado($cliente, 'Cliente cadastrado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -293,43 +308,54 @@ class ControllerCliente
             $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
             $usuarioId = $usuarioAutenticado['id'] ?? null;
 
-            // Atualiza o cliente
-            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
+            // Inicia transação
+            $this->db->iniciarTransacao();
 
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar cliente', 400);
-                return;
-            }
+            try {
+                // Atualiza o cliente
+                $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
-            // Processa contatos se existirem
-            if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                // Remove contatos antigos
-                $this->modelContato->deletarPorCliente((int) $id);
+                if (!$resultado) {
+                    throw new \Exception('Erro ao atualizar cliente');
+                }
 
-                // Adiciona novos contatos
-                foreach ($dados['contatos'] as $contato) {
-                    if (isset($contato['nome']) && isset($contato['contato'])) {
-                        $contato['cliente_id'] = (int) $id;
-                        $this->modelContato->criar($contato);
+                // Processa contatos se existirem
+                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
+                    // Remove contatos antigos
+                    $this->modelContato->deletarPorCliente((int) $id);
+
+                    // Adiciona novos contatos
+                    foreach ($dados['contatos'] as $contato) {
+                        if (isset($contato['nome']) && isset($contato['contato'])) {
+                            $contato['cliente_id'] = (int) $id;
+                            $this->modelContato->criar($contato);
+                        }
                     }
                 }
-            }
 
-            // Processa endereços se existirem
-            if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                // Remove endereços antigos
-                $this->modelEndereco->deletarPorCliente((int) $id);
+                // Processa endereços se existirem
+                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
+                    // Remove endereços antigos
+                    $this->modelEndereco->deletarPorCliente((int) $id);
 
-                // Adiciona novos endereços
-                foreach ($dados['enderecos'] as $endereco) {
-                    $endereco['cliente_id'] = (int) $id;
-                    $this->modelEndereco->criar($endereco);
+                    // Adiciona novos endereços
+                    foreach ($dados['enderecos'] as $endereco) {
+                        $endereco['cliente_id'] = (int) $id;
+                        $this->modelEndereco->criar($endereco);
+                    }
                 }
+
+                // Confirma a transação
+                $this->db->commit();
+
+                $cliente = $this->model->buscarComRelacionamentos((int) $id);
+
+                AuxiliarResposta::sucesso($cliente, 'Cliente atualizado com sucesso');
+            } catch (\Exception $e) {
+                // Reverte a transação em caso de erro
+                $this->db->rollback();
+                throw $e;
             }
-
-            $cliente = $this->model->buscarComRelacionamentos((int) $id);
-
-            AuxiliarResposta::sucesso($cliente, 'Cliente atualizado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
