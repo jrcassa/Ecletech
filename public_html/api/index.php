@@ -80,7 +80,7 @@ try {
     });
 
     // Carrega as rotas
-    $router = require __DIR__ . '/../../App/routes/api.php';
+    $router = require __DIR__ . '/../../App/Routes/api.php';
 
     // Despacha a requisição
     $router->despachar();
