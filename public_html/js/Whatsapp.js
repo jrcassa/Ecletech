@@ -3,8 +3,25 @@
 // Versão: 2.0.0 - API RESTful
 // ============================================
 
-// Configuração da API
-const API_BASE = '/api/whatsapp';
+// Configuração da API (usa o baseURL do API.js)
+const API_BASE = window.location.origin + '/public_html/api/whatsapp';
+
+// Configuração global do jQuery AJAX para usar credentials e CSRF
+$.ajaxSetup({
+    xhrFields: {
+        withCredentials: true  // Envia cookies automaticamente
+    },
+    crossDomain: false,
+    beforeSend: function(xhr, settings) {
+        // Adiciona CSRF token para requisições que não sejam GET
+        if (settings.type !== 'GET' && typeof API !== 'undefined') {
+            const csrfToken = API.getCsrfToken();
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+            }
+        }
+    }
+});
 
 // Variáveis Globais
 let PODE_ALTERAR = false;
