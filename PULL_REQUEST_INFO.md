@@ -310,6 +310,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 13. `ec339dd` - **Feat:** Adiciona migration de permissões ACL para WhatsApp
 14. `229f761` - Docs: Atualiza PR info com commit de permissões ACL
 15. `a73ceee` - **FIX:** Corrige erro de configurações nulas no ModelWhatsappBaileys
+16. `b20886e` - Docs: Atualiza PR info com commit de fix de configurações
+17. `5f368b2` - **FIX:** Implementa lazy loading do Baileys para evitar erro sem configuração
 
 ---
 
