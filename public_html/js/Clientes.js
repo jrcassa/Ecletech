@@ -1,12 +1,12 @@
 /**
- * Gerenciador de Clientees
- * Implementa CRUD completo de clientees com validação de permissões ACL
+ * Gerenciador de Clientes
+ * Implementa CRUD completo de clientes com validação de permissões ACL
  */
 
 const ClienteesManager = {
     // Estado da aplicação
     state: {
-        clientees: [],
+        clientes: [],
         permissoes: {
             visualizar: false,
             criar: false,
@@ -93,7 +93,7 @@ const ClienteesManager = {
         this.elements.mainContent.style.display = 'block';
 
         await this.carregarTiposEnderecos();
-        await this.carregarClientees();
+        await this.carregarClientes();
     },
 
     /**
@@ -225,9 +225,9 @@ const ClienteesManager = {
     },
 
     /**
-     * Carrega clientees
+     * Carrega clientes
      */
-    async carregarClientees() {
+    async carregarClientes() {
         this.showLoading();
 
         try {
@@ -251,7 +251,7 @@ const ClienteesManager = {
             const response = await API.get(`/cliente?${params.toString()}`);
 
             if (response.sucesso) {
-                this.state.clientees = response.dados?.itens || [];
+                this.state.clientes = response.dados?.itens || [];
                 this.state.paginacao.total = response.dados?.paginacao?.total || 0;
                 this.state.paginacao.totalPaginas = response.dados?.paginacao?.total_paginas || 0;
 
@@ -262,11 +262,11 @@ const ClienteesManager = {
             // Usa Utils para formatar mensagem de erro
             const mensagemErro = error.data ?
                 Utils.Errors.formatarMensagem(error.data) :
-                'Erro ao carregar clientees';
+                'Erro ao carregar clientes';
 
             this.showError(mensagemErro);
             Utils.Notificacao.erro(mensagemErro);
-            console.error('Erro ao carregar clientees:', error);
+            console.error('Erro ao carregar clientes:', error);
         }
     },
 
@@ -277,7 +277,7 @@ const ClienteesManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.clientees.length === 0) {
+        if (this.state.clientes.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -289,7 +289,7 @@ const ClienteesManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.clientees.forEach(cliente => {
+        this.state.clientes.forEach(cliente => {
             const tr = document.createElement('tr');
 
             const documento = cliente.tipo_pessoa === 'PF' ?
@@ -352,7 +352,7 @@ const ClienteesManager = {
         this.state.filtros.tipo_pessoa = this.elements.filtroTipoPessoa.value;
         this.state.filtros.ativo = this.elements.filtroAtivo.value;
         this.state.paginacao.pagina = 1;
-        this.carregarClientees();
+        this.carregarClientes();
     },
 
     /**
@@ -361,7 +361,7 @@ const ClienteesManager = {
     paginaAnterior() {
         if (this.state.paginacao.pagina > 1) {
             this.state.paginacao.pagina--;
-            this.carregarClientees();
+            this.carregarClientes();
         }
     },
 
@@ -371,7 +371,7 @@ const ClienteesManager = {
     proximaPagina() {
         if (this.state.paginacao.pagina < this.state.paginacao.totalPaginas) {
             this.state.paginacao.pagina++;
-            this.carregarClientees();
+            this.carregarClientes();
         }
     },
 
@@ -558,7 +558,7 @@ const ClienteesManager = {
 
             if (response.sucesso) {
                 this.fecharModal();
-                this.carregarClientees();
+                this.carregarClientes();
                 Utils.Notificacao.sucesso(response.mensagem || 'Cliente salvo com sucesso!');
             }
         } catch (error) {
@@ -581,7 +581,7 @@ const ClienteesManager = {
             const response = await API.delete(`/cliente/${id}`);
 
             if (response.sucesso) {
-                this.carregarClientees();
+                this.carregarClientes();
                 Utils.Notificacao.sucesso(response.mensagem || 'Cliente deletado com sucesso!');
             }
         } catch (error) {

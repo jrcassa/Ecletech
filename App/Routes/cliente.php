@@ -4,13 +4,13 @@ use App\Controllers\Cliente\ControllerCliente;
 use App\Middleware\MiddlewareAcl;
 
 return function($router) {
-    // Grupo de rotas de clientees (requer autenticação e admin)
+    // Grupo de rotas de clientes (requer autenticação e admin)
     $router->grupo([
         'prefixo' => 'cliente',
         'middleware' => ['auth', 'admin']
     ], function($router) {
 
-        // GET /cliente - Listar clientees
+        // GET /cliente - Listar clientes
         $router->get('/', [ControllerCliente::class, 'listar'])
             ->middleware(MiddlewareAcl::requer('cliente.visualizar'));
 

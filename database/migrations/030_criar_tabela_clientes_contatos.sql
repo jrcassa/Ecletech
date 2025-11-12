@@ -1,6 +1,7 @@
 -- =====================================================
 -- Migration: Criar tabela de contatos de clientees
--- Descrição: Tabela para gerenciamento de contatos dos clientees
+-- Descrição: Tabela para gerenciamento de contatos dos clientes
+-- NOTA: Tabela foi criada como 'clientees_contatos' mas renomeada para 'clientes_contatos' na migration 033
 -- Data: 2025-11-11
 -- =====================================================
 

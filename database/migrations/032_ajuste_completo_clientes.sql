@@ -1,6 +1,7 @@
 -- =====================================================
 -- Migration: Ajuste completo do módulo de clientees
 -- Descrição: Cria tabela clientees_enderecos e associa permissões aos roles
+-- NOTA: Tabelas foram criadas como 'clientees*' mas renomeadas para 'clientes*' na migration 033
 -- Data: 2025-11-11
 -- =====================================================
 

@@ -7,7 +7,7 @@ use App\Core\RegistroAuditoria;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Model para gerenciar clientees (PF e PJ)
+ * Model para gerenciar clientes (PF e PJ)
  */
 class ModelCliente
 {
@@ -26,7 +26,7 @@ class ModelCliente
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees WHERE id = ? AND deletado_em IS NULL",
+            "SELECT * FROM clientes WHERE id = ? AND deletado_em IS NULL",
             [$id]
         );
     }
@@ -37,7 +37,7 @@ class ModelCliente
     public function buscarPorExternalId(string $externalId): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees WHERE external_id = ? AND deletado_em IS NULL",
+            "SELECT * FROM clientes WHERE external_id = ? AND deletado_em IS NULL",
             [$externalId]
         );
     }
@@ -48,7 +48,7 @@ class ModelCliente
     public function buscarPorCnpj(string $cnpj): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees WHERE cnpj = ? AND deletado_em IS NULL",
+            "SELECT * FROM clientes WHERE cnpj = ? AND deletado_em IS NULL",
             [$cnpj]
         );
     }
@@ -59,7 +59,7 @@ class ModelCliente
     public function buscarPorCpf(string $cpf): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees WHERE cpf = ? AND deletado_em IS NULL",
+            "SELECT * FROM clientes WHERE cpf = ? AND deletado_em IS NULL",
             [$cpf]
         );
     }
@@ -70,7 +70,7 @@ class ModelCliente
     public function buscarPorEmail(string $email): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees WHERE email = ? AND deletado_em IS NULL",
+            "SELECT * FROM clientes WHERE email = ? AND deletado_em IS NULL",
             [$email]
         );
     }
@@ -87,7 +87,7 @@ class ModelCliente
 
         // Busca contatos
         $cliente['contatos'] = $this->db->buscarTodos(
-            "SELECT * FROM clientees_contatos WHERE cliente_id = ? ORDER BY id",
+            "SELECT * FROM clientes_contatos WHERE cliente_id = ? ORDER BY id",
             [$id]
         );
 
@@ -96,7 +96,7 @@ class ModelCliente
             "SELECT
                 fe.*,
                 c.nome as nome_cidade
-            FROM clientees_enderecos fe
+            FROM clientes_enderecos fe
             LEFT JOIN cidades c ON fe.cidade_id = c.id
             WHERE fe.cliente_id = ?
             ORDER BY fe.id",
@@ -107,11 +107,11 @@ class ModelCliente
     }
 
     /**
-     * Lista todos os clientees
+     * Lista todos os clientes
      */
     public function listar(array $filtros = []): array
     {
-        $sql = "SELECT * FROM clientees WHERE deletado_em IS NULL";
+        $sql = "SELECT * FROM clientes WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -165,11 +165,11 @@ class ModelCliente
     }
 
     /**
-     * Conta o total de clientees
+     * Conta o total de clientes
      */
     public function contar(array $filtros = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM clientees WHERE deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM clientes WHERE deletado_em IS NULL";
         $parametros = [];
 
         // Filtro por ativo
@@ -224,7 +224,7 @@ class ModelCliente
             }
         }
 
-        $id = $this->db->inserir('clientees', $dadosInsert);
+        $id = $this->db->inserir('clientes', $dadosInsert);
 
         // Registra auditoria
         $this->auditoria->registrar(
@@ -267,7 +267,7 @@ class ModelCliente
             }
         }
 
-        $resultado = $this->db->atualizar('clientees', $dadosUpdate, 'id = ?', [$id]);
+        $resultado = $this->db->atualizar('clientes', $dadosUpdate, 'id = ?', [$id]);
 
         // Registra auditoria
         if ($resultado) {
@@ -296,7 +296,7 @@ class ModelCliente
         }
 
         $resultado = $this->db->atualizar(
-            'clientees',
+            'clientes',
             [
                 'deletado_em' => date('Y-m-d H:i:s'),
                 'ativo' => 0
@@ -326,7 +326,7 @@ class ModelCliente
     public function restaurar(int $id, ?int $usuarioId = null): bool
     {
         $resultado = $this->db->atualizar(
-            'clientees',
+            'clientes',
             [
                 'deletado_em' => null,
                 'ativo' => 1
@@ -355,7 +355,7 @@ class ModelCliente
      */
     public function cnpjExiste(string $cnpj, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM clientees WHERE cnpj = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM clientes WHERE cnpj = ? AND deletado_em IS NULL";
         $parametros = [$cnpj];
 
         if ($excluirId) {
@@ -372,7 +372,7 @@ class ModelCliente
      */
     public function cpfExiste(string $cpf, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM clientees WHERE cpf = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM clientes WHERE cpf = ? AND deletado_em IS NULL";
         $parametros = [$cpf];
 
         if ($excluirId) {
@@ -389,7 +389,7 @@ class ModelCliente
      */
     public function emailExiste(string $email, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM clientees WHERE email = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM clientes WHERE email = ? AND deletado_em IS NULL";
         $parametros = [$email];
 
         if ($excluirId) {
@@ -406,7 +406,7 @@ class ModelCliente
      */
     public function externalIdExiste(string $externalId, ?int $excluirId = null): bool
     {
-        $sql = "SELECT COUNT(*) as total FROM clientees WHERE external_id = ? AND deletado_em IS NULL";
+        $sql = "SELECT COUNT(*) as total FROM clientes WHERE external_id = ? AND deletado_em IS NULL";
         $parametros = [$externalId];
 
         if ($excluirId) {
@@ -419,33 +419,33 @@ class ModelCliente
     }
 
     /**
-     * Obtém estatísticas dos clientees
+     * Obtém estatísticas dos clientes
      */
     public function obterEstatisticas(): array
     {
         $stats = [];
 
-        // Total de clientees ativos
+        // Total de clientes ativos
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientees WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM clientes WHERE ativo = 1 AND deletado_em IS NULL"
         );
         $stats['total_ativos'] = (int) $resultado['total'];
 
         // Total por tipo de pessoa
         $resultado = $this->db->buscarTodos(
-            "SELECT tipo_pessoa, COUNT(*) as total FROM clientees WHERE ativo = 1 AND deletado_em IS NULL GROUP BY tipo_pessoa"
+            "SELECT tipo_pessoa, COUNT(*) as total FROM clientes WHERE ativo = 1 AND deletado_em IS NULL GROUP BY tipo_pessoa"
         );
         $stats['por_tipo_pessoa'] = $resultado;
 
-        // Total de clientees PF
+        // Total de clientes PF
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientees WHERE tipo_pessoa = 'PF' AND ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM clientes WHERE tipo_pessoa = 'PF' AND ativo = 1 AND deletado_em IS NULL"
         );
         $stats['total_pf'] = (int) $resultado['total'];
 
-        // Total de clientees PJ
+        // Total de clientes PJ
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientees WHERE tipo_pessoa = 'PJ' AND ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM clientes WHERE tipo_pessoa = 'PJ' AND ativo = 1 AND deletado_em IS NULL"
         );
         $stats['total_pj'] = (int) $resultado['total'];
 
