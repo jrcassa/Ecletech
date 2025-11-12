@@ -21,7 +21,7 @@ class ModelProdutos
     }
 
     /**
-     * Busca um produto por ID com fornecedores
+     * Busca um produto por ID com todos os relacionamentos
      */
     public function buscarPorId(int $id): ?array
     {
@@ -33,6 +33,29 @@ class ModelProdutos
         if ($produto) {
             // Busca fornecedores
             $produto['fornecedores'] = $this->buscarFornecedoresDoProduto($id);
+
+            // Busca valores (múltiplos preços por tipo)
+            $produto['valores'] = $this->buscarValoresDoProduto($id);
+
+            // Busca variações
+            if ($produto['possui_variacao']) {
+                $produto['variacoes'] = $this->buscarVariacoesDoProduto($id);
+            } else {
+                $produto['variacoes'] = [];
+            }
+
+            // Monta objeto fiscal
+            $produto['fiscal'] = [
+                'ncm' => $produto['ncm'] ?? null,
+                'cest' => $produto['cest'] ?? null,
+                'peso_liquido' => $produto['peso_liquido'] ?? null,
+                'peso_bruto' => $produto['peso_bruto'] ?? null,
+                'valor_aproximado_tributos' => $produto['valor_aproximado_tributos'] ?? null,
+                'valor_fixo_pis' => $produto['valor_fixo_pis'] ?? null,
+                'valor_fixo_pis_st' => $produto['valor_fixo_pis_st'] ?? null,
+                'valor_fixo_confins' => $produto['valor_fixo_confins'] ?? null,
+                'valor_fixo_confins_st' => $produto['valor_fixo_confins_st'] ?? null
+            ];
         }
 
         return $produto;
@@ -189,7 +212,8 @@ class ModelProdutos
         // Campos opcionais
         $camposOpcionais = [
             'external_id', 'codigo_interno', 'codigo_barra', 'descricao',
-            'largura', 'altura', 'comprimento',
+            'possui_variacao', 'possui_composicao', 'movimenta_estoque',
+            'peso', 'largura', 'altura', 'comprimento',
             'grupo_id', 'nome_grupo',
             'valor_custo', 'valor_venda',
             'ncm', 'cest', 'peso_liquido', 'peso_bruto',
@@ -208,6 +232,16 @@ class ModelProdutos
         // Insere fornecedores se fornecidos
         if (isset($dados['fornecedores']) && is_array($dados['fornecedores'])) {
             $this->sincronizarFornecedores($id, $dados['fornecedores']);
+        }
+
+        // Insere valores (múltiplos preços)
+        if (isset($dados['valores']) && is_array($dados['valores'])) {
+            $this->sincronizarValores($id, $dados['valores']);
+        }
+
+        // Insere variações
+        if (isset($dados['variacoes']) && is_array($dados['variacoes'])) {
+            $this->sincronizarVariacoes($id, $dados['variacoes']);
         }
 
         // Registra auditoria
@@ -240,7 +274,8 @@ class ModelProdutos
         // Campos que podem ser atualizados
         $camposAtualizaveis = [
             'external_id', 'nome', 'codigo_interno', 'codigo_barra', 'descricao',
-            'largura', 'altura', 'comprimento',
+            'possui_variacao', 'possui_composicao', 'movimenta_estoque',
+            'peso', 'largura', 'altura', 'comprimento',
             'grupo_id', 'nome_grupo',
             'estoque', 'valor_custo', 'valor_venda',
             'ncm', 'cest', 'peso_liquido', 'peso_bruto',
@@ -260,6 +295,16 @@ class ModelProdutos
         // Atualiza fornecedores se fornecidos
         if (isset($dados['fornecedores']) && is_array($dados['fornecedores'])) {
             $this->sincronizarFornecedores($id, $dados['fornecedores']);
+        }
+
+        // Atualiza valores (múltiplos preços)
+        if (isset($dados['valores']) && is_array($dados['valores'])) {
+            $this->sincronizarValores($id, $dados['valores']);
+        }
+
+        // Atualiza variações
+        if (isset($dados['variacoes']) && is_array($dados['variacoes'])) {
+            $this->sincronizarVariacoes($id, $dados['variacoes']);
         }
 
         // Registra auditoria
@@ -402,5 +447,129 @@ class ModelProdutos
         $stats['valor_total_estoque'] = (float) ($resultado['total'] ?? 0);
 
         return $stats;
+    }
+
+    /**
+     * Busca valores/preços de um produto
+     */
+    private function buscarValoresDoProduto(int $produtoId): array
+    {
+        return $this->db->buscarTodos(
+            "SELECT tipo_id, nome_tipo, lucro_utilizado, valor_custo, valor_venda
+             FROM produto_valores
+             WHERE produto_id = ?
+             ORDER BY nome_tipo",
+            [$produtoId]
+        );
+    }
+
+    /**
+     * Busca variações de um produto
+     */
+    private function buscarVariacoesDoProduto(int $produtoId): array
+    {
+        $variacoes = $this->db->buscarTodos(
+            "SELECT id, nome, estoque
+             FROM produto_variacoes
+             WHERE produto_id = ?
+             ORDER BY nome",
+            [$produtoId]
+        );
+
+        // Para cada variação, busca seus valores
+        foreach ($variacoes as &$variacao) {
+            $variacao['valores'] = $this->buscarValoresDaVariacao($variacao['id']);
+
+            // Formata para a estrutura esperada
+            $variacao = [
+                'variacao' => $variacao
+            ];
+        }
+
+        return $variacoes;
+    }
+
+    /**
+     * Busca valores de uma variação específica
+     */
+    private function buscarValoresDaVariacao(int $variacaoId): array
+    {
+        return $this->db->buscarTodos(
+            "SELECT tipo_id, nome_tipo, lucro_utilizado, valor_custo, valor_venda
+             FROM produto_variacao_valores
+             WHERE variacao_id = ?
+             ORDER BY nome_tipo",
+            [$variacaoId]
+        );
+    }
+
+    /**
+     * Sincroniza valores do produto
+     */
+    private function sincronizarValores(int $produtoId, array $valores): void
+    {
+        // Remove todos os valores atuais
+        $this->db->executar(
+            "DELETE FROM produto_valores WHERE produto_id = ?",
+            [$produtoId]
+        );
+
+        // Insere novos valores
+        foreach ($valores as $valor) {
+            if (isset($valor['tipo_id']) && isset($valor['nome_tipo'])) {
+                $this->db->inserir('produto_valores', [
+                    'produto_id' => $produtoId,
+                    'tipo_id' => $valor['tipo_id'],
+                    'nome_tipo' => $valor['nome_tipo'],
+                    'lucro_utilizado' => $valor['lucro_utilizado'] ?? null,
+                    'valor_custo' => $valor['valor_custo'] ?? 0,
+                    'valor_venda' => $valor['valor_venda'] ?? 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Sincroniza variações do produto
+     */
+    private function sincronizarVariacoes(int $produtoId, array $variacoes): void
+    {
+        // Remove todas as variações atuais (CASCADE remove os valores também)
+        $this->db->executar(
+            "DELETE FROM produto_variacoes WHERE produto_id = ?",
+            [$produtoId]
+        );
+
+        // Insere novas variações
+        foreach ($variacoes as $item) {
+            $variacao = $item['variacao'] ?? $item;
+
+            if (isset($variacao['nome'])) {
+                $variacaoId = $this->db->inserir('produto_variacoes', [
+                    'produto_id' => $produtoId,
+                    'nome' => $variacao['nome'],
+                    'estoque' => $variacao['estoque'] ?? 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+
+                // Insere valores da variação
+                if (isset($variacao['valores']) && is_array($variacao['valores'])) {
+                    foreach ($variacao['valores'] as $valor) {
+                        if (isset($valor['tipo_id']) && isset($valor['nome_tipo'])) {
+                            $this->db->inserir('produto_variacao_valores', [
+                                'variacao_id' => $variacaoId,
+                                'tipo_id' => $valor['tipo_id'],
+                                'nome_tipo' => $valor['nome_tipo'],
+                                'lucro_utilizado' => $valor['lucro_utilizado'] ?? null,
+                                'valor_custo' => $valor['valor_custo'] ?? 0,
+                                'valor_venda' => $valor['valor_venda'] ?? 0,
+                                'created_at' => date('Y-m-d H:i:s')
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
