@@ -48,29 +48,65 @@
 
 ---
 
-## 🚀 Próximos Passos
+## 🚀 Instalação e Configuração
 
-### 1. Executar a Migration
+### 1. Executar Migrations
+
+Execute as migrations na ordem correta:
 
 ```bash
+# 1. Migration das tabelas WhatsApp
 mysql -u seu_usuario -p sua_database < database/migrations/2025_01_12_create_whatsapp_tables.sql
+
+# 2. Migration das permissões ACL
+mysql -u seu_usuario -p sua_database < database/migrations/047_adicionar_permissoes_whatsapp.sql
 ```
 
-### 2. Instalar Dependências
+### 2. Configurar Permissões ACL
 
-```bash
-composer require crunzphp/crunz
-composer require monolog/monolog
+O sistema WhatsApp utiliza 3 permissões:
+
+- **`whatsapp.acessar`** - Visualizar painel, status, fila e histórico
+- **`whatsapp.alterar`** - Enviar mensagens, gerenciar conexão, processar fila e configurar
+- **`whatsapp.deletar`** - ⚠️ **SEMPRE BLOQUEADA** por segurança
+
+**IMPORTANTE:**
+- As permissões são automaticamente atribuídas aos roles Super Admin (ID 1) e Admin (ID 2)
+- Usuários com nível 0 ou 5 têm acesso automático (admins)
+- A permissão `whatsapp.deletar` existe apenas para manter padrão ACL mas está inativa
+- Deletar mensagens/histórico NÃO é permitido por design de segurança
+
+### 3. Configurar API Baileys
+
+```sql
+-- Configurar URL e Token da API Baileys
+UPDATE whatsapp_configuracoes
+SET valor = 'https://api.baileys.com'
+WHERE chave = 'api_url';
+
+UPDATE whatsapp_configuracoes
+SET valor = 'SEU_TOKEN_AQUI'
+WHERE chave = 'instancia_token';
+
+-- Configurar Webhook
+UPDATE whatsapp_configuracoes
+SET valor = 'https://seudominio.com.br/public_html/api/whatsapp/webhook'
+WHERE chave = 'webhook_url';
 ```
 
-### 3. Continuar Implementação
+### 4. Configurar Entidades
 
-Solicite ao assistente para continuar criando os arquivos restantes:
+```sql
+-- Exemplo: Cliente
+UPDATE whatsapp_configuracoes SET valor = 'clientes' WHERE chave = 'entidade_cliente_tabela';
+UPDATE whatsapp_configuracoes SET valor = 'celular' WHERE chave = 'entidade_cliente_campo_telefone';
+UPDATE whatsapp_configuracoes SET valor = 'nome' WHERE chave = 'entidade_cliente_campo_nome';
+UPDATE whatsapp_configuracoes SET valor = 'id' WHERE chave = 'entidade_cliente_campo_id';
 
-- "Continue a implementação dos Services restantes"
-- "Crie os Controllers do WhatsApp"
-- "Implemente as Tasks do Crunz"
-- "Crie a View e JavaScript"
+-- Exemplo: Colaborador
+UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidade_colaborador_tabela';
+UPDATE whatsapp_configuracoes SET valor = 'telefone' WHERE chave = 'entidade_colaborador_campo_telefone';
+```
 
 ---
 

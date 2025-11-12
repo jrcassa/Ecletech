@@ -221,12 +221,25 @@ $.ajax({
 
 ## ⚙️ Configuração
 
-### 1. Executar Migration
+### 1. Executar Migrations
 ```bash
+# Migration das tabelas
 mysql -u usuario -p database < database/migrations/2025_01_12_create_whatsapp_tables.sql
+
+# Migration das permissões ACL
+mysql -u usuario -p database < database/migrations/047_adicionar_permissoes_whatsapp.sql
 ```
 
-### 2. Configurar Token da API
+### 2. Configurar Permissões ACL
+
+O sistema cria automaticamente 3 permissões:
+- **`whatsapp.acessar`** - Visualizar painel, status, fila e histórico
+- **`whatsapp.alterar`** - Enviar mensagens, gerenciar conexão e configurar
+- **`whatsapp.deletar`** - ⚠️ **SEMPRE INATIVA** por segurança
+
+As permissões são automaticamente atribuídas aos roles Super Admin e Admin.
+
+### 3. Configurar Token da API
 ```sql
 UPDATE whatsapp_configuracoes
 SET valor = 'SEU_TOKEN_AQUI'
@@ -237,14 +250,14 @@ SET valor = 'https://api.baileys.com'
 WHERE chave = 'api_url';
 ```
 
-### 3. Configurar Webhook
+### 4. Configurar Webhook
 ```sql
 UPDATE whatsapp_configuracoes
-SET valor = 'https://seudominio.com.br/api/whatsapp/webhook'
+SET valor = 'https://seudominio.com.br/public_html/api/whatsapp/webhook'
 WHERE chave = 'webhook_url';
 ```
 
-### 4. Configurar Entidades
+### 5. Configurar Entidades
 ```sql
 -- Cliente
 UPDATE whatsapp_configuracoes SET valor = 'clientes' WHERE chave = 'entidade_cliente_tabela';
@@ -293,21 +306,26 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 9. `afe205d` - **FIX:** Corrige endpoints da API para estrutura correta (/public_html/api)
 10. `449fd2d` - Docs: Atualiza PR info com commits de correção de endpoints
 11. `79c3673` - **FIX:** Registra rotas WhatsApp no sistema e corrige case sensitivity
+12. `2131a75` - Docs: Atualiza PR info com commit de correção de rotas
 
 ---
 
 ## ✅ Checklist de Testes
 
-- [ ] Migration executada com sucesso
-- [ ] Token configurado
+- [ ] Migration das tabelas executada com sucesso
+- [ ] Migration das permissões ACL executada com sucesso
+- [ ] Permissões criadas no sistema (whatsapp.acessar, whatsapp.alterar)
+- [ ] Permissões atribuídas aos roles Super Admin e Admin
+- [ ] Token da API configurado
 - [ ] QR Code aparece e pode ser escaneado
-- [ ] Conexão estabelecida
+- [ ] Conexão estabelecida com sucesso
 - [ ] Envio de mensagem de texto funciona
 - [ ] Envio de imagem funciona
 - [ ] Fila processa corretamente
 - [ ] Webhook recebe e atualiza status
 - [ ] Retry funciona em caso de erro
-- [ ] ACL bloqueia usuários sem permissão
+- [ ] ACL bloqueia usuários sem permissão whatsapp.acessar
+- [ ] ACL bloqueia usuários sem permissão whatsapp.alterar
 - [ ] Dashboard mostra estatísticas
 
 ---
