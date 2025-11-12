@@ -26,7 +26,18 @@ class ControllerWhatsappConexao
     public function status(): void
     {
         try {
-            $info = json_decode($this->baileys->infoInstancia(), true);
+            $response = $this->baileys->infoInstancia();
+            $info = json_decode($response, true);
+
+            // Debug: verifica se json_decode falhou
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Erro ao decodificar resposta JSON: ' . json_last_error_msg() . '. Resposta: ' . substr($response, 0, 200));
+            }
+
+            // Debug: verifica se resposta é null
+            if ($info === null) {
+                throw new \Exception('Resposta da API é null. Resposta bruta: ' . substr($response, 0, 200));
+            }
 
             $resultado = [
                 'conectado' => false,

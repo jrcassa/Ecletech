@@ -111,6 +111,11 @@ class ModelWhatsappBaileys
             throw new \Exception("Erro HTTP {$httpCode}: {$response}");
         }
 
+        // Verifica se a resposta está vazia
+        if ($response === false || $response === '') {
+            throw new \Exception("Resposta vazia da API. HTTP Code: {$httpCode}");
+        }
+
         return $response;
     }
 
@@ -157,11 +162,37 @@ class ModelWhatsappBaileys
     /**
      * Envia mensagem de texto
      */
-    public function sendText(string $numero, string $mensagem): string
+    public function sendText(string $numero, string $mensagem, array $options = []): string
     {
         $data = [
-            'number' => $numero,
-            'text' => $mensagem
+            'id' => $numero,
+            'typeId' => 'user',
+            'message' => $mensagem,
+            'options' => [
+                'delay' => $options['delay'] ?? 0,
+                'replyFrom' => $options['replyFrom'] ?? ''
+            ]
+        ];
+
+        return $this->request("message/text?key={$this->instanceToken}", 'POST', $data);
+    }
+
+    /**
+     * Envia mensagem de texto para grupo
+     */
+    public function sendTextGrupo(string $grupoId, string $mensagem, array $options = []): string
+    {
+        $data = [
+            'id' => $grupoId,
+            'typeId' => 'group',
+            'message' => $mensagem,
+            'options' => [
+                'delay' => $options['delay'] ?? 0,
+                'replyFrom' => $options['replyFrom'] ?? ''
+            ],
+            'groupOptions' => [
+                'markUser' => $options['markUser'] ?? 'ghostMention'
+            ]
         ];
 
         return $this->request("message/text?key={$this->instanceToken}", 'POST', $data);
