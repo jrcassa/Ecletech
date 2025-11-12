@@ -60,6 +60,14 @@ class AuxiliarResposta
     }
 
     /**
+     * Envia resposta de erro de validação (alias com ordem de parâmetros invertida)
+     */
+    public static function erroValidacao(string $mensagem = 'Dados inválidos', array $erros = []): void
+    {
+        self::erro($mensagem, 422, $erros);
+    }
+
+    /**
      * Envia resposta de não autorizado
      */
     public static function naoAutorizado(string $mensagem = 'Não autorizado'): void
