@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Contas - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Use os mesmos estilos de contas_bancarias.html */
+        /* Por enquanto, o arquivo usa estilos mínimos */
+        /* Para produção, copie todo o CSS de contas_bancarias.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ee670d 0%, #ff8833 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 103, 13, 0.35);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-secondary {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-small {
+            max-width: 400px;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f1f5f9;
+            border-top: 4px solid #ee670d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-container {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .page-info {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .permission-denied {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 60px;
+            text-align: center;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-toggle,
+        .theme-toggle,
+        .btn-logout {
+            /* Estilos básicos */
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Ecletech</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px;"></i>
+                <h3>Acesso Negado</h3>
+                <p>Você não tem permissão para acessar esta página.</p>
+            </div>
+
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div>
+                            <h2 style="margin: 0; border: none; padding: 0;">Plano de Contas</h2>
+                            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Gerencie o plano de contas contábil da empresa</p>
+                        </div>
+                        <button class="btn" id="btnNovo" style="display: none;">
+                            <i class="fas fa-plus"></i> Nova Conta
+                        </button>
+                    </div>
+
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="inputBusca" placeholder="Nome, classificação..." style="min-width: 250px;">
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipo</label>
+                            <select id="selectTipo">
+                                <option value="">Todos</option>
+                                <option value="D">Débito</option>
+                                <option value="C">Crédito</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="selectAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" class="error-container" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Classificação</th>
+                                    <th>Nome</th>
+                                    <th>Tipo</th>
+                                    <th>Tipo de Conta</th>
+                                    <th>Conta Mãe</th>
+                                    <th style="text-align: center;">Status</th>
+                                    <th style="text-align: center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            <i class="fas fa-inbox" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                            <p>Nenhuma conta encontrada</p>
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious" class="btn btn-secondary" disabled>
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </button>
+                            <span class="page-info" id="pageInfo">Página 1 de 1</span>
+                            <button id="btnNext" class="btn btn-secondary" disabled>
+                                Próximo <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Formulário -->
+    <div class="modal" id="modalForm">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nova Conta</h3>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formConta">
+                    <input type="hidden" id="contaId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputExternalId">ID Externo</label>
+                            <input type="text" id="inputExternalId" placeholder="ID do sistema externo">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputClassificacao">Classificação <span class="required">*</span></label>
+                            <input type="text" id="inputClassificacao" placeholder="Ex: 1.1.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputNome">Nome da Conta <span class="required">*</span></label>
+                        <input type="text" id="inputNome" placeholder="Ex: Caixa Geral" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="selectTipoForm">Tipo <span class="required">*</span></label>
+                            <select id="selectTipoForm" required>
+                                <option value="">Selecione...</option>
+                                <option value="D">Débito</option>
+                                <option value="C">Crédito</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputNomeTipo">Tipo de Conta</label>
+                            <input type="text" id="inputNomeTipo" placeholder="Ex: Pagamentos, Receitas">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="selectContaMae">Conta Mãe</label>
+                        <select id="selectContaMae">
+                            <option value="">Nenhuma (Conta Principal)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputObservacoes">Observações</label>
+                        <textarea id="inputObservacoes" rows="3" placeholder="Observações adicionais"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="checkAtivo" checked>
+                            <span>Conta ativa</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                <button type="button" class="btn" id="btnSalvar">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal" id="modalConfirm">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta conta?</p>
+                <p style="color: var(--text-secondary); font-size: 14px;">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="PlanoDeContasManager.fecharModalConfirm()">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/PlanoDeContas.js"></script>
+    <script>
+        // Initialize PlanoDeContas on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            if (!AuthAPI.isAuthenticated()) {
+                window.location.href = './auth.html';
+                return;
+            }
+
+            // Initialize the plano de contas manager
+            PlanoDeContasManager.init();
+        });
+    </script>
+</body>
+
+</html>
