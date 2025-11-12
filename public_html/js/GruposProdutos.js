@@ -141,9 +141,13 @@ const GruposProdutosManager = {
                 };
             }
 
-            // Esconde botão novo se não tem permissão de criar
-            if (!this.state.permissoes.criar && this.elements.btnNovo) {
-                this.elements.btnNovo.style.display = 'none';
+            // Controla visibilidade do botão novo baseado na permissão de criar
+            if (this.elements.btnNovo) {
+                if (this.state.permissoes.criar) {
+                    this.elements.btnNovo.style.display = 'inline-flex';
+                } else {
+                    this.elements.btnNovo.style.display = 'none';
+                }
             }
         } catch (erro) {
             console.error('Erro ao verificar permissões:', erro);
@@ -204,15 +208,15 @@ const GruposProdutosManager = {
                 </td>
                 <td>${this.formatarData(grupo.cadastrado_em)}</td>
                 <td>
-                    <div class="action-buttons">
+                    <div class="actions">
                         ${this.state.permissoes.editar ? `
-                            <button class="btn-action btn-edit" onclick="GruposProdutosManager.editar(${grupo.id})" title="Editar">
-                                <i class="fas fa-edit"></i>
+                            <button class="btn btn-small" onclick="GruposProdutosManager.editar(${grupo.id})" title="Editar">
+                                <i class="fas fa-edit"></i> Editar
                             </button>
                         ` : ''}
                         ${this.state.permissoes.deletar ? `
-                            <button class="btn-action btn-delete" onclick="GruposProdutosManager.confirmarDelecao(${grupo.id}, '${this.escaparHtml(grupo.nome)}')" title="Deletar">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-small btn-danger" onclick="GruposProdutosManager.confirmarDelecao(${grupo.id}, '${this.escaparHtml(grupo.nome)}')" title="Deletar">
+                                <i class="fas fa-trash"></i> Deletar
                             </button>
                         ` : ''}
                     </div>
