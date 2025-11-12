@@ -321,6 +321,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 17. `5f368b2` - **FIX:** Implementa lazy loading do Baileys para evitar erro sem configuração
 18. `aa963be` - Docs: Atualiza PR info com commits de lazy loading
 19. `0694014` - **FIX:** Corrige nomes de configurações e adiciona autenticação Bearer
+20. `49d6d1b` - Docs: Atualiza PR info com commit de correção de configurações
+21. `199514c` - **FIX:** Corrige estrutura de dados da API Baileys e adiciona debug
 
 ---
 
