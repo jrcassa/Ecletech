@@ -2,11 +2,7 @@
 
 namespace App\Controllers\Cliente;
 
-use App\Models\Cliente\ModelCliente;
-use App\Models\Cliente\ModelClienteContato;
-use App\Models\Cliente\ModelClienteEndereco;
-use App\Core\Autenticacao;
-use App\Core\BancoDados;
+use App\Services\Cliente\ServiceCliente;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -15,19 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerCliente
 {
-    private ModelCliente $model;
-    private ModelClienteContato $modelContato;
-    private ModelClienteEndereco $modelEndereco;
-    private Autenticacao $auth;
-    private BancoDados $db;
+    private ServiceCliente $service;
 
     public function __construct()
     {
-        $this->model = new ModelCliente();
-        $this->modelContato = new ModelClienteContato();
-        $this->modelEndereco = new ModelClienteEndereco();
-        $this->auth = new Autenticacao();
-        $this->db = BancoDados::obterInstancia();
+        $this->service = new ServiceCliente();
     }
 
     /**
@@ -56,9 +44,9 @@ class ControllerCliente
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = $offset;
 
-            // Busca dados
-            $clientes = $this->model->listar($filtros);
-            $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            // Busca dados via Service
+            $clientes = $this->service->listar($filtros);
+            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
                 $clientes,
@@ -83,7 +71,7 @@ class ControllerCliente
                 return;
             }
 
-            $cliente = $this->model->buscarComRelacionamentos((int) $id);
+            $cliente = $this->service->buscarComRelacionamentos((int) $id);
 
             if (!$cliente) {
                 AuxiliarResposta::naoEncontrado('Cliente não encontrado');
@@ -143,77 +131,10 @@ class ControllerCliente
                 return;
             }
 
-            // Verifica duplicatas
-            if (isset($dados['cnpj']) && !empty($dados['cnpj'])) {
-                $dados['cnpj'] = preg_replace('/[^0-9]/', '', $dados['cnpj']);
-                if ($this->model->cnpjExiste($dados['cnpj'])) {
-                    AuxiliarResposta::conflito('CNPJ já cadastrado no sistema');
-                    return;
-                }
-            }
+            // Delega para o Service (validações de negócio + criação + transação)
+            $cliente = $this->service->criarCompleto($dados);
 
-            if (isset($dados['cpf']) && !empty($dados['cpf'])) {
-                $dados['cpf'] = preg_replace('/[^0-9]/', '', $dados['cpf']);
-                if ($this->model->cpfExiste($dados['cpf'])) {
-                    AuxiliarResposta::conflito('CPF já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                if ($this->model->emailExiste($dados['email'])) {
-                    AuxiliarResposta::conflito('Email já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'])) {
-                    AuxiliarResposta::conflito('External ID já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
-
-            // Inicia transação
-            $this->db->iniciarTransacao();
-
-            try {
-                // Cria o cliente
-                $id = $this->model->criar($dados);
-
-                // Processa contatos se existirem
-                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                    foreach ($dados['contatos'] as $contato) {
-                        if (isset($contato['nome']) && isset($contato['contato'])) {
-                            $contato['cliente_id'] = $id;
-                            $this->modelContato->criar($contato);
-                        }
-                    }
-                }
-
-                // Processa endereços se existirem
-                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                    foreach ($dados['enderecos'] as $endereco) {
-                        $endereco['cliente_id'] = $id;
-                        $this->modelEndereco->criar($endereco);
-                    }
-                }
-
-                // Confirma a transação
-                $this->db->commit();
-
-                $cliente = $this->model->buscarComRelacionamentos($id);
-
-                AuxiliarResposta::criado($cliente, 'Cliente cadastrado com sucesso');
-            } catch (\Exception $e) {
-                // Reverte a transação em caso de erro
-                $this->db->rollback();
-                throw $e;
-            }
+            AuxiliarResposta::criado($cliente, 'Cliente cadastrado com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -348,7 +269,7 @@ class ControllerCliente
                 // Confirma a transação
                 $this->db->commit();
 
-                $cliente = $this->model->buscarComRelacionamentos((int) $id);
+                $cliente = $this->service->buscarComRelacionamentos((int) $id);
 
                 AuxiliarResposta::sucesso($cliente, 'Cliente atualizado com sucesso');
             } catch (\Exception $e) {

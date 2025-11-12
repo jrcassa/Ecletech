@@ -2,8 +2,7 @@
 
 namespace App\Controllers\FormaDePagamento;
 
-use App\Models\FormaDePagamento\ModelFormaDePagamento;
-use App\Core\Autenticacao;
+use App\Services\FormaDePagamento\ServiceFormaDePagamento;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -12,13 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerFormaDePagamento
 {
-    private ModelFormaDePagamento $model;
-    private Autenticacao $auth;
+    private ServiceFormaDePagamento $service;
 
     public function __construct()
     {
-        $this->model = new ModelFormaDePagamento();
-        $this->auth = new Autenticacao();
+        $this->service = new ServiceFormaDePagamento();
     }
 
     /**
@@ -47,9 +44,9 @@ class ControllerFormaDePagamento
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = $offset;
 
-            // Busca dados
-            $formas = $this->model->listar($filtros);
-            $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            // Busca dados via Service
+            $formas = $this->service->listar($filtros);
+            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
                 $formas,
@@ -74,7 +71,7 @@ class ControllerFormaDePagamento
                 return;
             }
 
-            $forma = $this->model->buscarPorId((int) $id);
+            $forma = $this->service->buscarPorId((int) $id);
 
             if (!$forma) {
                 AuxiliarResposta::naoEncontrado('Forma de pagamento não encontrada');
@@ -95,7 +92,7 @@ class ControllerFormaDePagamento
         try {
             $dados = AuxiliarResposta::obterDados();
 
-            // Validação básica
+            // Validação de formato HTTP
             $erros = AuxiliarValidacao::validar($dados, [
                 'nome' => 'obrigatorio|min:3|max:200',
                 'conta_bancaria_id' => 'obrigatorio|inteiro',
@@ -109,27 +106,8 @@ class ControllerFormaDePagamento
                 return;
             }
 
-            // Verifica duplicatas
-            if ($this->model->nomeExiste($dados['nome'])) {
-                AuxiliarResposta::conflito('Já existe uma forma de pagamento com este nome');
-                return;
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'])) {
-                    AuxiliarResposta::conflito('External ID já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
-
-            // Cria a forma de pagamento
-            $id = $this->model->criar($dados);
-
-            $forma = $this->model->buscarPorId($id);
+            // Delega para o Service (validações de negócio + criação)
+            $forma = $this->service->criar($dados);
 
             AuxiliarResposta::criado($forma, 'Forma de pagamento cadastrada com sucesso');
         } catch (\Exception $e) {
@@ -148,16 +126,9 @@ class ControllerFormaDePagamento
                 return;
             }
 
-            // Verifica se a forma de pagamento existe
-            $formaExistente = $this->model->buscarPorId((int) $id);
-            if (!$formaExistente) {
-                AuxiliarResposta::naoEncontrado('Forma de pagamento não encontrada');
-                return;
-            }
-
             $dados = AuxiliarResposta::obterDados();
 
-            // Validação dos dados (campos opcionais)
+            // Validação de formato HTTP (campos opcionais)
             $regras = [];
 
             if (isset($dados['nome'])) {
@@ -187,34 +158,8 @@ class ControllerFormaDePagamento
                 return;
             }
 
-            // Verifica duplicatas (excluindo o próprio registro)
-            if (isset($dados['nome']) && !empty($dados['nome'])) {
-                if ($this->model->nomeExiste($dados['nome'], (int) $id)) {
-                    AuxiliarResposta::conflito('Já existe outra forma de pagamento com este nome');
-                    return;
-                }
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('External ID já cadastrado em outra forma de pagamento');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Atualiza a forma de pagamento
-            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar forma de pagamento', 400);
-                return;
-            }
-
-            $forma = $this->model->buscarPorId((int) $id);
+            // Delega para o Service (validações de negócio + atualização)
+            $forma = $this->service->atualizar((int) $id, $dados);
 
             AuxiliarResposta::sucesso($forma, 'Forma de pagamento atualizada com sucesso');
         } catch (\Exception $e) {
@@ -233,24 +178,8 @@ class ControllerFormaDePagamento
                 return;
             }
 
-            // Verifica se a forma de pagamento existe
-            $forma = $this->model->buscarPorId((int) $id);
-            if (!$forma) {
-                AuxiliarResposta::naoEncontrado('Forma de pagamento não encontrada');
-                return;
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Deleta a forma de pagamento (soft delete)
-            $resultado = $this->model->deletar((int) $id, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar forma de pagamento', 400);
-                return;
-            }
+            // Delega para o Service
+            $this->service->deletar((int) $id);
 
             AuxiliarResposta::sucesso(null, 'Forma de pagamento removida com sucesso');
         } catch (\Exception $e) {
@@ -264,7 +193,7 @@ class ControllerFormaDePagamento
     public function obterEstatisticas(): void
     {
         try {
-            $estatisticas = $this->model->obterEstatisticas();
+            $estatisticas = $this->service->obterEstatisticas();
             AuxiliarResposta::sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
