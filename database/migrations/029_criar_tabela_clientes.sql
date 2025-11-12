@@ -1,6 +1,7 @@
 -- =====================================================
 -- Migration: Criar tabela de clientees
--- Descrição: Tabela para gerenciamento de clientees (PF e PJ)
+-- Descrição: Tabela para gerenciamento de clientes (PF e PJ)
+-- NOTA: Tabela foi criada como 'clientees' mas renomeada para 'clientes' na migration 033
 -- Data: 2025-11-11
 -- =====================================================
 

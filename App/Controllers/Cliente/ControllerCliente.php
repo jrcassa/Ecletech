@@ -11,7 +11,7 @@ use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
 /**
- * Controller para gerenciar clientees
+ * Controller para gerenciar clientes
  */
 class ControllerCliente
 {
@@ -31,7 +31,7 @@ class ControllerCliente
     }
 
     /**
-     * Lista todos os clientees
+     * Lista todos os clientes
      */
     public function listar(): void
     {
@@ -57,15 +57,15 @@ class ControllerCliente
             $filtros['offset'] = $offset;
 
             // Busca dados
-            $clientees = $this->model->listar($filtros);
+            $clientes = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
-                $clientees,
+                $clientes,
                 $total,
                 $paginaAtual,
                 $porPagina,
-                'Clientees listados com sucesso'
+                'Clientes listados com sucesso'
             );
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
@@ -399,14 +399,14 @@ class ControllerCliente
     }
 
     /**
-     * Obtém estatísticas dos clientees
+     * Obtém estatísticas dos clientes
      */
     public function obterEstatisticas(): void
     {
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos clientees obtidas com sucesso');
+            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos clientes obtidas com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }

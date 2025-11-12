@@ -5,7 +5,7 @@ namespace App\Models\Cliente;
 use App\Core\BancoDados;
 
 /**
- * Model para gerenciar contatos de clientees
+ * Model para gerenciar contatos de clientes
  */
 class ModelClienteContato
 {
@@ -22,7 +22,7 @@ class ModelClienteContato
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees_contatos WHERE id = ?",
+            "SELECT * FROM clientes_contatos WHERE id = ?",
             [$id]
         );
     }
@@ -33,7 +33,7 @@ class ModelClienteContato
     public function listarPorCliente(int $clienteId): array
     {
         return $this->db->buscarTodos(
-            "SELECT * FROM clientees_contatos WHERE cliente_id = ? ORDER BY id",
+            "SELECT * FROM clientes_contatos WHERE cliente_id = ? ORDER BY id",
             [$clienteId]
         );
     }
@@ -58,7 +58,7 @@ class ModelClienteContato
             $dadosInsert['observacao'] = $dados['observacao'];
         }
 
-        return $this->db->inserir('clientees_contatos', $dadosInsert);
+        return $this->db->inserir('clientes_contatos', $dadosInsert);
     }
 
     /**
@@ -79,7 +79,7 @@ class ModelClienteContato
             }
         }
 
-        return $this->db->atualizar('clientees_contatos', $dadosUpdate, 'id = ?', [$id]);
+        return $this->db->atualizar('clientes_contatos', $dadosUpdate, 'id = ?', [$id]);
     }
 
     /**
@@ -87,7 +87,7 @@ class ModelClienteContato
      */
     public function deletar(int $id): bool
     {
-        return $this->db->deletar('clientees_contatos', 'id = ?', [$id]);
+        return $this->db->deletar('clientes_contatos', 'id = ?', [$id]);
     }
 
     /**
@@ -95,7 +95,7 @@ class ModelClienteContato
      */
     public function deletarPorCliente(int $clienteId): bool
     {
-        return $this->db->deletar('clientees_contatos', 'cliente_id = ?', [$clienteId]);
+        return $this->db->deletar('clientes_contatos', 'cliente_id = ?', [$clienteId]);
     }
 
     /**
@@ -104,7 +104,7 @@ class ModelClienteContato
     public function contarPorCliente(int $clienteId): int
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientees_contatos WHERE cliente_id = ?",
+            "SELECT COUNT(*) as total FROM clientes_contatos WHERE cliente_id = ?",
             [$clienteId]
         );
         return (int) $resultado['total'];

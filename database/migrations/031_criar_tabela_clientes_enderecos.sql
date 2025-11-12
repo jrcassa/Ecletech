@@ -1,6 +1,7 @@
 -- =====================================================
 -- Migration: Criar tabela de endereços de clientees
--- Descrição: Tabela para gerenciamento de endereços dos clientees
+-- Descrição: Tabela para gerenciamento de endereços dos clientes
+-- NOTA: Tabela foi criada como 'clientees_enderecos' mas renomeada para 'clientes_enderecos' na migration 033
 -- Data: 2025-11-11
 -- =====================================================
 

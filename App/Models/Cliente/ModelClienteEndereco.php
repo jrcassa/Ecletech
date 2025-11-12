@@ -5,7 +5,7 @@ namespace App\Models\Cliente;
 use App\Core\BancoDados;
 
 /**
- * Model para gerenciar endereços de clientees
+ * Model para gerenciar endereços de clientes
  */
 class ModelClienteEndereco
 {
@@ -22,7 +22,7 @@ class ModelClienteEndereco
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT * FROM clientees_enderecos WHERE id = ?",
+            "SELECT * FROM clientes_enderecos WHERE id = ?",
             [$id]
         );
     }
@@ -36,7 +36,7 @@ class ModelClienteEndereco
             "SELECT
                 fe.*,
                 c.nome as nome_cidade
-            FROM clientees_enderecos fe
+            FROM clientes_enderecos fe
             LEFT JOIN cidades c ON fe.cidade_id = c.id
             WHERE fe.id = ?",
             [$id]
@@ -52,7 +52,7 @@ class ModelClienteEndereco
             "SELECT
                 fe.*,
                 c.nome as nome_cidade
-            FROM clientees_enderecos fe
+            FROM clientes_enderecos fe
             LEFT JOIN cidades c ON fe.cidade_id = c.id
             WHERE fe.cliente_id = ?
             ORDER BY fe.id",
@@ -82,7 +82,7 @@ class ModelClienteEndereco
             }
         }
 
-        return $this->db->inserir('clientees_enderecos', $dadosInsert);
+        return $this->db->inserir('clientes_enderecos', $dadosInsert);
     }
 
     /**
@@ -106,7 +106,7 @@ class ModelClienteEndereco
             }
         }
 
-        return $this->db->atualizar('clientees_enderecos', $dadosUpdate, 'id = ?', [$id]);
+        return $this->db->atualizar('clientes_enderecos', $dadosUpdate, 'id = ?', [$id]);
     }
 
     /**
@@ -114,7 +114,7 @@ class ModelClienteEndereco
      */
     public function deletar(int $id): bool
     {
-        return $this->db->deletar('clientees_enderecos', 'id = ?', [$id]);
+        return $this->db->deletar('clientes_enderecos', 'id = ?', [$id]);
     }
 
     /**
@@ -122,7 +122,7 @@ class ModelClienteEndereco
      */
     public function deletarPorCliente(int $clienteId): bool
     {
-        return $this->db->deletar('clientees_enderecos', 'cliente_id = ?', [$clienteId]);
+        return $this->db->deletar('clientes_enderecos', 'cliente_id = ?', [$clienteId]);
     }
 
     /**
@@ -131,7 +131,7 @@ class ModelClienteEndereco
     public function contarPorCliente(int $clienteId): int
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientees_enderecos WHERE cliente_id = ?",
+            "SELECT COUNT(*) as total FROM clientes_enderecos WHERE cliente_id = ?",
             [$clienteId]
         );
         return (int) $resultado['total'];
