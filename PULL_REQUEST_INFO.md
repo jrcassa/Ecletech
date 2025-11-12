@@ -289,6 +289,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 5. `41f33ed` - **FIX:** Reimplementa na estrutura correta do projeto (App/)
 6. `705a654` - Finaliza com rotas RESTful e JavaScript v2.0
 7. `b099604` - **FIX:** Move views para public_html/
+8. `0bd02f8` - Docs: Adiciona informações completas do Pull Request
+9. `afe205d` - **FIX:** Corrige endpoints da API para estrutura correta (/public_html/api)
 
 ---
 
