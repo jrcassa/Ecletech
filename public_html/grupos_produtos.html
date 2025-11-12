@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Ecletech</title>
+    <title>Grupos de Produtos - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1030,15 +1030,15 @@
             flex: 1;
         }
 
-        .welcome-card {
-            background: linear-gradient(135deg, #ee670d 0%, #ff8833 100%);
+        .card {
+            background: var(--card-bg);
             border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 32px;
-            box-shadow: 0 8px 32px rgba(238, 103, 13, 0.25);
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 0.6s ease-out;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.6s ease-out 0.2s backwards;
+            transition: background-color 0.3s ease;
         }
 
         @keyframes fadeIn {
@@ -1053,113 +1053,403 @@
             }
         }
 
-        .welcome-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-
-            50% {
-                transform: translate(-20px, -20px);
-            }
-        }
-
-        .welcome-card h2 {
-            color: white;
-            font-size: 32px;
-            margin-bottom: 8px;
-            font-weight: 700;
-            position: relative;
-            z-index: 1;
-        }
-
-        .welcome-card p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .user-info-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            border: 1px solid var(--border-color);
-            animation: fadeIn 0.6s ease-out 0.2s backwards;
-            transition: background-color 0.3s ease;
-        }
-
-        .user-info-card h3 {
+        .card h2 {
             color: var(--text-primary);
-            font-size: 20px;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 2px solid var(--border-light);
             font-weight: 700;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .info-item {
-            padding: 20px;
-            background: var(--info-item-bg);
-            border-radius: 12px;
-            border-left: 4px solid #ee670d;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
-        .info-item:hover {
-            background: var(--bg-hover);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px var(--shadow-hover);
-            border-left-width: 6px;
-        }
-
-        .info-item label {
-            display: block;
+        .filter-group label {
+            font-size: 12px;
             color: var(--text-secondary);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 8px;
-            font-weight: 700;
+            font-weight: 600;
         }
 
-        .info-item .value {
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--card-bg);
             color: var(--text-primary);
-            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #ee670d;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-tertiary);
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-secondary {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #ee670d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
-            word-break: break-word;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #d65c0a;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Sistema de Abas */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-light);
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: #ee670d;
+        }
+
+        .tab-button.active {
+            color: #ee670d;
+            border-bottom-color: #ee670d;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ee670d;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        /* Campos Condicionais */
+        .campo-condicional {
+            display: none;
+        }
+
+        .campo-condicional.show {
+            display: block;
+        }
+
+        /* Listas Dinâmicas */
+        .dynamic-list {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: var(--bg-tertiary);
+        }
+
+        .dynamic-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dynamic-list-header h4 {
+            color: var(--text-primary);
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .dynamic-list-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dynamic-list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .dynamic-list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .dynamic-list-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .btn-remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove-item:hover {
+            background: #c82333;
         }
 
         .loading-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 400px;
+            min-height: 200px;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 4px solid var(--border-light);
             border-top: 4px solid #ee670d;
             border-radius: 50%;
@@ -1176,59 +1466,71 @@
             }
         }
 
-        .error-container {
-            background: #fef2f2;
-            color: #991b1b;
-            padding: 24px;
-            border-radius: 12px;
-            margin: 20px 0;
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .no-data {
             text-align: center;
-            border: 1px solid #fecaca;
+            color: var(--text-secondary);
+            padding: 40px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: transform 0.2s ease;
+        .pagination {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
         }
 
-        .badge:hover {
-            transform: scale(1.05);
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .badge-success {
-            background: #d1fae5;
-            color: #065f46;
+        .pagination button:hover:not(:disabled) {
+            background: #ee670d;
+            color: white;
+            border-color: #ee670d;
         }
 
-        .badge-warning {
-            background: #fef3c7;
-            color: #92400e;
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .badge-danger {
-            background: #fee2e2;
-            color: #991b1b;
+        .pagination .page-info {
+            color: var(--text-secondary);
+            font-size: 14px;
         }
 
-        .json-viewer {
-            background: var(--json-viewer-bg);
-            color: var(--json-viewer-text);
-            padding: 24px;
-            border-radius: 12px;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            border: 1px solid var(--json-viewer-border);
-            transition: background-color 0.3s ease, color 0.3s ease;
+        .permission-denied {
+            background: #fff3cd;
+            color: #856404;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
         }
 
+        /* Sistema de Notificações Toast */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -1340,15 +1642,7 @@
                 padding: 16px 20px;
             }
 
-            .welcome-card {
-                padding: 28px 24px;
-            }
-
-            .welcome-card h2 {
-                font-size: 26px;
-            }
-
-            .info-grid {
+            .form-row {
                 grid-template-columns: 1fr;
             }
         }
@@ -1374,7 +1668,7 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Principal</div>
-                    <a href="./home.html" class="active">
+                    <a href="./home.html">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-home"></i></span>
                             <span>Home</span>
@@ -1384,6 +1678,24 @@
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-car"></i></span>
                             <span>Frotas</span>
+                        </div>
+                    </a>
+                    <a href="./fornecedores.html" data-permission="fornecedor.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-truck"></i></span>
+                            <span>Fornecedores</span>
+                        </div>
+                    </a>
+                    <a href="./clientes.html" data-permission="cliente.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Clientes</span>
+                        </div>
+                    </a>
+                    <a href="./grupos_produtos.html" class="active" data-permission="grupo_produtos.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-shipping-fast"></i></span>
+                            <span>Grupos de Produtos</span>
                         </div>
                     </a>
                 </div>
@@ -1427,12 +1739,6 @@
                             <div class="menu-item-content">
                                 <span class="icon"><i class="fas fa-phone"></i></span>
                                 <span>Tipos de Contatos</span>
-                            </div>
-                        </a>
-                        <a href="./grupos_produtos.html" data-permission="grupos_produtos.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-boxes"></i></span>
-                                <span>Grupos de Produtos</span>
                             </div>
                         </a>
                     </div>
@@ -1525,9 +1831,8 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Ecletech</h1>
+                <h1>Grupos de Produtos</h1>
             </div>
-            <!-- Adicionando botão de toggle de tema e agrupando botões no header-right -->
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
                     <i class="fas fa-moon"></i>
@@ -1540,33 +1845,138 @@
         </header>
 
         <div class="container">
-            <div class="welcome-card">
-                <h2 id="welcomeMessage">Bem-vindo!</h2>
-                <p>Aqui estão as informações da sua conta</p>
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
             </div>
 
-            <div id="loadingContainer" class="loading-container">
-                <div class="spinner"></div>
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Grupos de Produtos</h2>
+                        <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
+                            Novo Grupo de Produtos</button>
+                    </div>
+
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="filtroBusca" placeholder="Nome, CNPJ/CPF, email...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipo de Pessoa</label>
+                            <select id="filtroTipoPessoa">
+                                <option value="">Todos</option>
+                                <option value="PF">Pessoa Física</option>
+                                <option value="PJ">Pessoa Jurídica</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filtroAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Tipo</th>
+                                    <th>CNPJ/CPF</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            Nenhum grupo_produtos encontrado.
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span class="page-info" id="pageInfo"></span>
+                            <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar -->
+    <div id="modalForm" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Grupo de Produtos</h3>
+                <button class="close" id="closeModal">&times;</button>
             </div>
 
-            <div id="errorContainer" class="error-container" style="display: none;">
-                <p id="errorMessage"></p>
+            <div id="modalError" style="display: none;">
+                <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <div id="userInfoCard" class="user-info-card" style="display: none;">
-                <h3>Dados do Usuário</h3>
-                <div id="infoGrid" class="info-grid"></div>
-            </div>
+            <form id="formGrupoProdutos">
+                <input type="hidden" id="grupoProdutosId">
 
-            <div class="user-info-card" id="rawDataCard" style="display: none; margin-top: 32px;">
-                <h3>Dados Brutos (JSON)</h3>
-                <pre id="rawData" class="json-viewer"></pre>
-            </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="externalId">ID Externo</label>
+                        <input type="text" id="externalId" placeholder="ID do sistema externo (opcional)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ativo">Ativo *</label>
+                        <select id="ativo" required>
+                            <option value="1">Sim</option>
+                            <option value="0">Não</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nome">Nome *</label>
+                    <input type="text" id="nome" required placeholder="Nome do grupo de produtos">
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" rows="4" placeholder="Descrição do grupo de produtos (opcional)"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i>
+                        Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i>
+                        Salvar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
     <script src="js/sidebar.js"></script>
     <script>
         const themeToggle = document.getElementById('themeToggle');
@@ -1609,7 +2019,6 @@
 
         // Carregar tema ao iniciar
         loadTheme();
-
 
         const userInfoDropdown = document.getElementById('userInfoDropdown');
         const userDropdownMenu = document.getElementById('userDropdownMenu');
@@ -1693,147 +2102,55 @@
                 }
             }
         });
-    </script>
-    <script>
-        const loadingContainer = document.getElementById('loadingContainer');
-        const errorContainer = document.getElementById('errorContainer');
-        const errorMessage = document.getElementById('errorMessage');
-        const userInfoCard = document.getElementById('userInfoCard');
-        const infoGrid = document.getElementById('infoGrid');
-        const welcomeMessage = document.getElementById('welcomeMessage');
-        const rawDataCard = document.getElementById('rawDataCard');
-        const rawData = document.getElementById('rawData');
-        const logoutBtn = document.getElementById('logoutBtn');
 
-        function showError(message) {
-            loadingContainer.style.display = 'none';
-            errorContainer.style.display = 'block';
-            errorMessage.textContent = message;
-            userInfoCard.style.display = 'none';
-            rawDataCard.style.display = 'none';
-        }
+        // Sistema de Abas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const tabName = this.getAttribute('data-tab');
 
-        function showUserData(user) {
-            loadingContainer.style.display = 'none';
-            errorContainer.style.display = 'none';
-            userInfoCard.style.display = 'block';
-            rawDataCard.style.display = 'block';
+                // Remove active de todas as abas e conteúdos
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            const nome = user.nome || user.name || user.email?.split('@')[0] || 'Usuário';
-            welcomeMessage.textContent = `Bem-vindo, ${nome}!`;
-
-            const userAvatarEl = document.getElementById('userAvatar');
-            const userNameSidebarEl = document.getElementById('userNameSidebar');
-            const userRoleSidebarEl = document.getElementById('userRoleSidebar');
-
-            if (userAvatarEl) {
-                const initial = nome.charAt(0).toUpperCase();
-                userAvatarEl.textContent = initial;
-            }
-            if (userNameSidebarEl) userNameSidebarEl.textContent = nome;
-            if (userRoleSidebarEl) userRoleSidebarEl.textContent = user.tipo_usuario || 'Usuário';
-
-            infoGrid.innerHTML = '';
-
-            const campos = [
-                { key: 'id', label: 'ID' },
-                { key: 'nome', label: 'Nome' },
-                { key: 'email', label: 'E-mail' },
-                { key: 'telefone', label: 'Telefone' },
-                { key: 'cpf', label: 'CPF' },
-                { key: 'idioma', label: 'Idioma' },
-                { key: 'email_validado', label: 'Email Validado', type: 'boolean' },
-                { key: 'ativo', label: 'Ativo', type: 'boolean' },
-                { key: 'tipo_usuario', label: 'Tipo de Usuário' },
-                { key: 'data_criacao', label: 'Data de Criação', type: 'date' },
-                { key: 'data_atualizacao', label: 'Última Atualização', type: 'date' }
-            ];
-
-            campos.forEach(campo => {
-                if (user[campo.key] !== undefined && user[campo.key] !== null) {
-                    const item = document.createElement('div');
-                    item.className = 'info-item';
-
-                    const label = document.createElement('label');
-                    label.textContent = campo.label;
-
-                    const value = document.createElement('div');
-                    value.className = 'value';
-
-                    if (campo.type === 'boolean') {
-                        const badge = document.createElement('span');
-                        badge.className = `badge ${user[campo.key] == 1 ? 'badge-success' : 'badge-warning'}`;
-                        badge.textContent = user[campo.key] == 1 ? 'Sim' : 'Não';
-                        value.appendChild(badge);
-                    } else if (campo.type === 'date') {
-                        const date = new Date(user[campo.key]);
-                        value.textContent = date.toLocaleString('pt-BR');
-                    } else {
-                        value.textContent = user[campo.key];
-                    }
-
-                    item.appendChild(label);
-                    item.appendChild(value);
-                    infoGrid.appendChild(item);
-                }
+                // Adiciona active na aba e conteúdo clicados
+                this.classList.add('active');
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
             });
-
-            Object.keys(user).forEach(key => {
-                if (!campos.find(c => c.key === key)) {
-                    const item = document.createElement('div');
-                    item.className = 'info-item';
-
-                    const label = document.createElement('label');
-                    label.textContent = key.replace(/_/g, ' ').toUpperCase();
-
-                    const value = document.createElement('div');
-                    value.className = 'value';
-
-                    const val = user[key];
-                    if (typeof val === 'object' && val !== null) {
-                        value.textContent = JSON.stringify(val, null, 2);
-                    } else {
-                        value.textContent = val;
-                    }
-
-                    item.appendChild(label);
-                    item.appendChild(value);
-                    infoGrid.appendChild(item);
-                }
-            });
-
-            rawData.textContent = JSON.stringify(user, null, 2);
-        }
-
-        async function loadUserData() {
-            try {
-                if (!AuthAPI.isAuthenticated()) {
-                    window.location.href = './auth.html';
-                    return;
-                }
-
-                const user = await AuthAPI.getMe();
-
-                if (user) {
-                    showUserData(user);
-                } else {
-                    showError('Não foi possível carregar os dados do usuário.');
-                }
-
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                showError('Erro ao carregar dados do usuário. Por favor, tente novamente.');
-            }
-        }
-
-        logoutBtn.addEventListener('click', async () => {
-            if (confirm('Tem certeza que deseja sair?')) {
-                await AuthAPI.logout();
-            }
         });
 
-        loadUserData();
+        // Controle de campos condicionais baseado no tipo de pessoa
+        document.getElementById('tipoPessoa').addEventListener('change', function () {
+            const tipoPessoa = this.value;
+            const camposPF = document.querySelectorAll('.campo-pf');
+            const camposPJ = document.querySelectorAll('.campo-pj');
+
+            // Esconde todos primeiro
+            camposPF.forEach(campo => {
+                campo.classList.remove('show');
+                const input = campo.querySelector('input, select');
+                if (input) input.removeAttribute('required');
+            });
+            camposPJ.forEach(campo => {
+                campo.classList.remove('show');
+                const input = campo.querySelector('input, select');
+                if (input) input.removeAttribute('required');
+            });
+
+            // Mostra os campos apropriados
+            if (tipoPessoa === 'PF') {
+                camposPF.forEach(campo => {
+                    campo.classList.add('show');
+                });
+                document.getElementById('cpf').setAttribute('required', 'required');
+            } else if (tipoPessoa === 'PJ') {
+                camposPJ.forEach(campo => {
+                    campo.classList.add('show');
+                });
+                document.getElementById('cnpj').setAttribute('required', 'required');
+            }
+        });
     </script>
+    <script src="js/GruposProdutos.js"></script>
 </body>
 
 </html>
