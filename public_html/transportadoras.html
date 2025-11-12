@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientees - Ecletech</title>
+    <title>Transportadoras - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1686,13 +1686,13 @@
                             <span>Fornecedores</span>
                         </div>
                     </a>
-                    <a href="./clientes.html" class="active" data-permission="cliente.visualizar">
+                    <a href="./clientes.html" data-permission="cliente.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-users"></i></span>
                             <span>Clientes</span>
                         </div>
                     </a>
-                    <a href="./transportadoras.html" data-permission="transportadora.visualizar">
+                    <a href="./transportadoras.html" class="active" data-permission="transportadora.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-shipping-fast"></i></span>
                             <span>Transportadoras</span>
@@ -1831,7 +1831,7 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Clientees</h1>
+                <h1>Transportadoras</h1>
             </div>
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
@@ -1852,9 +1852,9 @@
             <div id="pageContent" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Clientees</h2>
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Transportadoras</h2>
                         <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
-                            Novo Cliente</button>
+                            Novo Transportadora</button>
                     </div>
 
                     <div class="filters">
@@ -1910,7 +1910,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum cliente encontrado.
+                            Nenhum transportadora encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -1928,7 +1928,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Cliente</h3>
+                <h3 id="modalTitle">Novo Transportadora</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -1949,8 +1949,8 @@
                 </button>
             </div>
 
-            <form id="formCliente">
-                <input type="hidden" id="clienteId">
+            <form id="formTransportadora">
+                <input type="hidden" id="transportadoraId">
 
                 <!-- Aba 1: Dados Gerais -->
                 <div class="tab-content active" id="tabDadosGerais">
@@ -2268,7 +2268,7 @@
             }
         });
     </script>
-    <script src="js/Clientes.js"></script>
+    <script src="js/Transportadoras.js"></script>
 </body>
 
 </html>
