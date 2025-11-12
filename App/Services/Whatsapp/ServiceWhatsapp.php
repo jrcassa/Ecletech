@@ -20,7 +20,7 @@ class ServiceWhatsapp
     private ModelWhatsappQueue $queueModel;
     private ModelWhatsappConfiguracao $configModel;
     private ModelWhatsappHistorico $historicoModel;
-    private ModelWhatsappBaileys $baileys;
+    private ?ModelWhatsappBaileys $baileys = null;
     private ServiceWhatsappEntidade $entidadeService;
 
     public function __construct()
@@ -29,8 +29,19 @@ class ServiceWhatsapp
         $this->queueModel = new ModelWhatsappQueue();
         $this->configModel = new ModelWhatsappConfiguracao();
         $this->historicoModel = new ModelWhatsappHistorico();
-        $this->baileys = new ModelWhatsappBaileys();
+        // Baileys é instanciado sob demanda (lazy loading)
         $this->entidadeService = new ServiceWhatsappEntidade();
+    }
+
+    /**
+     * Obtém instância do Baileys (lazy loading)
+     */
+    private function getBaileys(): ModelWhatsappBaileys
+    {
+        if ($this->baileys === null) {
+            $this->baileys = new ModelWhatsappBaileys();
+        }
+        return $this->baileys;
     }
 
     /**
@@ -138,7 +149,7 @@ class ServiceWhatsapp
             // Envia conforme tipo
             switch ($mensagem['tipo_mensagem']) {
                 case 'text':
-                    $response = $this->baileys->sendText(
+                    $response = $this->getBaileys()->sendText(
                         $mensagem['destinatario'],
                         $mensagem['conteudo']
                     );
@@ -149,7 +160,7 @@ class ServiceWhatsapp
                 case 'audio':
                 case 'video':
                 case 'document':
-                    $response = $this->baileys->sendFile(
+                    $response = $this->getBaileys()->sendFile(
                         $mensagem['destinatario'],
                         $mensagem['tipo_mensagem'],
                         $mensagem['arquivo_url'] ?? null,
@@ -341,12 +352,37 @@ class ServiceWhatsapp
      */
     public function obterEstatisticas(): array
     {
-        return [
+        // Verifica se está configurado
+        $statusConfig = $this->verificarConfiguracao();
+
+        $stats = [
+            'configuracao' => $statusConfig,
             'pendentes' => $this->queueModel->contarPendentes(),
             'erro' => $this->queueModel->contarPorStatus(0),
             'enviado' => $this->queueModel->contarPorStatus(2),
             'entregue' => $this->queueModel->contarPorStatus(3),
             'lido' => $this->queueModel->contarPorStatus(4)
         ];
+
+        return $stats;
+    }
+
+    /**
+     * Verifica se a API está configurada
+     */
+    public function verificarConfiguracao(): array
+    {
+        // Tenta instanciar baileys e verificar
+        try {
+            $baileys = $this->getBaileys();
+            return $baileys->estaConfigurado();
+        } catch (\Exception $e) {
+            return [
+                'configurado' => false,
+                'api_url_configurada' => false,
+                'token_configurado' => false,
+                'mensagem' => 'Execute a migration para criar as configurações: database/migrations/2025_01_12_create_whatsapp_tables.sql'
+            ];
+        }
     }
 }
