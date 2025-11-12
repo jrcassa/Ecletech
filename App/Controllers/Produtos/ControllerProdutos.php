@@ -2,9 +2,7 @@
 
 namespace App\Controllers\Produtos;
 
-use App\Models\Produtos\ModelProdutos;
-use App\Core\Autenticacao;
-use App\Core\BancoDados;
+use App\Services\Produto\ServiceProduto;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -13,15 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerProdutos
 {
-    private ModelProdutos $model;
-    private Autenticacao $auth;
-    private BancoDados $db;
+    private ServiceProduto $service;
 
     public function __construct()
     {
-        $this->model = new ModelProdutos();
-        $this->auth = new Autenticacao();
-        $this->db = BancoDados::obterInstancia();
+        $this->service = new ServiceProduto();
     }
 
     /**
@@ -50,9 +44,9 @@ class ControllerProdutos
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = $offset;
 
-            // Busca dados
-            $produtos = $this->model->listar($filtros);
-            $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            // Busca dados via Service
+            $produtos = $this->service->listar($filtros);
+            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
                 $produtos,
@@ -77,7 +71,7 @@ class ControllerProdutos
                 return;
             }
 
-            $produto = $this->model->buscarPorId((int) $id);
+            $produto = $this->service->buscarPorId((int) $id);
 
             if (!$produto) {
                 AuxiliarResposta::naoEncontrado('Produto não encontrado');
@@ -108,31 +102,8 @@ class ControllerProdutos
                 return;
             }
 
-            // Verifica external_id duplicado
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'])) {
-                    AuxiliarResposta::conflito('External ID já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Verifica código interno duplicado
-            if (isset($dados['codigo_interno']) && !empty($dados['codigo_interno'])) {
-                if ($this->model->codigoInternoExiste($dados['codigo_interno'])) {
-                    AuxiliarResposta::conflito('Código interno já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
-
-            // Cria o produto (agora tudo numa única tabela + fornecedores)
-            $produtoId = $this->model->criar($dados);
-
-            // Busca o produto completo
-            $produto = $this->model->buscarPorId($produtoId);
+            // Delega para o Service (validações de negócio + criação)
+            $produto = $this->service->criar($dados);
 
             AuxiliarResposta::criado($produto, 'Produto cadastrado com sucesso');
         } catch (\Exception $e) {
@@ -151,16 +122,9 @@ class ControllerProdutos
                 return;
             }
 
-            // Verifica se o produto existe
-            $produtoExistente = $this->model->buscarPorId((int) $id);
-            if (!$produtoExistente) {
-                AuxiliarResposta::naoEncontrado('Produto não encontrado');
-                return;
-            }
-
             $dados = AuxiliarResposta::obterDados();
 
-            // Validação dos dados
+            // Validação de formato HTTP
             $regras = [];
 
             if (isset($dados['nome'])) {
@@ -174,35 +138,8 @@ class ControllerProdutos
                 return;
             }
 
-            // Verifica external_id duplicado
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('External ID já cadastrado em outro produto');
-                    return;
-                }
-            }
-
-            // Verifica código interno duplicado
-            if (isset($dados['codigo_interno']) && !empty($dados['codigo_interno'])) {
-                if ($this->model->codigoInternoExiste($dados['codigo_interno'], (int) $id)) {
-                    AuxiliarResposta::conflito('Código interno já cadastrado em outro produto');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Atualiza o produto
-            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-            if (!$resultado) {
-                throw new \Exception('Erro ao atualizar produto');
-            }
-
-            // Busca o produto completo
-            $produto = $this->model->buscarPorId((int) $id);
+            // Delega para o Service (validações de negócio + atualização)
+            $produto = $this->service->atualizar((int) $id, $dados);
 
             AuxiliarResposta::sucesso($produto, 'Produto atualizado com sucesso');
         } catch (\Exception $e) {
@@ -221,24 +158,8 @@ class ControllerProdutos
                 return;
             }
 
-            // Verifica se o produto existe
-            $produto = $this->model->buscarPorId((int) $id);
-            if (!$produto) {
-                AuxiliarResposta::naoEncontrado('Produto não encontrado');
-                return;
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Deleta o produto (soft delete)
-            $resultado = $this->model->deletar((int) $id, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar produto', 400);
-                return;
-            }
+            // Delega para o Service
+            $this->service->deletar((int) $id);
 
             AuxiliarResposta::sucesso(null, 'Produto removido com sucesso');
         } catch (\Exception $e) {
@@ -252,7 +173,7 @@ class ControllerProdutos
     public function obterEstatisticas(): void
     {
         try {
-            $estatisticas = $this->model->obterEstatisticas();
+            $estatisticas = $this->service->obterEstatisticas();
 
             AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos produtos obtidas com sucesso');
         } catch (\Exception $e) {

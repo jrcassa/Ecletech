@@ -2,8 +2,7 @@
 
 namespace App\Controllers\ContaBancaria;
 
-use App\Models\ContaBancaria\ModelContaBancaria;
-use App\Core\Autenticacao;
+use App\Services\ContaBancaria\ServiceContaBancaria;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -12,13 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerContaBancaria
 {
-    private ModelContaBancaria $model;
-    private Autenticacao $auth;
+    private ServiceContaBancaria $service;
 
     public function __construct()
     {
-        $this->model = new ModelContaBancaria();
-        $this->auth = new Autenticacao();
+        $this->service = new ServiceContaBancaria();
     }
 
     /**
@@ -48,9 +45,9 @@ class ControllerContaBancaria
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = $offset;
 
-            // Busca dados
-            $contasBancarias = $this->model->listar($filtros);
-            $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            // Busca dados via Service
+            $contasBancarias = $this->service->listar($filtros);
+            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
                 $contasBancarias,
@@ -75,7 +72,7 @@ class ControllerContaBancaria
                 return;
             }
 
-            $contaBancaria = $this->model->buscarPorId((int) $id);
+            $contaBancaria = $this->service->buscarPorId((int) $id);
 
             if (!$contaBancaria) {
                 AuxiliarResposta::naoEncontrado('Conta bancária não encontrada');
@@ -120,29 +117,8 @@ class ControllerContaBancaria
                 return;
             }
 
-            // Verifica duplicatas
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'])) {
-                    AuxiliarResposta::conflito('External ID já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            if (isset($dados['nome']) && !empty($dados['nome'])) {
-                if ($this->model->nomeExiste($dados['nome'])) {
-                    AuxiliarResposta::conflito('Nome de conta já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
-
-            // Cria a conta bancária
-            $id = $this->model->criar($dados);
-
-            $contaBancaria = $this->model->buscarPorId($id);
+            // Delega para o Service (validações de negócio + criação)
+            $contaBancaria = $this->service->criar($dados);
 
             AuxiliarResposta::criado($contaBancaria, 'Conta bancária cadastrada com sucesso');
         } catch (\Exception $e) {
@@ -161,16 +137,9 @@ class ControllerContaBancaria
                 return;
             }
 
-            // Verifica se a conta bancária existe
-            $contaExistente = $this->model->buscarPorId((int) $id);
-            if (!$contaExistente) {
-                AuxiliarResposta::naoEncontrado('Conta bancária não encontrada');
-                return;
-            }
-
             $dados = AuxiliarResposta::obterDados();
 
-            // Validação dos dados (campos opcionais)
+            // Validação de formato HTTP (campos opcionais)
             $regras = [];
 
             if (isset($dados['nome'])) {
@@ -194,34 +163,8 @@ class ControllerContaBancaria
                 return;
             }
 
-            // Verifica duplicatas (excluindo a própria conta)
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('External ID já cadastrado em outra conta');
-                    return;
-                }
-            }
-
-            if (isset($dados['nome']) && !empty($dados['nome'])) {
-                if ($this->model->nomeExiste($dados['nome'], (int) $id)) {
-                    AuxiliarResposta::conflito('Nome de conta já cadastrado em outra conta');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Atualiza a conta bancária
-            $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar conta bancária', 400);
-                return;
-            }
-
-            $contaBancaria = $this->model->buscarPorId((int) $id);
+            // Delega para o Service (validações de negócio + atualização)
+            $contaBancaria = $this->service->atualizar((int) $id, $dados);
 
             AuxiliarResposta::sucesso($contaBancaria, 'Conta bancária atualizada com sucesso');
         } catch (\Exception $e) {
@@ -240,24 +183,8 @@ class ControllerContaBancaria
                 return;
             }
 
-            // Verifica se a conta bancária existe
-            $contaBancaria = $this->model->buscarPorId((int) $id);
-            if (!$contaBancaria) {
-                AuxiliarResposta::naoEncontrado('Conta bancária não encontrada');
-                return;
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Deleta a conta bancária (soft delete)
-            $resultado = $this->model->deletar((int) $id, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar conta bancária', 400);
-                return;
-            }
+            // Delega para o Service
+            $this->service->deletar((int) $id);
 
             AuxiliarResposta::sucesso(null, 'Conta bancária removida com sucesso');
         } catch (\Exception $e) {
@@ -271,7 +198,7 @@ class ControllerContaBancaria
     public function obterEstatisticas(): void
     {
         try {
-            $estatisticas = $this->model->obterEstatisticas();
+            $estatisticas = $this->service->obterEstatisticas();
 
             AuxiliarResposta::sucesso($estatisticas, 'Estatísticas das contas bancárias obtidas com sucesso');
         } catch (\Exception $e) {

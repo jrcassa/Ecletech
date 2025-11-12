@@ -2,11 +2,7 @@
 
 namespace App\Controllers\Transportadora;
 
-use App\Models\Transportadora\ModelTransportadora;
-use App\Models\Transportadora\ModelTransportadoraContato;
-use App\Models\Transportadora\ModelTransportadoraEndereco;
-use App\Core\Autenticacao;
-use App\Core\BancoDados;
+use App\Services\Transportadora\ServiceTransportadora;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -15,19 +11,11 @@ use App\Helpers\AuxiliarValidacao;
  */
 class ControllerTransportadora
 {
-    private ModelTransportadora $model;
-    private ModelTransportadoraContato $modelContato;
-    private ModelTransportadoraEndereco $modelEndereco;
-    private Autenticacao $auth;
-    private BancoDados $db;
+    private ServiceTransportadora $service;
 
     public function __construct()
     {
-        $this->model = new ModelTransportadora();
-        $this->modelContato = new ModelTransportadoraContato();
-        $this->modelEndereco = new ModelTransportadoraEndereco();
-        $this->auth = new Autenticacao();
-        $this->db = BancoDados::obterInstancia();
+        $this->service = new ServiceTransportadora();
     }
 
     /**
@@ -56,9 +44,9 @@ class ControllerTransportadora
             $filtros['limite'] = $porPagina;
             $filtros['offset'] = $offset;
 
-            // Busca dados
-            $transportadoras = $this->model->listar($filtros);
-            $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            // Busca dados via Service
+            $transportadoras = $this->service->listar($filtros);
+            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
             AuxiliarResposta::paginado(
                 $transportadoras,
@@ -83,7 +71,7 @@ class ControllerTransportadora
                 return;
             }
 
-            $transportadora = $this->model->buscarComRelacionamentos((int) $id);
+            $transportadora = $this->service->buscarComRelacionamentos((int) $id);
 
             if (!$transportadora) {
                 AuxiliarResposta::naoEncontrado('Transportadora não encontrada');
@@ -143,77 +131,10 @@ class ControllerTransportadora
                 return;
             }
 
-            // Verifica duplicatas
-            if (isset($dados['cnpj']) && !empty($dados['cnpj'])) {
-                $dados['cnpj'] = preg_replace('/[^0-9]/', '', $dados['cnpj']);
-                if ($this->model->cnpjExiste($dados['cnpj'])) {
-                    AuxiliarResposta::conflito('CNPJ já cadastrado no sistema');
-                    return;
-                }
-            }
+            // Delega para o Service (validações de negócio + criação + transação)
+            $transportadora = $this->service->criarCompleto($dados);
 
-            if (isset($dados['cpf']) && !empty($dados['cpf'])) {
-                $dados['cpf'] = preg_replace('/[^0-9]/', '', $dados['cpf']);
-                if ($this->model->cpfExiste($dados['cpf'])) {
-                    AuxiliarResposta::conflito('CPF já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                if ($this->model->emailExiste($dados['email'])) {
-                    AuxiliarResposta::conflito('Email já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'])) {
-                    AuxiliarResposta::conflito('External ID já cadastrado no sistema');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $dados['colaborador_id'] = $usuarioAutenticado['id'] ?? null;
-
-            // Inicia transação
-            $this->db->iniciarTransacao();
-
-            try {
-                // Cria a transportadora
-                $id = $this->model->criar($dados);
-
-                // Processa contatos se existirem
-                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                    foreach ($dados['contatos'] as $contato) {
-                        if (isset($contato['nome']) && isset($contato['contato'])) {
-                            $contato['transportadora_id'] = $id;
-                            $this->modelContato->criar($contato);
-                        }
-                    }
-                }
-
-                // Processa endereços se existirem
-                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                    foreach ($dados['enderecos'] as $endereco) {
-                        $endereco['transportadora_id'] = $id;
-                        $this->modelEndereco->criar($endereco);
-                    }
-                }
-
-                // Confirma a transação
-                $this->db->commit();
-
-                $transportadora = $this->model->buscarComRelacionamentos($id);
-
-                AuxiliarResposta::criado($transportadora, 'Transportadora cadastrada com sucesso');
-            } catch (\Exception $e) {
-                // Reverte a transação em caso de erro
-                $this->db->rollback();
-                throw $e;
-            }
+            AuxiliarResposta::criado($transportadora, 'Transportadora cadastrada com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -230,16 +151,9 @@ class ControllerTransportadora
                 return;
             }
 
-            // Verifica se a transportadora existe
-            $transportadoraExistente = $this->model->buscarPorId((int) $id);
-            if (!$transportadoraExistente) {
-                AuxiliarResposta::naoEncontrado('Transportadora não encontrada');
-                return;
-            }
-
             $dados = AuxiliarResposta::obterDados();
 
-            // Validação dos dados (campos opcionais)
+            // Validação de formato HTTP (campos opcionais)
             $regras = [];
 
             if (isset($dados['tipo_pessoa'])) {
@@ -273,89 +187,10 @@ class ControllerTransportadora
                 return;
             }
 
-            // Verifica duplicatas (excluindo a própria transportadora)
-            if (isset($dados['cnpj']) && !empty($dados['cnpj'])) {
-                $dados['cnpj'] = preg_replace('/[^0-9]/', '', $dados['cnpj']);
-                if ($this->model->cnpjExiste($dados['cnpj'], (int) $id)) {
-                    AuxiliarResposta::conflito('CNPJ já cadastrado em outra transportadora');
-                    return;
-                }
-            }
+            // Delega para o Service (validações de negócio + atualização + transação)
+            $transportadora = $this->service->atualizarCompleto((int) $id, $dados);
 
-            if (isset($dados['cpf']) && !empty($dados['cpf'])) {
-                $dados['cpf'] = preg_replace('/[^0-9]/', '', $dados['cpf']);
-                if ($this->model->cpfExiste($dados['cpf'], (int) $id)) {
-                    AuxiliarResposta::conflito('CPF já cadastrado em outra transportadora');
-                    return;
-                }
-            }
-
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                if ($this->model->emailExiste($dados['email'], (int) $id)) {
-                    AuxiliarResposta::conflito('Email já cadastrado em outra transportadora');
-                    return;
-                }
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('External ID já cadastrado em outra transportadora');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Inicia transação
-            $this->db->iniciarTransacao();
-
-            try {
-                // Atualiza a transportadora
-                $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-                if (!$resultado) {
-                    throw new \Exception('Erro ao atualizar transportadora');
-                }
-
-                // Processa contatos se existirem
-                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                    // Remove contatos antigos
-                    $this->modelContato->deletarPorTransportadora((int) $id);
-
-                    // Adiciona novos contatos
-                    foreach ($dados['contatos'] as $contato) {
-                        if (isset($contato['nome']) && isset($contato['contato'])) {
-                            $contato['transportadora_id'] = (int) $id;
-                            $this->modelContato->criar($contato);
-                        }
-                    }
-                }
-
-                // Processa endereços se existirem
-                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                    // Remove endereços antigos
-                    $this->modelEndereco->deletarPorTransportadora((int) $id);
-
-                    // Adiciona novos endereços
-                    foreach ($dados['enderecos'] as $endereco) {
-                        $endereco['transportadora_id'] = (int) $id;
-                        $this->modelEndereco->criar($endereco);
-                    }
-                }
-
-                // Confirma a transação
-                $this->db->commit();
-
-                $transportadora = $this->model->buscarComRelacionamentos((int) $id);
-
-                AuxiliarResposta::sucesso($transportadora, 'Transportadora atualizada com sucesso');
-            } catch (\Exception $e) {
-                // Reverte a transação em caso de erro
-                $this->db->rollback();
-                throw $e;
-            }
+            AuxiliarResposta::sucesso($transportadora, 'Transportadora atualizada com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 400);
         }
@@ -372,25 +207,8 @@ class ControllerTransportadora
                 return;
             }
 
-            // Verifica se a transportadora existe
-            $transportadora = $this->model->buscarPorId((int) $id);
-            if (!$transportadora) {
-                AuxiliarResposta::naoEncontrado('Transportadora não encontrada');
-                return;
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Deleta a transportadora (soft delete)
-            // Os contatos e endereços serão deletados automaticamente por CASCADE
-            $resultado = $this->model->deletar((int) $id, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar transportadora', 400);
-                return;
-            }
+            // Delega para o Service
+            $this->service->deletar((int) $id);
 
             AuxiliarResposta::sucesso(null, 'Transportadora removida com sucesso');
         } catch (\Exception $e) {
@@ -404,7 +222,7 @@ class ControllerTransportadora
     public function obterEstatisticas(): void
     {
         try {
-            $estatisticas = $this->model->obterEstatisticas();
+            $estatisticas = $this->service->obterEstatisticas();
 
             AuxiliarResposta::sucesso($estatisticas, 'Estatísticas das transportadoras obtidas com sucesso');
         } catch (\Exception $e) {
