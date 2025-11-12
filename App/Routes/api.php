@@ -83,6 +83,10 @@ $router->grupo([
     $rotasCidade = require __DIR__ . '/cidade.php';
     $rotasCidade($router);
 
+    // Inclui rotas de contas bancárias
+    $rotasContaBancaria = require __DIR__ . '/conta_bancaria.php';
+    $rotasContaBancaria($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
