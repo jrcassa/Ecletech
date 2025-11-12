@@ -307,6 +307,7 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 10. `449fd2d` - Docs: Atualiza PR info com commits de correção de endpoints
 11. `79c3673` - **FIX:** Registra rotas WhatsApp no sistema e corrige case sensitivity
 12. `2131a75` - Docs: Atualiza PR info com commit de correção de rotas
+13. `ec339dd` - **Feat:** Adiciona migration de permissões ACL para WhatsApp
 
 ---
 
