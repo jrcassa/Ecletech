@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `contas_bancarias` (
 -- =====================================================
 
 -- Inserir permissões para contas bancárias
-INSERT INTO `colaborador_permissions` (`name`, `slug`, `description`, `resource`, `ativo`, `cadastrado_em`) VALUES
+INSERT INTO `colaborador_permissions` (`nome`, `codigo`, `descricao`, `modulo`, `ativo`, `criado_em`) VALUES
 ('Visualizar Contas Bancárias', 'conta_bancaria.visualizar', 'Permite visualizar a lista de contas bancárias', 'conta_bancaria', 1, NOW()),
 ('Criar Contas Bancárias', 'conta_bancaria.criar', 'Permite cadastrar novas contas bancárias', 'conta_bancaria', 1, NOW()),
 ('Editar Contas Bancárias', 'conta_bancaria.editar', 'Permite editar informações das contas bancárias', 'conta_bancaria', 1, NOW()),
@@ -48,46 +48,46 @@ INSERT INTO `colaborador_permissions` (`name`, `slug`, `description`, `resource`
 -- =====================================================
 
 -- Atribuir todas as permissões de contas bancárias ao superadmin
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `cadastrado_em`)
+INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`)
 SELECT
     r.id,
     p.id,
     NOW()
 FROM `colaborador_roles` r
 CROSS JOIN `colaborador_permissions` p
-WHERE r.slug = 'superadmin'
-AND p.resource = 'conta_bancaria'
+WHERE r.codigo = 'superadmin_full'
+AND p.modulo = 'conta_bancaria'
 AND NOT EXISTS (
     SELECT 1 FROM `colaborador_role_permissions` rp
     WHERE rp.role_id = r.id AND rp.permission_id = p.id
 );
 
 -- Atribuir todas as permissões de contas bancárias ao admin
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `cadastrado_em`)
+INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`)
 SELECT
     r.id,
     p.id,
     NOW()
 FROM `colaborador_roles` r
 CROSS JOIN `colaborador_permissions` p
-WHERE r.slug = 'admin'
-AND p.resource = 'conta_bancaria'
+WHERE r.codigo = 'admin_full'
+AND p.modulo = 'conta_bancaria'
 AND NOT EXISTS (
     SELECT 1 FROM `colaborador_role_permissions` rp
     WHERE rp.role_id = r.id AND rp.permission_id = p.id
 );
 
 -- Atribuir permissões de visualizar e editar ao gerente
-INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `cadastrado_em`)
+INSERT INTO `colaborador_role_permissions` (`role_id`, `permission_id`, `criado_em`)
 SELECT
     r.id,
     p.id,
     NOW()
 FROM `colaborador_roles` r
 CROSS JOIN `colaborador_permissions` p
-WHERE r.slug = 'gerente'
-AND p.resource = 'conta_bancaria'
-AND p.slug IN ('conta_bancaria.visualizar', 'conta_bancaria.editar')
+WHERE r.codigo = 'gerente_usuarios'
+AND p.modulo = 'conta_bancaria'
+AND p.codigo IN ('conta_bancaria.visualizar', 'conta_bancaria.editar')
 AND NOT EXISTS (
     SELECT 1 FROM `colaborador_role_permissions` rp
     WHERE rp.role_id = r.id AND rp.permission_id = p.id
