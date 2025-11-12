@@ -70,7 +70,7 @@ const ContasBancariasManager = {
 
         // Se não tem permissão de visualizar, exibe mensagem
         if (!this.state.permissoes.visualizar) {
-            Utils.showError('Você não tem permissão para visualizar contas bancárias');
+            API.showError('Você não tem permissão para visualizar contas bancárias');
             return;
         }
 
@@ -128,7 +128,8 @@ const ContasBancariasManager = {
      */
     async verificarPermissoes() {
         try {
-            const permissoes = AuthAPI.getPermissions();
+            // Aguarda as permissões serem carregadas pelo sidebar
+            const permissoes = await aguardarPermissoes();
 
             if (permissoes) {
                 this.state.permissoes = {
@@ -177,11 +178,11 @@ const ContasBancariasManager = {
                 this.renderizarTabela();
                 this.atualizarPaginacao();
             } else {
-                Utils.showError(response.mensagem || 'Erro ao carregar contas bancárias');
+                API.showError(response.mensagem || 'Erro ao carregar contas bancárias');
             }
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
-            Utils.showError('Erro ao carregar contas bancárias');
+            API.showError('Erro ao carregar contas bancárias');
         }
     },
 
@@ -330,7 +331,7 @@ const ContasBancariasManager = {
      */
     abrirModalNovo() {
         if (!this.state.permissoes.criar) {
-            Utils.showError('Você não tem permissão para criar contas bancárias');
+            API.showError('Você não tem permissão para criar contas bancárias');
             return;
         }
 
@@ -347,7 +348,7 @@ const ContasBancariasManager = {
      */
     async editar(id) {
         if (!this.state.permissoes.editar) {
-            Utils.showError('Você não tem permissão para editar contas bancárias');
+            API.showError('Você não tem permissão para editar contas bancárias');
             return;
         }
 
@@ -362,11 +363,11 @@ const ContasBancariasManager = {
                 this.preencherFormulario(response.dados);
                 this.abrirModal();
             } else {
-                Utils.showError(response.mensagem || 'Erro ao carregar conta bancária');
+                API.showError(response.mensagem || 'Erro ao carregar conta bancária');
             }
         } catch (error) {
             console.error('Erro ao editar:', error);
-            Utils.showError('Erro ao carregar conta bancária');
+            API.showError('Erro ao carregar conta bancária');
         }
     },
 
@@ -375,7 +376,7 @@ const ContasBancariasManager = {
      */
     deletar(id) {
         if (!this.state.permissoes.deletar) {
-            Utils.showError('Você não tem permissão para deletar contas bancárias');
+            API.showError('Você não tem permissão para deletar contas bancárias');
             return;
         }
 
@@ -393,15 +394,15 @@ const ContasBancariasManager = {
             const response = await API.delete(`/conta-bancaria/${this.state.contaParaDeletar}`);
 
             if (response.sucesso) {
-                Utils.showSuccess('Conta bancária excluída com sucesso');
+                API.showSuccess('Conta bancária excluída com sucesso');
                 this.fecharModalConfirm();
                 this.carregarDados();
             } else {
-                Utils.showError(response.mensagem || 'Erro ao excluir conta bancária');
+                API.showError(response.mensagem || 'Erro ao excluir conta bancária');
             }
         } catch (error) {
             console.error('Erro ao deletar:', error);
-            Utils.showError('Erro ao excluir conta bancária');
+            API.showError('Erro ao excluir conta bancária');
         }
     },
 
@@ -414,7 +415,7 @@ const ContasBancariasManager = {
 
             // Validação básica
             if (!dados.nome) {
-                Utils.showError('Nome da conta é obrigatório');
+                API.showError('Nome da conta é obrigatório');
                 return;
             }
 
@@ -426,7 +427,7 @@ const ContasBancariasManager = {
             }
 
             if (response.sucesso) {
-                Utils.showSuccess(
+                API.showSuccess(
                     this.state.editandoId ?
                     'Conta bancária atualizada com sucesso' :
                     'Conta bancária cadastrada com sucesso'
@@ -434,11 +435,11 @@ const ContasBancariasManager = {
                 this.fecharModal();
                 this.carregarDados();
             } else {
-                Utils.showError(response.mensagem || 'Erro ao salvar conta bancária');
+                API.showError(response.mensagem || 'Erro ao salvar conta bancária');
             }
         } catch (error) {
             console.error('Erro ao salvar:', error);
-            Utils.showError('Erro ao salvar conta bancária');
+            API.showError('Erro ao salvar conta bancária');
         }
     },
 
