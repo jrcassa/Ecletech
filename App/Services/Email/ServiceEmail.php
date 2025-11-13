@@ -38,6 +38,28 @@ class ServiceEmail
     }
 
     /**
+     * Escreve log detalhado em arquivo para debug
+     */
+    private function logToFile(string $message, array $context = []): void
+    {
+        $logDir = __DIR__ . '/../../storage/logs';
+        $logFile = $logDir . '/email.log';
+
+        // Cria diretório se não existir
+        if (!file_exists($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+
+        // Formata mensagem
+        $timestamp = date('Y-m-d H:i:s');
+        $contextStr = !empty($context) ? ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
+        $logEntry = "[{$timestamp}] {$message}{$contextStr}\n";
+
+        // Escreve no arquivo
+        file_put_contents($logFile, $logEntry, FILE_APPEND);
+    }
+
+    /**
      * Obtém instância do SMTP (lazy loading)
      */
     private function getSMTP(): ModelEmailSMTP
@@ -53,9 +75,25 @@ class ServiceEmail
      */
     public function enviarEmail(array $dados): array
     {
+        // LOG: Início do envio
+        $this->logToFile('=== INÍCIO ENVIO EMAIL ===', [
+            'destinatario' => $dados['destinatario'] ?? 'N/A',
+            'assunto' => $dados['assunto'] ?? 'N/A',
+            'modo_envio' => $dados['modo_envio'] ?? 'auto',
+            'tem_corpo_html' => !empty($dados['corpo_html']),
+            'tem_corpo_texto' => !empty($dados['corpo_texto']),
+            'corpo' => !empty($dados['corpo']) ? 'SIM' : 'NÃO'
+        ]);
+
         try {
             // Resolve destinatário (pode ser entidade ou email direto)
             $destino = $this->entidadeService->resolverDestinatario($dados['destinatario']);
+
+            $this->logToFile('Destinatário resolvido', [
+                'email' => $destino['email'],
+                'nome' => $destino['nome'] ?? 'N/A',
+                'tipo_entidade' => $destino['tipo_entidade'] ?? 'N/A'
+            ]);
 
             // Valida email
             if (!AuxiliarEmail::validarEmail($destino['email'])) {
@@ -110,21 +148,73 @@ class ServiceEmail
             }
 
             // Injeta tracking code se habilitado
-            if ($this->configModel->obter('tracking_habilitado', true)) {
+            $trackingHabilitado = $this->configModel->obter('tracking_habilitado', true);
+            $this->logToFile('Verificando tracking', [
+                'tracking_habilitado' => $trackingHabilitado ? 'SIM' : 'NÃO',
+                'tem_corpo_html' => !empty($dadosCompletos['corpo_html']),
+                'tem_corpo_texto' => !empty($dadosCompletos['corpo_texto'])
+            ]);
+
+            if ($trackingHabilitado) {
                 $dadosCompletos['tracking_code'] = md5(uniqid(rand(), true));
+                $this->logToFile('Tracking code gerado', [
+                    'tracking_code' => $dadosCompletos['tracking_code']
+                ]);
+
+                // Se não tem corpo_html mas tem corpo_texto, converte para HTML
+                if (empty($dadosCompletos['corpo_html']) && !empty($dadosCompletos['corpo_texto'])) {
+                    $dadosCompletos['corpo_html'] = nl2br($dadosCompletos['corpo_texto']);
+                    $this->logToFile('Converteu corpo_texto para corpo_html para permitir tracking', [
+                        'corpo_html_gerado' => substr($dadosCompletos['corpo_html'], 0, 100) . '...'
+                    ]);
+                }
 
                 // Injeta pixel e links de tracking
+                $this->logToFile('Antes de injetar tracking', [
+                    'corpo_html_length' => strlen($dadosCompletos['corpo_html'] ?? ''),
+                    'corpo_html_preview' => substr($dadosCompletos['corpo_html'] ?? '', 0, 200)
+                ]);
+
                 $dadosCompletos = $this->injetarTracking($dadosCompletos);
+
+                $this->logToFile('Depois de injetar tracking', [
+                    'corpo_html_length' => strlen($dadosCompletos['corpo_html'] ?? ''),
+                    'corpo_html_preview' => substr($dadosCompletos['corpo_html'] ?? '', 0, 200),
+                    'corpo_html_final_500_chars' => substr($dadosCompletos['corpo_html'] ?? '', -500)
+                ]);
+            } else {
+                $this->logToFile('Tracking DESABILITADO - email será enviado sem tracking');
             }
 
             // Executa envio conforme modo
+            $this->logToFile('Modo de envio selecionado', [
+                'modo' => $modoEnvio,
+                'tracking_code_final' => $dadosCompletos['tracking_code'] ?? 'NENHUM'
+            ]);
+
             if ($modoEnvio === 'direto') {
-                return $this->enviarDireto($dadosCompletos);
+                $resultado = $this->enviarDireto($dadosCompletos);
+                $this->logToFile('=== FIM ENVIO EMAIL (direto) ===', [
+                    'sucesso' => $resultado['sucesso'],
+                    'tracking_code' => $resultado['tracking_code'] ?? 'N/A'
+                ]);
+                return $resultado;
             } else {
-                return $this->enviarViaFila($dadosCompletos);
+                $resultado = $this->enviarViaFila($dadosCompletos);
+                $this->logToFile('=== FIM ENVIO EMAIL (fila) ===', [
+                    'sucesso' => $resultado['sucesso'],
+                    'queue_id' => $resultado['queue_id'] ?? 'N/A',
+                    'tracking_code' => $resultado['tracking_code'] ?? 'N/A'
+                ]);
+                return $resultado;
             }
 
         } catch (\Exception $e) {
+            $this->logToFile('ERRO ao enviar email', [
+                'erro' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             $this->logModel->adicionar([
                 'tipo' => 'envio_erro',
                 'nivel' => 'error',
@@ -278,9 +368,24 @@ class ServiceEmail
             // Marca como processando
             $this->queueModel->atualizarStatus($email['id'], 2); // processando
 
+            $this->logToFile('=== PROCESSANDO EMAIL DA FILA ===', [
+                'queue_id' => $email['id'],
+                'destinatario' => $email['destinatario_email'],
+                'assunto' => $email['assunto'],
+                'tracking_code' => $email['tracking_code'] ?? 'NENHUM',
+                'tem_corpo_html' => !empty($email['corpo_html']),
+                'tem_corpo_texto' => !empty($email['corpo_texto'])
+            ]);
+
             try {
                 // Envia via SMTP
                 $resultado = $this->getSMTP()->enviar($email);
+
+                $this->logToFile('Resultado envio SMTP da fila', [
+                    'queue_id' => $email['id'],
+                    'sucesso' => $resultado['sucesso'],
+                    'message_id' => $resultado['message_id'] ?? 'N/A'
+                ]);
 
                 if ($resultado['sucesso']) {
                     $enviados++;
@@ -434,7 +539,17 @@ class ServiceEmail
      */
     private function injetarTracking(array $dados): array
     {
+        $this->logToFile('>>> INÍCIO injetarTracking()', [
+            'tem_corpo_html' => !empty($dados['corpo_html']),
+            'tem_tracking_code' => !empty($dados['tracking_code']),
+            'tracking_code' => $dados['tracking_code'] ?? 'VAZIO'
+        ]);
+
         if (empty($dados['corpo_html']) || empty($dados['tracking_code'])) {
+            $this->logToFile('ATENÇÃO: Tracking NÃO injetado - corpo_html ou tracking_code vazio', [
+                'corpo_html_vazio' => empty($dados['corpo_html']),
+                'tracking_code_vazio' => empty($dados['tracking_code'])
+            ]);
             return $dados;
         }
 
@@ -443,24 +558,43 @@ class ServiceEmail
 
         // Obtém URL base da API
         $apiBaseUrl = $this->obterUrlBaseApi();
+        $this->logToFile('URL base API obtida', [
+            'api_base_url' => $apiBaseUrl,
+            'api_url_env' => $_ENV['API_URL'] ?? 'NÃO DEFINIDO'
+        ]);
 
         // Injeta pixel de rastreamento (se habilitado)
-        if ($this->configModel->obter('tracking_pixel_habilitado', true)) {
+        $pixelHabilitado = $this->configModel->obter('tracking_pixel_habilitado', true);
+        $this->logToFile('Config tracking_pixel_habilitado', [
+            'habilitado' => $pixelHabilitado ? 'SIM' : 'NÃO'
+        ]);
+
+        if ($pixelHabilitado) {
             $pixelUrl = "{$apiBaseUrl}/email/track/open/{$trackingCode}";
             $pixel = "<img src=\"{$pixelUrl}\" width=\"1\" height=\"1\" alt=\"\" style=\"display:none;\" />";
+
+            $this->logToFile('Pixel criado', [
+                'pixel_url' => $pixelUrl,
+                'pixel_html' => $pixel
+            ]);
 
             // Tenta injetar antes do fechamento do body
             if (stripos($html, '</body>') !== false) {
                 $html = str_ireplace('</body>', $pixel . '</body>', $html);
+                $this->logToFile('Pixel injetado antes de </body>');
             }
             // Se não tiver </body>, injeta no final do HTML
             else if (stripos($html, '</html>') !== false) {
                 $html = str_ireplace('</html>', $pixel . '</html>', $html);
+                $this->logToFile('Pixel injetado antes de </html>');
             }
             // Se não tiver nenhuma tag de fechamento, injeta no final
             else {
                 $html .= $pixel;
+                $this->logToFile('Pixel injetado no final do HTML (sem tags de fechamento)');
             }
+        } else {
+            $this->logToFile('Pixel NÃO injetado - tracking_pixel_habilitado está FALSE');
         }
 
         // Converte links para tracking (se habilitado)
@@ -484,6 +618,12 @@ class ServiceEmail
         }
 
         $dados['corpo_html'] = $html;
+
+        $this->logToFile('<<< FIM injetarTracking()', [
+            'html_final_length' => strlen($html),
+            'html_final_preview' => substr($html, 0, 300),
+            'html_final_ultimos_500' => substr($html, -500)
+        ]);
 
         // Log para debug (apenas em desenvolvimento)
         if (isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] === 'true') {
