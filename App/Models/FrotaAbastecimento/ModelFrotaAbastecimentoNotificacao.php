@@ -5,15 +5,39 @@ namespace App\Models\FrotaAbastecimento;
 use App\Core\BancoDados;
 
 /**
+ * @deprecated Esta classe não deve mais ser usada. Use apenas whatsapp_queue para notificações.
+ *
  * Model para gerenciar notificações de abastecimentos
+ *
+ * ATENÇÃO: ESTA TABELA E MODEL NÃO SÃO MAIS UTILIZADOS!
+ * =======================================================
+ *
+ * Todas as notificações agora são gerenciadas exclusivamente através de:
+ * - Tabela: whatsapp_queue (fila de envio)
+ * - Tabela: whatsapp_historico (histórico de envios)
+ * - Service: ServiceWhatsapp
+ *
+ * A tabela frotas_abastecimentos_notificacoes foi descontinuada.
+ * Este arquivo permanece apenas para referência histórica e para não quebrar código legado.
+ *
+ * NÃO USE ESTE MODEL EM CÓDIGO NOVO!
  */
 class ModelFrotaAbastecimentoNotificacao
 {
     private BancoDados $db;
 
+    /**
+     * @deprecated Use ServiceWhatsapp::enviarMensagem() ao invés deste model
+     */
     public function __construct()
     {
         $this->db = BancoDados::obterInstancia();
+
+        // Aviso de deprecação
+        trigger_error(
+            'ModelFrotaAbastecimentoNotificacao está DEPRECATED. Use apenas whatsapp_queue via ServiceWhatsapp.',
+            E_USER_DEPRECATED
+        );
     }
 
     /**

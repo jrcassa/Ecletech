@@ -5,7 +5,7 @@ namespace App\Services\FrotaAbastecimento;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
-use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoNotificacao;
+// ModelFrotaAbastecimentoNotificacao REMOVIDO - não usado mais, apenas whatsapp_queue
 use App\Models\S3\ModelS3Arquivo;
 use App\Services\S3\ServiceS3;
 use App\Services\Whatsapp\ServiceWhatsapp;
@@ -20,7 +20,7 @@ class ServiceFrotaAbastecimento
     private ModelFrotaAbastecimento $model;
     private ModelFrotaAbastecimentoMetrica $modelMetrica;
     private ModelFrotaAbastecimentoAlerta $modelAlerta;
-    private ModelFrotaAbastecimentoNotificacao $modelNotificacao;
+    // Removido: ModelFrotaAbastecimentoNotificacao - não usado mais
     private ModelS3Arquivo $modelS3;
     private ServiceS3 $serviceS3;
     private ServiceWhatsapp $serviceWhatsapp;
@@ -33,7 +33,7 @@ class ServiceFrotaAbastecimento
         $this->model = new ModelFrotaAbastecimento();
         $this->modelMetrica = new ModelFrotaAbastecimentoMetrica();
         $this->modelAlerta = new ModelFrotaAbastecimentoAlerta();
-        $this->modelNotificacao = new ModelFrotaAbastecimentoNotificacao();
+        // Removido: ModelFrotaAbastecimentoNotificacao - não usado mais
         $this->modelS3 = new ModelS3Arquivo();
         $this->serviceS3 = new ServiceS3();
         $this->serviceWhatsapp = new ServiceWhatsapp();
