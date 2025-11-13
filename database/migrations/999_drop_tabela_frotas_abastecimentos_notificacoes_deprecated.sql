@@ -1,0 +1,33 @@
+-- ==============================================================================
+-- Migration: Drop tabela frotas_abastecimentos_notificacoes (DEPRECATED)
+-- Descrição: Remove tabela que não é mais utilizada
+-- Data: 2025-11-13
+-- ==============================================================================
+--
+-- Esta migration DROPA a tabela frotas_abastecimentos_notificacoes que foi
+-- descontinuada em favor do sistema unificado de WhatsApp.
+--
+-- IMPORTANTE: Execute esta migration apenas se você tiver certeza de que:
+-- 1. Todas as notificações agora usam whatsapp_queue
+-- 2. Você não precisa mais dos dados históricos desta tabela
+-- 3. Você fez backup dos dados (se necessário)
+--
+-- Sistema atual de notificações:
+-- - whatsapp_queue (fila de envio)
+-- - whatsapp_historico (histórico completo de envios)
+-- ==============================================================================
+
+-- Drop tabela frotas_abastecimentos_notificacoes
+DROP TABLE IF EXISTS frotas_abastecimentos_notificacoes;
+
+-- ==============================================================================
+-- Comentários:
+-- ==============================================================================
+-- Esta tabela foi substituída pelo sistema unificado de WhatsApp que oferece:
+-- - Fila única para todas as mensagens (whatsapp_queue)
+-- - Histórico completo com status de entrega e leitura (whatsapp_historico)
+-- - Sistema de retry automático
+-- - Controle de prioridade
+-- - Delay anti-ban
+-- - Rastreamento de status (enviado/entregue/lido)
+-- ==============================================================================
