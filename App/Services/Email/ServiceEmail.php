@@ -449,8 +449,18 @@ class ServiceEmail
             $pixelUrl = "{$apiBaseUrl}/email/track/open/{$trackingCode}";
             $pixel = "<img src=\"{$pixelUrl}\" width=\"1\" height=\"1\" alt=\"\" style=\"display:none;\" />";
 
-            // Injeta antes do fechamento do body
-            $html = str_replace('</body>', $pixel . '</body>', $html);
+            // Tenta injetar antes do fechamento do body
+            if (stripos($html, '</body>') !== false) {
+                $html = str_ireplace('</body>', $pixel . '</body>', $html);
+            }
+            // Se não tiver </body>, injeta no final do HTML
+            else if (stripos($html, '</html>') !== false) {
+                $html = str_ireplace('</html>', $pixel . '</html>', $html);
+            }
+            // Se não tiver nenhuma tag de fechamento, injeta no final
+            else {
+                $html .= $pixel;
+            }
         }
 
         // Converte links para tracking (se habilitado)
@@ -474,6 +484,11 @@ class ServiceEmail
         }
 
         $dados['corpo_html'] = $html;
+
+        // Log para debug (apenas em desenvolvimento)
+        if (isset($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] === 'true') {
+            error_log("[EMAIL DEBUG] Tracking injetado - Code: {$trackingCode}, URL Pixel: {$apiBaseUrl}/email/track/open/{$trackingCode}");
+        }
 
         return $dados;
     }
