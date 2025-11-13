@@ -102,15 +102,19 @@ class ServiceFrotaAbastecimentoNotificacao
         // Buscar destinatários via ACL
         $destinatarios = $this->obterDestinatariosNotificacao();
 
-        // Gerar URL assinada do comprovante se existir
+        // Buscar comprovante no S3 e gerar URL assinada
         $urlComprovante = null;
-        if (!empty($abastecimento['comprovante_arquivo_id'])) {
-            try {
-                $resultado = $this->serviceS3->gerarUrlAssinada($abastecimento['comprovante_arquivo_id'], 3600); // 1 hora
+        try {
+            $arquivos = $this->modelS3Arquivo->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
+
+            // Pegar o primeiro comprovante (se houver múltiplos, pega o mais recente)
+            if (!empty($arquivos)) {
+                $comprovante = $arquivos[0]; // buscarPorEntidade já ordena por criado_em DESC
+                $resultado = $this->serviceS3->gerarUrlAssinada($comprovante['id'], 3600); // 1 hora
                 $urlComprovante = $resultado['url'] ?? null;
-            } catch (\Exception $e) {
-                error_log("Erro ao gerar URL assinada do comprovante: " . $e->getMessage());
             }
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar comprovante ou gerar URL assinada: " . $e->getMessage());
         }
 
         foreach ($destinatarios as $destinatario) {

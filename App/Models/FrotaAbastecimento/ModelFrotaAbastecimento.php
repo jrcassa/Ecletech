@@ -49,20 +49,13 @@ class ModelFrotaAbastecimento
                 c.celular as motorista_celular,
                 fp.nome as forma_pagamento_nome,
                 criador.nome as criado_por_nome,
-                finalizador.nome as finalizado_por_nome,
-                s3.id as comprovante_arquivo_id,
-                s3.nome_original as comprovante_nome_original,
-                s3.tipo_mime as comprovante_tipo_mime
+                finalizador.nome as finalizado_por_nome
             FROM frotas_abastecimentos fa
             INNER JOIN frotas f ON f.id = fa.frota_id
             INNER JOIN colaboradores c ON c.id = fa.colaborador_id
             LEFT JOIN forma_de_pagamento fp ON fp.id = fa.forma_pagamento_id
             LEFT JOIN colaboradores criador ON criador.id = fa.criado_por
             LEFT JOIN colaboradores finalizador ON finalizador.id = fa.finalizado_por
-            LEFT JOIN s3_arquivos s3 ON s3.entidade_tipo = 'frota_abastecimento'
-                AND s3.entidade_id = fa.id
-                AND s3.categoria = 'comprovante_pagamento'
-                AND s3.status != 'deletado'
             WHERE fa.id = ? AND fa.deletado_em IS NULL
         ";
 
