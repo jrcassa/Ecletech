@@ -186,14 +186,31 @@ const WhatsAppManager = {
         this.elements.listaPermissoes.innerHTML = '<li class="mb-2"><i class="fas fa-spinner fa-spin"></i> Carregando...</li>';
 
         try {
-            const response = await API.get('/me');
+            // Aguarda as permissões serem carregadas pelo sidebar
+            const permissoes = await aguardarPermissoes();
 
-            if (response.sucesso) {
-                const user = response.dados?.usuario || response.dados?.user || response.dados;
-                this.renderizarPermissoes(user);
+            if (permissoes) {
+                // Atualiza state com permissões do ACL
+                this.state.permissoes = {
+                    visualizar: permissoes.includes('whatsapp.acessar'),
+                    criar: permissoes.includes('whatsapp.alterar'),
+                    editar: permissoes.includes('whatsapp.alterar'),
+                    deletar: permissoes.includes('whatsapp.deletar')
+                };
+
+                // Renderiza as permissões na UI
+                this.renderizarPermissoes(permissoes);
             } else {
                 this.elements.listaPermissoes.innerHTML = '<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>';
             }
+
+            // Verifica se não tem permissão de visualizar
+            if (!this.state.permissoes.visualizar) {
+                API.showError('Você não tem permissão para acessar o WhatsApp');
+                window.location.href = './home.html';
+                return;
+            }
+
         } catch (error) {
             console.error('Erro ao carregar permissões:', error);
             this.elements.listaPermissoes.innerHTML = '<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>';
@@ -203,14 +220,15 @@ const WhatsAppManager = {
     /**
      * Renderiza permissões do usuário
      */
-    renderizarPermissoes(user) {
+    renderizarPermissoes(permissoesArray) {
         if (!this.elements.listaPermissoes) return;
 
         const permissoes = [];
 
-        // Perfil do usuário
-        if (user.tipo_usuario || user.role) {
-            const tipo = user.tipo_usuario || user.role;
+        // Perfil do usuário (carrega do API.getUser())
+        const usuario = API.getUser();
+        if (usuario && (usuario.tipo_usuario || usuario.role)) {
+            const tipo = usuario.tipo_usuario || usuario.role;
             permissoes.push({
                 icone: 'fa-user-shield',
                 texto: `Perfil: ${Utils.String.capitalize(tipo)}`,
@@ -218,9 +236,16 @@ const WhatsAppManager = {
             });
         }
 
-        // Verifica permissões
-        if (user.pode_alterar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
-            this.state.permissoes.editar = true;
+        // Permissões baseadas no ACL
+        if (permissoesArray.includes('whatsapp.acessar')) {
+            permissoes.push({
+                icone: 'fa-eye',
+                texto: 'Acessar WhatsApp',
+                classe: 'text-info'
+            });
+        }
+
+        if (permissoesArray.includes('whatsapp.alterar')) {
             permissoes.push({
                 icone: 'fa-edit',
                 texto: 'Alterar Configurações',
@@ -228,8 +253,7 @@ const WhatsAppManager = {
             });
         }
 
-        if (user.pode_deletar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
-            this.state.permissoes.deletar = true;
+        if (permissoesArray.includes('whatsapp.deletar')) {
             permissoes.push({
                 icone: 'fa-trash',
                 texto: 'Deletar Mensagens',
@@ -237,32 +261,23 @@ const WhatsAppManager = {
             });
         }
 
-        // Permissões padrão
-        permissoes.push({
-            icone: 'fa-paper-plane',
-            texto: 'Enviar Mensagens',
-            classe: 'text-info'
-        });
-
-        permissoes.push({
-            icone: 'fa-list',
-            texto: 'Visualizar Fila',
-            classe: 'text-info'
-        });
-
         // Renderiza
         let html = '';
-        permissoes.forEach(perm => {
-            html += `
-                <li class="mb-2 ${perm.classe}">
-                    <i class="fas ${perm.icone}"></i> ${perm.texto}
-                </li>
-            `;
-        });
+        if (permissoes.length > 0) {
+            permissoes.forEach(perm => {
+                html += `
+                    <li class="mb-2 ${perm.classe}">
+                        <i class="fas ${perm.icone}"></i> ${perm.texto}
+                    </li>
+                `;
+            });
+        } else {
+            html = '<li class="text-muted"><i class="fas fa-info-circle"></i> Nenhuma permissão específica</li>';
+        }
 
         this.elements.listaPermissoes.innerHTML = html;
 
-        // Desabilita menu de configurações se não tiver permissão
+        // Desabilita menu de configurações se não tiver permissão de alterar
         if (!this.state.permissoes.editar) {
             if (this.elements.menuConfiguracoes) {
                 this.elements.menuConfiguracoes.classList.add('permissao-negada');
@@ -431,6 +446,12 @@ const WhatsAppManager = {
      * Cria instância do WhatsApp
      */
     async criarInstancia() {
+        // Verifica permissão
+        if (!this.state.permissoes.editar) {
+            this.mostrarErro('Você não tem permissão para criar instância do WhatsApp');
+            return;
+        }
+
         if (!confirm('Deseja criar uma nova instância do WhatsApp?')) {
             return;
         }
@@ -454,6 +475,12 @@ const WhatsAppManager = {
      * Desconecta WhatsApp
      */
     async desconectarWhatsApp() {
+        // Verifica permissão
+        if (!this.state.permissoes.editar) {
+            this.mostrarErro('Você não tem permissão para desconectar o WhatsApp');
+            return;
+        }
+
         if (!confirm('Deseja realmente desconectar a instância do WhatsApp?')) {
             return;
         }
@@ -581,6 +608,12 @@ const WhatsAppManager = {
      * Cancela mensagem da fila
      */
     async cancelarMensagem(id) {
+        // Verifica permissão
+        if (!this.state.permissoes.editar) {
+            this.mostrarErro('Você não tem permissão para cancelar mensagens');
+            return;
+        }
+
         if (!confirm('Deseja cancelar esta mensagem?')) {
             return;
         }
@@ -674,6 +707,17 @@ const WhatsAppManager = {
      */
     async carregarConfiguracoes() {
         if (!this.elements.containerConfiguracoes) return;
+
+        // Verifica permissão
+        if (!this.state.permissoes.editar) {
+            this.elements.containerConfiguracoes.innerHTML = `
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Você não tem permissão para visualizar ou alterar as configurações do WhatsApp.
+                </div>
+            `;
+            return;
+        }
 
         this.elements.containerConfiguracoes.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-3 text-muted">Carregando configurações...</p></div>';
 
