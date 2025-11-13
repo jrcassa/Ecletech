@@ -111,10 +111,12 @@ class ModelS3Configuracao
             $valor = json_encode($valor);
         }
 
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "UPDATE s3_configuracoes SET valor = ?, atualizado_em = NOW() WHERE chave = ?",
             [$valor, $chave]
         );
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -126,16 +128,14 @@ class ModelS3Configuracao
 
         try {
             foreach ($configuracoes as $chave => $valor) {
-                if (!$this->salvar($chave, $valor)) {
-                    $this->db->reverterTransacao();
-                    return false;
-                }
+                // Para salvarLote, não verificamos rowCount pois pode não alterar nada se o valor for igual
+                $this->salvar($chave, $valor);
             }
 
-            $this->db->confirmarTransacao();
+            $this->db->commit();
             return true;
         } catch (\Exception $e) {
-            $this->db->reverterTransacao();
+            $this->db->rollback();
             throw $e;
         }
     }
@@ -181,7 +181,7 @@ class ModelS3Configuracao
      */
     public function criar(array $dados): bool
     {
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "INSERT INTO s3_configuracoes (chave, valor, categoria, descricao, tipo, obrigatorio)
              VALUES (?, ?, ?, ?, ?, ?)",
             [
@@ -193,6 +193,8 @@ class ModelS3Configuracao
                 $dados['obrigatorio'] ?? 0
             ]
         );
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -202,9 +204,11 @@ class ModelS3Configuracao
     {
         unset($this->cache[$chave]);
 
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "DELETE FROM s3_configuracoes WHERE chave = ?",
             [$chave]
         );
+
+        return $stmt->rowCount() > 0;
     }
 }

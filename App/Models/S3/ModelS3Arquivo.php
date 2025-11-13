@@ -55,8 +55,10 @@ class ModelS3Arquivo
             $dados['status'] ?? 'ativo'
         ];
 
-        if ($this->db->executar($sql, $parametros)) {
-            return (int) $this->db->obterUltimoId();
+        $stmt = $this->db->executar($sql, $parametros);
+
+        if ($stmt->rowCount() > 0) {
+            return (int) $this->db->obterConexao()->lastInsertId();
         }
 
         return null;
@@ -233,7 +235,8 @@ class ModelS3Arquivo
 
         $sql = "UPDATE s3_arquivos SET " . implode(', ', $campos) . " WHERE id = ?";
 
-        return $this->db->executar($sql, $parametros);
+        $stmt = $this->db->executar($sql, $parametros);
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -241,10 +244,12 @@ class ModelS3Arquivo
      */
     public function deletar(int $id): bool
     {
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "UPDATE s3_arquivos SET status = 'deletado', deletado_em = NOW() WHERE id = ?",
             [$id]
         );
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -252,10 +257,12 @@ class ModelS3Arquivo
      */
     public function deletarPermanente(int $id): bool
     {
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "DELETE FROM s3_arquivos WHERE id = ?",
             [$id]
         );
+
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -263,10 +270,12 @@ class ModelS3Arquivo
      */
     public function restaurar(int $id): bool
     {
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "UPDATE s3_arquivos SET status = 'ativo', deletado_em = NULL WHERE id = ?",
             [$id]
         );
+
+        return $stmt->rowCount() > 0;
     }
 
     /**

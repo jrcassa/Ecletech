@@ -82,12 +82,12 @@ class ControllerS3Configuracao extends BaseController
             $dados = $this->obterDados();
 
             if (empty($dados['chave'])) {
-                $this->badRequest('Chave da configuração é obrigatória');
+                $this->erro('Chave da configuração é obrigatória', 400);
                 return;
             }
 
             if (!isset($dados['valor'])) {
-                $this->badRequest('Valor da configuração é obrigatório');
+                $this->erro('Valor da configuração é obrigatório', 400);
                 return;
             }
 
@@ -116,7 +116,7 @@ class ControllerS3Configuracao extends BaseController
             $dados = $this->obterDados();
 
             if (empty($dados['configuracoes']) || !is_array($dados['configuracoes'])) {
-                $this->badRequest('Configurações inválidas');
+                $this->erro('Configurações inválidas', 400);
                 return;
             }
 
@@ -139,7 +139,7 @@ class ControllerS3Configuracao extends BaseController
      * GET /s3/config/validar
      * Verifica se configurações obrigatórias estão preenchidas
      */
-    public function validar(): void
+    public function validarConfiguracao(): void
     {
         try {
             $faltantes = $this->model->validarConfiguracoesObrigatorias();
