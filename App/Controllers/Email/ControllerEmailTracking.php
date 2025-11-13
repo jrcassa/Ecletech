@@ -97,8 +97,6 @@ class ControllerEmailTracking extends BaseController
      */
     public function estatisticas(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
             return $this->erro('Sem permissão para acessar estatísticas', 403);
         }
 

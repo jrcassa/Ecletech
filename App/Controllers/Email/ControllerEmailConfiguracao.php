@@ -27,8 +27,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function listar(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
             return $this->erro('Sem permissão para acessar configurações', 403);
         }
 
@@ -52,8 +50,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function obter(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
             return $this->erro('Sem permissão para acessar configurações', 403);
         }
 
@@ -74,8 +70,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function salvar(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.alterar')) {
             return $this->erro('Sem permissão para alterar configurações', 403);
         }
 
@@ -104,8 +98,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function sincronizarEntidade(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.alterar')) {
             return $this->erro('Sem permissão para sincronizar entidades', 403);
         }
 
@@ -129,8 +121,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function sincronizarLote(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.alterar')) {
             return $this->erro('Sem permissão para sincronizar entidades', 403);
         }
 
@@ -156,8 +146,6 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function categorias(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
             return $this->erro('Sem permissão para acessar configurações', 403);
         }
 
