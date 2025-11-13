@@ -134,10 +134,10 @@ const GruposProdutosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('grupos_produtos.visualizar'),
-                    criar: permissoes.includes('grupos_produtos.criar'),
-                    editar: permissoes.includes('grupos_produtos.editar'),
-                    deletar: permissoes.includes('grupos_produtos.deletar')
+                    visualizar: permissoes.includes('grupos_produto.visualizar'),
+                    criar: permissoes.includes('grupos_produto.criar'),
+                    editar: permissoes.includes('grupos_produto.editar'),
+                    deletar: permissoes.includes('grupos_produto.deletar')
                 };
             }
 
@@ -178,7 +178,7 @@ const GruposProdutosManager = {
             this.esconderCarregando();
         } catch (erro) {
             console.error('Erro ao carregar grupos de produtos:', erro);
-            this.exibirErro('Erro ao carregar grupos de produtos. ' + (erro.message || ''));
+            this.exibirErro('Erro ao carregar grupos de produto. ' + (erro.message || ''));
         }
     },
 
@@ -316,7 +316,7 @@ const GruposProdutosManager = {
             this.esconderCarregando();
         } catch (erro) {
             console.error('Erro ao carregar grupo de produtos:', erro);
-            this.exibirErro('Erro ao carregar grupo de produtos. ' + (erro.message || ''));
+            this.exibirErro('Erro ao carregar grupo de produto. ' + (erro.message || ''));
         }
     },
 
@@ -379,7 +379,7 @@ const GruposProdutosManager = {
             await this.carregarGruposProdutos();
         } catch (erro) {
             console.error('Erro ao deletar grupo de produtos:', erro);
-            this.exibirErro('Erro ao deletar grupo de produtos. ' + (erro.message || ''));
+            this.exibirErro('Erro ao deletar grupo de produto. ' + (erro.message || ''));
         }
     },
 

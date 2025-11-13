@@ -139,10 +139,10 @@ const FornecedoresManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('fornecedores.visualizar'),
-                    criar: permissoes.includes('fornecedores.criar'),
-                    editar: permissoes.includes('fornecedores.editar'),
-                    deletar: permissoes.includes('fornecedores.deletar')
+                    visualizar: permissoes.includes('fornecedor.visualizar'),
+                    criar: permissoes.includes('fornecedor.criar'),
+                    editar: permissoes.includes('fornecedor.editar'),
+                    deletar: permissoes.includes('fornecedor.deletar')
                 };
             }
 
@@ -279,7 +279,7 @@ const FornecedoresManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.fornecedores.length === 0) {
+        if (this.state.fornecedor.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -291,7 +291,7 @@ const FornecedoresManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.fornecedores.forEach(fornecedor => {
+        this.state.fornecedor.forEach(fornecedor => {
             const tr = document.createElement('tr');
 
             const documento = fornecedor.tipo_pessoa === 'PF' ?
@@ -887,11 +887,11 @@ const FornecedoresManager = {
             timeoutId = setTimeout(async () => {
                 const cidades = await this.buscarCidades(termo);
 
-                if (cidades.length > 0) {
+                if (cidade.length > 0) {
                     listElement.innerHTML = '';
                     listElement.style.display = 'block';
 
-                    cidades.forEach(cidade => {
+                    cidade.forEach(cidade => {
                         const item = document.createElement('div');
                         item.style.cssText = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;';
                         item.textContent = `${cidade.nome} - ${cidade.estado || ''}`;

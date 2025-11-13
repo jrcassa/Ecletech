@@ -120,10 +120,10 @@ const TiposEnderecosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('tipos_enderecos.visualizar'),
-                    criar: permissoes.includes('tipos_enderecos.criar'),
-                    editar: permissoes.includes('tipos_enderecos.editar'),
-                    deletar: permissoes.includes('tipos_enderecos.deletar')
+                    visualizar: permissoes.includes('tipo_endereco.visualizar'),
+                    criar: permissoes.includes('tipo_endereco.criar'),
+                    editar: permissoes.includes('tipo_endereco.editar'),
+                    deletar: permissoes.includes('tipo_endereco.deletar')
                 };
             }
 
