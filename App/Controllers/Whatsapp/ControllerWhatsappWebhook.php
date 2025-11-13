@@ -55,9 +55,9 @@ class ControllerWhatsappWebhook extends BaseController
     }
 
     /**
-     * GET para validação de webhook
+     * GET para validação de webhook (challenge do WhatsApp)
      */
-    public function validar(): void
+    public function validarWebhook(): void
     {
         $challenge = $_GET['challenge'] ?? null;
 

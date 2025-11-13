@@ -111,5 +111,5 @@ return function($router) {
     $router->post('/whatsapp/webhook', [ControllerWhatsappWebhook::class, 'receber']);
 
     // GET /whatsapp/webhook - Validação do webhook
-    $router->get('/whatsapp/webhook', [ControllerWhatsappWebhook::class, 'validar']);
+    $router->get('/whatsapp/webhook', [ControllerWhatsappWebhook::class, 'validarWebhook']);
 };

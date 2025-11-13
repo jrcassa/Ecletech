@@ -61,7 +61,7 @@ class ControllerLoja extends BaseController
             $dados = $this->obterDados();
 
             // Sanitiza os dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosLoja($dados);
 
             // Validação dos dados usando o Model
             $validacao = $this->model->validar($dados, $idLoja);
@@ -166,7 +166,7 @@ class ControllerLoja extends BaseController
      * @param array $dados Dados a serem sanitizados
      * @return array Dados sanitizados
      */
-    private function sanitizarDados(array $dados): array
+    private function sanitizarDadosLoja(array $dados): array
     {
         $camposTexto = [
             'nome_fantasia',

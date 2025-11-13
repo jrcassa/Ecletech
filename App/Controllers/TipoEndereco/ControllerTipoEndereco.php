@@ -95,7 +95,7 @@ class ControllerTipoEndereco extends BaseController
             $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosTipoEndereco($dados);
 
             // Validação dos dados
             $erros = $this->validarDados($dados);
@@ -152,7 +152,7 @@ class ControllerTipoEndereco extends BaseController
             $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosTipoEndereco($dados);
 
             // Validação dos dados (campos opcionais)
             $erros = $this->validarDados($dados, (int) $id);
@@ -248,7 +248,7 @@ class ControllerTipoEndereco extends BaseController
     /**
      * Sanitiza os dados de entrada
      */
-    private function sanitizarDados(array $dados): array
+    private function sanitizarDadosTipoEndereco(array $dados): array
     {
         $dadosSanitizados = [];
 
