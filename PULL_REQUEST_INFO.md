@@ -323,6 +323,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 19. `0694014` - **FIX:** Corrige nomes de configurações e adiciona autenticação Bearer
 20. `49d6d1b` - Docs: Atualiza PR info com commit de correção de configurações
 21. `199514c` - **FIX:** Corrige estrutura de dados da API Baileys e adiciona debug
+22. `23f8183` - Docs: Atualiza PR info com commit de fix de estrutura da API Baileys
+23. `509435c` - **Debug:** Adiciona URL nas mensagens de erro para facilitar debug
 
 ---
 
