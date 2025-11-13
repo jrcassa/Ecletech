@@ -121,12 +121,40 @@ class ServiceServico
 
     /**
      * Normaliza valor (converte string para decimal)
+     * Suporta formatos: 12.00, 12,00, 1.234,56, 1,234.56
      */
     private function normalizarValor($valor): float
     {
+        if (is_numeric($valor)) {
+            return (float) $valor;
+        }
+
         if (is_string($valor)) {
-            // Remove pontos de milhar e substitui vírgula por ponto
-            $valor = str_replace(['.', ','], ['', '.'], $valor);
+            // Remove espaços em branco
+            $valor = trim($valor);
+
+            // Verifica se tem vírgula e ponto
+            $temVirgula = strpos($valor, ',') !== false;
+            $temPonto = strpos($valor, '.') !== false;
+
+            if ($temVirgula && $temPonto) {
+                // Formato misto: determina qual é o separador decimal (o último)
+                $posVirgula = strrpos($valor, ',');
+                $posPonto = strrpos($valor, '.');
+
+                if ($posVirgula > $posPonto) {
+                    // Formato brasileiro: 1.234,56
+                    $valor = str_replace('.', '', $valor); // Remove pontos de milhar
+                    $valor = str_replace(',', '.', $valor); // Vírgula vira ponto decimal
+                } else {
+                    // Formato americano: 1,234.56
+                    $valor = str_replace(',', '', $valor); // Remove vírgulas de milhar
+                }
+            } elseif ($temVirgula) {
+                // Apenas vírgula: assume formato brasileiro (12,00 ou 1234,56)
+                $valor = str_replace(',', '.', $valor);
+            }
+            // Se tem apenas ponto ou nenhum separador, já está no formato correto
         }
 
         return (float) $valor;
