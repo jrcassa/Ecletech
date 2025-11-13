@@ -140,6 +140,12 @@ class ServiceWhatsapp
         $this->historicoModel->adicionar([
             'queue_id' => $queueId,
             'tipo_evento' => 'adicionado_fila',
+            'tipo_entidade' => $dados['tipo_entidade'] ?? null,
+            'entidade_id' => $dados['entidade_id'] ?? null,
+            'entidade_nome' => $dados['entidade_nome'] ?? null,
+            'destinatario' => $dados['destinatario'],
+            'tipo_mensagem' => $dados['tipo_mensagem'],
+            'status' => 'pendente',
             'mensagem' => json_encode([
                 'destinatario' => $dados['destinatario'],
                 'tipo' => $dados['tipo_mensagem']
@@ -209,11 +215,12 @@ class ServiceWhatsapp
                 'queue_id' => null,
                 'message_id' => $messageId,
                 'tipo_evento' => 'enviado_direto',
-                'tipo_entidade' => $dados['tipo_entidade'],
-                'entidade_id' => $dados['entidade_id'],
-                'entidade_nome' => $dados['entidade_nome'],
+                'tipo_entidade' => $dados['tipo_entidade'] ?? null,
+                'entidade_id' => $dados['entidade_id'] ?? null,
+                'entidade_nome' => $dados['entidade_nome'] ?? null,
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
+                'status' => 'enviado',
                 'mensagem' => json_encode([
                     'response' => $responseData,
                     'conteudo' => $dados['conteudo']
@@ -235,11 +242,12 @@ class ServiceWhatsapp
                 'queue_id' => null,
                 'message_id' => null,
                 'tipo_evento' => 'erro_envio_direto',
-                'tipo_entidade' => $dados['tipo_entidade'],
-                'entidade_id' => $dados['entidade_id'],
-                'entidade_nome' => $dados['entidade_nome'],
+                'tipo_entidade' => $dados['tipo_entidade'] ?? null,
+                'entidade_id' => $dados['entidade_id'] ?? null,
+                'entidade_nome' => $dados['entidade_nome'] ?? null,
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
+                'status' => 'erro',
                 'mensagem' => json_encode([
                     'erro' => $erro,
                     'response' => $responseData
@@ -340,6 +348,12 @@ class ServiceWhatsapp
                     'queue_id' => $mensagem['id'],
                     'message_id' => $messageId,
                     'tipo_evento' => 'enviado',
+                    'tipo_entidade' => $mensagem['tipo_entidade'] ?? null,
+                    'entidade_id' => $mensagem['entidade_id'] ?? null,
+                    'entidade_nome' => $mensagem['entidade_nome'] ?? null,
+                    'destinatario' => $mensagem['destinatario'],
+                    'tipo_mensagem' => $mensagem['tipo_mensagem'],
+                    'status' => 'enviado',
                     'mensagem' => json_encode(['response' => $responseData])
                 ]);
 
