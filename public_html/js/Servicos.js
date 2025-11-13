@@ -162,9 +162,9 @@ const ServicosManager = {
             const response = await API.get(`/servicos?${params.toString()}`);
 
             if (response.sucesso) {
-                this.state.servicos = response.dados;
-                this.state.paginacao.total = response.paginacao.total;
-                this.state.paginacao.totalPaginas = response.paginacao.total_paginas;
+                this.state.servicos = response.dados?.itens || [];
+                this.state.paginacao.total = response.dados?.paginacao?.total || 0;
+                this.state.paginacao.totalPaginas = response.dados?.paginacao?.total_paginas || 0;
 
                 this.renderizarTabela();
                 this.atualizarPaginacao();
@@ -173,7 +173,11 @@ const ServicosManager = {
             }
         } catch (error) {
             console.error('Erro ao carregar serviços:', error);
-            this.mostrarErro('Erro ao carregar serviços. Tente novamente.');
+            const mensagemErro = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao carregar serviços. Tente novamente.';
+            this.mostrarErro(mensagemErro);
+            Utils.Notificacao.erro(mensagemErro);
         } finally {
             this.esconderLoading();
         }
@@ -266,11 +270,11 @@ const ServicosManager = {
                 this.esconderErroModal();
                 this.elements.modalForm.classList.add('show');
             } else {
-                showToast(response.mensagem || 'Erro ao carregar serviço', 'error');
+                Utils.Notificacao.erro(response.mensagem || 'Erro ao carregar serviço');
             }
         } catch (error) {
             console.error('Erro ao visualizar serviço:', error);
-            showToast('Erro ao carregar serviço', 'error');
+            Utils.Notificacao.erro('Erro ao carregar serviço');
         }
     },
 
@@ -294,11 +298,11 @@ const ServicosManager = {
                 this.esconderErroModal();
                 this.elements.modalForm.classList.add('show');
             } else {
-                showToast(response.mensagem || 'Erro ao carregar serviço', 'error');
+                Utils.Notificacao.erro(response.mensagem || 'Erro ao carregar serviço');
             }
         } catch (error) {
             console.error('Erro ao editar serviço:', error);
-            showToast('Erro ao carregar serviço', 'error');
+            Utils.Notificacao.erro('Erro ao carregar serviço');
         }
     },
 
@@ -345,7 +349,7 @@ const ServicosManager = {
             }
 
             if (response.sucesso) {
-                showToast(response.mensagem || 'Serviço salvo com sucesso!', 'success');
+                Utils.Notificacao.sucesso(response.mensagem || 'Serviço salvo com sucesso!');
                 this.fecharModal();
                 await this.carregarServicos();
             } else {
@@ -353,7 +357,10 @@ const ServicosManager = {
             }
         } catch (error) {
             console.error('Erro ao salvar serviço:', error);
-            this.mostrarErroModal('Erro ao salvar serviço. Tente novamente.');
+            const mensagemErro = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao salvar serviço. Tente novamente.';
+            this.mostrarErroModal(mensagemErro);
         }
     },
 
@@ -369,14 +376,14 @@ const ServicosManager = {
             const response = await API.delete(`/servicos/${id}`);
 
             if (response.sucesso) {
-                showToast(response.mensagem || 'Serviço deletado com sucesso!', 'success');
+                Utils.Notificacao.sucesso(response.mensagem || 'Serviço deletado com sucesso!');
                 await this.carregarServicos();
             } else {
-                showToast(response.mensagem || 'Erro ao deletar serviço', 'error');
+                Utils.Notificacao.erro(response.mensagem || 'Erro ao deletar serviço');
             }
         } catch (error) {
             console.error('Erro ao deletar serviço:', error);
-            showToast('Erro ao deletar serviço', 'error');
+            Utils.Notificacao.erro('Erro ao deletar serviço');
         }
     },
 
