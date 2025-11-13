@@ -1816,6 +1816,80 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Configurações de Notificações -->
+                <div class="card" style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;"><i class="fas fa-bell"></i> Configurações de Notificações WhatsApp</h2>
+                        <button class="btn" id="btnAtualizarNotificacoes" onclick="FrotaAbastecimentoManager.carregarDestinatariosNotificacao()">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </div>
+
+                    <div style="margin-bottom: 20px; padding: 15px; background: var(--info-item-bg); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <p style="margin: 0; color: var(--text-primary); font-size: 14px;">
+                            <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                            As notificações são enviadas automaticamente via WhatsApp quando uma ordem é criada, finalizada ou cancelada.
+                            Os colaboradores listados abaixo possuem a permissão <code>frota_abastecimento.receber_notificacao</code> e receberão notificações quando motoristas finalizarem abastecimentos.
+                        </p>
+                    </div>
+
+                    <div id="loadingNotificacoes" class="loading-container" style="min-height: 100px; display: none;">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorNotificacoes" style="display: none;">
+                        <div class="error-message" id="errorNotificacoesMessage"></div>
+                    </div>
+
+                    <div id="notificacoesContent">
+                        <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 15px; border-bottom: 2px solid var(--border-light); padding-bottom: 10px;">
+                            <i class="fas fa-users"></i> Destinatários das Notificações
+                        </h3>
+
+                        <div id="destinatariosContainer" style="margin-bottom: 20px;">
+                            <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
+                                Carregue a lista de destinatários usando o botão "Atualizar" acima.
+                            </p>
+                        </div>
+
+                        <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 15px; margin-top: 30px; border-bottom: 2px solid var(--border-light); padding-bottom: 10px;">
+                            <i class="fas fa-paper-plane"></i> Tipos de Notificações Ativas
+                        </h3>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                            <div style="padding: 15px; background: var(--info-item-bg); border-radius: 8px; border-left: 4px solid #10b981;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
+                                    <strong style="color: var(--text-primary);">Ordem Criada</strong>
+                                </div>
+                                <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                                    Motorista recebe notificação quando uma nova ordem é criada para ele.
+                                </p>
+                            </div>
+
+                            <div style="padding: 15px; background: var(--info-item-bg); border-radius: 8px; border-left: 4px solid #10b981;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
+                                    <strong style="color: var(--text-primary);">Abastecimento Finalizado</strong>
+                                </div>
+                                <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                                    Administradores recebem notificação quando motorista finaliza um abastecimento.
+                                </p>
+                            </div>
+
+                            <div style="padding: 15px; background: var(--info-item-bg); border-radius: 8px; border-left: 4px solid #10b981;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 20px;"></i>
+                                    <strong style="color: var(--text-primary);">Ordem Cancelada</strong>
+                                </div>
+                                <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                                    Motorista recebe notificação quando uma ordem é cancelada.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

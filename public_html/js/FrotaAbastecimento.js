@@ -658,6 +658,82 @@ const FrotaAbastecimentoManager = {
      */
     escapeHtml(text) {
         return Utils.DOM.escapeHtml(text);
+    },
+
+    /**
+     * Carrega destinatários de notificações
+     */
+    async carregarDestinatariosNotificacao() {
+        const loadingContainer = document.getElementById('loadingNotificacoes');
+        const errorContainer = document.getElementById('errorNotificacoes');
+        const errorMessage = document.getElementById('errorNotificacoesMessage');
+        const destinatariosContainer = document.getElementById('destinatariosContainer');
+
+        loadingContainer.style.display = 'flex';
+        errorContainer.style.display = 'none';
+
+        try {
+            // Busca colaboradores com a permissão de receber notificações
+            const response = await API.get('/colaboradores?permissao=frota_abastecimento.receber_notificacao&por_pagina=999');
+
+            if (response.sucesso) {
+                const colaboradores = response.dados?.itens || [];
+
+                if (colaboradores.length === 0) {
+                    destinatariosContainer.innerHTML = `
+                        <div style="text-align: center; padding: 30px; background: var(--info-item-bg); border-radius: 8px; border: 2px dashed var(--border-color);">
+                            <i class="fas fa-user-slash" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 12px;"></i>
+                            <p style="color: var(--text-secondary); margin: 0;">
+                                Nenhum colaborador possui a permissão <code>frota_abastecimento.receber_notificacao</code>.<br>
+                                Configure as permissões em <strong>Gestão de Acessos</strong>.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">';
+
+                    colaboradores.forEach(colab => {
+                        const temCelular = colab.celular && colab.celular.trim() !== '';
+                        const statusIcon = temCelular ?
+                            '<i class="fas fa-check-circle" style="color: #10b981;"></i>' :
+                            '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>';
+                        const statusText = temCelular ? 'Receberá notificações' : 'Sem celular cadastrado';
+                        const borderColor = temCelular ? '#10b981' : '#f59e0b';
+
+                        html += `
+                            <div style="padding: 15px; background: var(--info-item-bg); border-radius: 8px; border-left: 4px solid ${borderColor};">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    ${statusIcon}
+                                    <strong style="color: var(--text-primary);">${this.escapeHtml(colab.nome)}</strong>
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                                    <i class="fas fa-envelope" style="margin-right: 6px;"></i>
+                                    ${this.escapeHtml(colab.email || 'Sem email')}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+                                    <i class="fas fa-phone" style="margin-right: 6px;"></i>
+                                    ${this.escapeHtml(colab.celular || 'Sem celular')}
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 8px;">
+                                    ${statusText}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                    destinatariosContainer.innerHTML = html;
+                }
+            }
+        } catch (error) {
+            errorMessage.textContent = error.data ?
+                Utils.Errors.formatarMensagem(error.data) :
+                'Erro ao carregar destinatários de notificações';
+            errorContainer.style.display = 'block';
+            console.error('Erro ao carregar destinatários:', error);
+        } finally {
+            loadingContainer.style.display = 'none';
+        }
     }
 };
 
