@@ -134,10 +134,10 @@ const GruposProdutosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('grupos_produto.visualizar'),
-                    criar: permissoes.includes('grupos_produto.criar'),
-                    editar: permissoes.includes('grupos_produto.editar'),
-                    deletar: permissoes.includes('grupos_produto.deletar')
+                    visualizar: permissoes.includes('grupos_produtos.visualizar'),
+                    criar: permissoes.includes('grupos_produtos.criar'),
+                    editar: permissoes.includes('grupos_produtos.editar'),
+                    deletar: permissoes.includes('grupos_produtos.deletar')
                 };
             }
 
