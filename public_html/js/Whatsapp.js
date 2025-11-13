@@ -838,12 +838,12 @@ const WhatsAppManager = {
         this.elements.selectEntidade.innerHTML = '<option value="">Carregando...</option>';
 
         try {
-            // Mapeia tipo para endpoint da API
+            // Mapeia tipo para endpoint da API (no plural)
             const endpoints = {
-                'cliente': '/cliente',
-                'colaborador': '/colaborador',
-                'fornecedor': '/fornecedor',
-                'transportadora': '/transportadora'
+                'cliente': '/clientes',
+                'colaborador': '/colaboradores',
+                'fornecedor': '/fornecedores',
+                'transportadora': '/transportadoras'
             };
 
             const endpoint = endpoints[tipo];
@@ -924,8 +924,143 @@ const WhatsAppManager = {
      * Envia mensagem de teste
      */
     async enviarMensagemTeste() {
-        // TODO: Implementar envio de mensagem de teste
-        this.mostrarErro('Função de envio de teste ainda não implementada');
+        // Verifica permissão
+        if (!this.state.permissoes.editar) {
+            this.mostrarErro('Você não tem permissão para enviar mensagens');
+            return;
+        }
+
+        try {
+            // Coleta dados do formulário
+            const tipoDestinatario = this.elements.tipoDestinatario?.value;
+            const tipoMensagem = this.elements.tipoMensagem?.value;
+
+            // Validação básica
+            if (!tipoDestinatario) {
+                this.mostrarErro('Selecione o tipo de destinatário');
+                return;
+            }
+
+            if (!tipoMensagem) {
+                this.mostrarErro('Selecione o tipo de mensagem');
+                return;
+            }
+
+            // Obtém destinatário (número ou entidade)
+            let numero = '';
+            if (tipoDestinatario === 'numero') {
+                numero = this.elements.inputNumero?.value;
+                if (!numero) {
+                    this.mostrarErro('Digite o número do destinatário');
+                    return;
+                }
+            } else {
+                const entidadeId = this.elements.selectEntidade?.value;
+                if (!entidadeId) {
+                    this.mostrarErro('Selecione um destinatário');
+                    return;
+                }
+
+                // Busca telefone da opção selecionada
+                const optionSelecionada = this.elements.selectEntidade.selectedOptions[0];
+                numero = optionSelecionada.getAttribute('data-telefone');
+
+                if (!numero) {
+                    this.mostrarErro('Destinatário selecionado não possui telefone cadastrado');
+                    return;
+                }
+            }
+
+            // Monta payload baseado no tipo de mensagem
+            const dados = {
+                numero: numero,
+                tipo: tipoMensagem
+            };
+
+            if (tipoMensagem === 'text') {
+                const texto = document.getElementById('input-texto')?.value;
+                if (!texto) {
+                    this.mostrarErro('Digite a mensagem de texto');
+                    return;
+                }
+                dados.mensagem = texto;
+            } else {
+                const url = document.getElementById('input-url')?.value;
+                if (!url) {
+                    this.mostrarErro('Digite a URL do arquivo');
+                    return;
+                }
+                dados.url = url;
+                dados.caption = document.getElementById('input-caption')?.value || '';
+            }
+
+            // Envia para API
+            const response = await API.post('/whatsapp/mensagem/enviar', dados);
+
+            if (response.sucesso) {
+                this.mostrarSucesso('Mensagem enviada para a fila com sucesso!');
+
+                // Limpa formulário
+                this.limparFormularioTeste();
+
+                // Atualiza fila
+                if (this.state.tabAtual === 'fila') {
+                    await this.carregarFila();
+                }
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao enviar mensagem');
+            }
+
+        } catch (error) {
+            console.error('Erro ao enviar mensagem de teste:', error);
+            this.mostrarErro('Erro ao enviar mensagem');
+        }
+    },
+
+    /**
+     * Limpa formulário de teste
+     */
+    limparFormularioTeste() {
+        if (this.elements.tipoDestinatario) {
+            this.elements.tipoDestinatario.value = '';
+        }
+        if (this.elements.selectEntidade) {
+            this.elements.selectEntidade.innerHTML = '<option value="">Selecione...</option>';
+            this.elements.selectEntidade.style.display = 'none';
+        }
+        if (this.elements.inputNumero) {
+            this.elements.inputNumero.value = '';
+            this.elements.inputNumero.style.display = 'none';
+        }
+        if (this.elements.tipoMensagem) {
+            this.elements.tipoMensagem.value = '';
+        }
+
+        const inputTexto = document.getElementById('input-texto');
+        if (inputTexto) {
+            inputTexto.value = '';
+        }
+
+        const inputUrl = document.getElementById('input-url');
+        if (inputUrl) {
+            inputUrl.value = '';
+        }
+
+        const inputCaption = document.getElementById('input-caption');
+        if (inputCaption) {
+            inputCaption.value = '';
+        }
+
+        // Esconde todos os campos condicionais
+        if (this.elements.campoTexto) {
+            this.elements.campoTexto.style.display = 'none';
+        }
+        if (this.elements.campoUrl) {
+            this.elements.campoUrl.style.display = 'none';
+        }
+        if (this.elements.campoCaption) {
+            this.elements.campoCaption.style.display = 'none';
+        }
     },
 
     /**
