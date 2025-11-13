@@ -22,7 +22,7 @@ class ControllerWhatsappEnvio
     }
 
     /**
-     * Envia mensagem WhatsApp
+     * Envia mensagem WhatsApp (via fila ou direto)
      */
     public function enviar(): void
     {
@@ -40,6 +40,12 @@ class ControllerWhatsappEnvio
                 return;
             }
 
+            // Valida modo_envio se fornecido
+            if (isset($dados['modo_envio']) && !in_array($dados['modo_envio'], ['fila', 'direto'])) {
+                AuxiliarResposta::erro('Modo de envio inválido. Use "fila" ou "direto"', 400);
+                return;
+            }
+
             // Valida conteúdo conforme tipo
             if ($dados['tipo'] === 'text' && empty($dados['mensagem'])) {
                 AuxiliarResposta::erro('Mensagem é obrigatória para tipo texto', 400);
@@ -51,11 +57,23 @@ class ControllerWhatsappEnvio
                 return;
             }
 
-            // Envia
+            // Envia (modo_envio é passado automaticamente via $dados)
             $resultado = $this->service->enviarMensagem($dados);
 
             if ($resultado['sucesso']) {
-                AuxiliarResposta::sucesso(['queue_id' => $resultado['queue_id']], $resultado['mensagem']);
+                // Retorna informações diferentes conforme o modo
+                $retorno = [
+                    'modo' => $resultado['modo']
+                ];
+
+                if ($resultado['modo'] === 'fila') {
+                    $retorno['queue_id'] = $resultado['queue_id'];
+                } else {
+                    $retorno['message_id'] = $resultado['message_id'];
+                    $retorno['dados'] = $resultado['dados'];
+                }
+
+                AuxiliarResposta::sucesso($retorno, $resultado['mensagem']);
             } else {
                 AuxiliarResposta::erro($resultado['erro'], 400);
             }
