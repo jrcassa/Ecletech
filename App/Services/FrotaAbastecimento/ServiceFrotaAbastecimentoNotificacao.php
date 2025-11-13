@@ -1,0 +1,279 @@
+<?php
+
+namespace App\Services\FrotaAbastecimento;
+
+use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
+use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoNotificacao;
+use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
+use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
+use App\Models\Colaborador\ModelColaborador;
+use App\Services\Whatsapp\ServiceWhatsapp;
+use App\Core\BancoDados;
+
+/**
+ * Service para enviar notificações via WhatsApp
+ */
+class ServiceFrotaAbastecimentoNotificacao
+{
+    private ModelFrotaAbastecimento $model;
+    private ModelFrotaAbastecimentoNotificacao $modelNotificacao;
+    private ModelFrotaAbastecimentoMetrica $modelMetrica;
+    private ModelFrotaAbastecimentoAlerta $modelAlerta;
+    private ModelColaborador $modelColaborador;
+    private ServiceWhatsapp $serviceWhatsapp;
+    private BancoDados $db;
+
+    public function __construct()
+    {
+        $this->model = new ModelFrotaAbastecimento();
+        $this->modelNotificacao = new ModelFrotaAbastecimentoNotificacao();
+        $this->modelMetrica = new ModelFrotaAbastecimentoMetrica();
+        $this->modelAlerta = new ModelFrotaAbastecimentoAlerta();
+        $this->modelColaborador = new ModelColaborador();
+        $this->serviceWhatsapp = new ServiceWhatsapp();
+        $this->db = BancoDados::obterInstancia();
+    }
+
+    /**
+     * Envia notificação ao motorista quando ordem é criada
+     */
+    public function enviarNotificacaoOrdemCriada(int $abastecimento_id): void
+    {
+        $abastecimento = $this->model->buscarComDetalhes($abastecimento_id);
+        if (!$abastecimento) {
+            return;
+        }
+
+        $motorista = $this->modelColaborador->buscarPorId($abastecimento['colaborador_id']);
+        if (!$motorista || !$motorista['telefone']) {
+            return;
+        }
+
+        // Montar mensagem
+        $mensagem = $this->montarMensagemOrdemCriada($abastecimento);
+
+        // Registrar notificação
+        $notificacaoId = $this->modelNotificacao->criar([
+            'abastecimento_id' => $abastecimento_id,
+            'tipo_notificacao' => 'ordem_criada',
+            'destinatario_id' => $abastecimento['colaborador_id'],
+            'telefone' => $motorista['telefone'],
+            'mensagem' => $mensagem
+        ]);
+
+        // Enviar WhatsApp
+        try {
+            $resultado = $this->serviceWhatsapp->enviar($motorista['telefone'], $mensagem);
+
+            if ($resultado['sucesso'] ?? false) {
+                $this->modelNotificacao->marcarEnviado($notificacaoId);
+                $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
+            } else {
+                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+            }
+        } catch (\Exception $e) {
+            $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+        }
+    }
+
+    /**
+     * Envia notificação aos admins quando motorista finaliza (via ACL)
+     */
+    public function enviarNotificacaoAbastecimentoFinalizado(int $abastecimento_id): void
+    {
+        $abastecimento = $this->model->buscarComDetalhes($abastecimento_id);
+        if (!$abastecimento) {
+            return;
+        }
+
+        // Buscar métricas e alertas
+        $metricas = $this->modelMetrica->buscarPorAbastecimentoId($abastecimento_id);
+        $alertas = $this->modelAlerta->buscarPorAbastecimento($abastecimento_id);
+
+        // Buscar destinatários via ACL
+        $destinatarios = $this->obterDestinatariosNotificacao();
+
+        foreach ($destinatarios as $destinatario) {
+            // Montar mensagem
+            $mensagem = $this->montarMensagemAbastecimentoFinalizado($abastecimento, $metricas, $alertas);
+
+            // Registrar notificação
+            $notificacaoId = $this->modelNotificacao->criar([
+                'abastecimento_id' => $abastecimento_id,
+                'tipo_notificacao' => 'abastecimento_finalizado',
+                'destinatario_id' => $destinatario['id'],
+                'telefone' => $destinatario['telefone'],
+                'mensagem' => $mensagem
+            ]);
+
+            // Enviar WhatsApp
+            try {
+                $resultado = $this->serviceWhatsapp->enviar($destinatario['telefone'], $mensagem);
+
+                if ($resultado['sucesso'] ?? false) {
+                    $this->modelNotificacao->marcarEnviado($notificacaoId);
+                } else {
+                    $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+                }
+            } catch (\Exception $e) {
+                $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+            }
+        }
+
+        $this->model->marcarNotificacaoAdminEnviada($abastecimento_id);
+    }
+
+    /**
+     * Envia notificação ao motorista quando ordem é cancelada
+     */
+    public function enviarNotificacaoOrdemCancelada(int $abastecimento_id): void
+    {
+        $abastecimento = $this->model->buscarComDetalhes($abastecimento_id);
+        if (!$abastecimento) {
+            return;
+        }
+
+        $motorista = $this->modelColaborador->buscarPorId($abastecimento['colaborador_id']);
+        if (!$motorista || !$motorista['telefone']) {
+            return;
+        }
+
+        // Montar mensagem
+        $mensagem = $this->montarMensagemOrdemCancelada($abastecimento);
+
+        // Registrar notificação
+        $notificacaoId = $this->modelNotificacao->criar([
+            'abastecimento_id' => $abastecimento_id,
+            'tipo_notificacao' => 'ordem_cancelada',
+            'destinatario_id' => $abastecimento['colaborador_id'],
+            'telefone' => $motorista['telefone'],
+            'mensagem' => $mensagem
+        ]);
+
+        // Enviar WhatsApp
+        try {
+            $resultado = $this->serviceWhatsapp->enviar($motorista['telefone'], $mensagem);
+
+            if ($resultado['sucesso'] ?? false) {
+                $this->modelNotificacao->marcarEnviado($notificacaoId);
+            } else {
+                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+            }
+        } catch (\Exception $e) {
+            $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+        }
+    }
+
+    /**
+     * Busca colaboradores com permissão ACL para receber notificações
+     */
+    private function obterDestinatariosNotificacao(): array
+    {
+        $sql = "
+            SELECT DISTINCT c.id, c.nome, c.telefone
+            FROM colaboradores c
+            INNER JOIN colaborador_roles r ON c.nivel_id = r.id
+            INNER JOIN colaborador_role_permissions crp ON r.id = crp.role_id
+            INNER JOIN colaborador_permissions p ON crp.permission_id = p.id
+            WHERE p.codigo = 'frota_abastecimento.receber_notificacao'
+            AND c.ativo = 1
+            AND c.deletado_em IS NULL
+            AND c.telefone IS NOT NULL
+        ";
+
+        return $this->db->buscarTodos($sql);
+    }
+
+    /**
+     * Monta mensagem de ordem criada
+     */
+    private function montarMensagemOrdemCriada(array $abastecimento): string
+    {
+        $mensagem = "🚗 *Nova Ordem de Abastecimento*\n\n";
+        $mensagem .= "Olá *{$abastecimento['motorista_nome']}*,\n\n";
+        $mensagem .= "Você tem uma nova ordem de abastecimento:\n\n";
+        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_modelo']}\n";
+
+        if ($abastecimento['data_limite']) {
+            $dataLimite = date('d/m/Y', strtotime($abastecimento['data_limite']));
+            $mensagem .= "📅 *Data Limite:* {$dataLimite}\n";
+        }
+
+        if ($abastecimento['observacao_admin']) {
+            $mensagem .= "💬 *Observação:* {$abastecimento['observacao_admin']}\n";
+        }
+
+        $mensagem .= "\nAcesse o sistema para realizar o abastecimento.\n\n";
+        $mensagem .= "---\n";
+        $mensagem .= "_Sistema de Frota Ecletech_";
+
+        return $mensagem;
+    }
+
+    /**
+     * Monta mensagem de abastecimento finalizado
+     */
+    private function montarMensagemAbastecimentoFinalizado(array $abastecimento, ?array $metricas, array $alertas): string
+    {
+        $mensagem = "✅ *Abastecimento Realizado*\n\n";
+        $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
+        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_modelo']}\n\n";
+
+        $mensagem .= "📍 *Dados do Abastecimento:*\n";
+        $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
+        $mensagem .= "• Litros: " . number_format($abastecimento['litros'], 3, ',', '.') . " L\n";
+        $mensagem .= "• Combustível: " . ucfirst($abastecimento['combustivel']) . "\n";
+        $mensagem .= "• Valor: R$ " . number_format($abastecimento['valor'], 2, ',', '.') . "\n";
+
+        $dataAbastecimento = date('d/m/Y H:i', strtotime($abastecimento['data_abastecimento']));
+        $mensagem .= "• Data/Hora: {$dataAbastecimento}\n";
+
+        if ($metricas) {
+            $mensagem .= "\n💰 *Métricas:*\n";
+
+            if ($metricas['consumo_km_por_litro']) {
+                $mensagem .= "• Consumo: " . number_format($metricas['consumo_km_por_litro'], 2, ',', '.') . " km/l\n";
+            }
+
+            if ($metricas['custo_por_km']) {
+                $mensagem .= "• Custo/km: R$ " . number_format($metricas['custo_por_km'], 2, ',', '.') . "\n";
+            }
+
+            if ($metricas['custo_por_litro']) {
+                $mensagem .= "• Custo/litro: R$ " . number_format($metricas['custo_por_litro'], 2, ',', '.') . "\n";
+            }
+        }
+
+        if (!empty($alertas)) {
+            $mensagem .= "\n⚠️ *Alertas:* " . count($alertas) . " detectado(s)\n";
+            foreach ($alertas as $alerta) {
+                $emoji = $alerta['severidade'] === 'critica' ? '🔴' : ($alerta['severidade'] === 'alta' ? '🟠' : '🟡');
+                $mensagem .= "{$emoji} {$alerta['titulo']}\n";
+            }
+        }
+
+        $mensagem .= "\n---\n";
+        $mensagem .= "_Sistema de Frota Ecletech_";
+
+        return $mensagem;
+    }
+
+    /**
+     * Monta mensagem de ordem cancelada
+     */
+    private function montarMensagemOrdemCancelada(array $abastecimento): string
+    {
+        $mensagem = "❌ *Ordem de Abastecimento Cancelada*\n\n";
+        $mensagem .= "Olá *{$abastecimento['motorista_nome']}*,\n\n";
+        $mensagem .= "A ordem de abastecimento do veículo *{$abastecimento['frota_placa']}* foi cancelada.\n\n";
+
+        if ($abastecimento['observacao_admin']) {
+            $mensagem .= "💬 *Motivo:* {$abastecimento['observacao_admin']}\n\n";
+        }
+
+        $mensagem .= "---\n";
+        $mensagem .= "_Sistema de Frota Ecletech_";
+
+        return $mensagem;
+    }
+}
