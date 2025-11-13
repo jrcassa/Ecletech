@@ -346,10 +346,44 @@ const WhatsAppManager = {
             if (response.sucesso) {
                 this.atualizarStatusConexao(response.dados);
             } else {
-                this.mostrarErro(response.mensagem || 'Erro ao verificar status');
+                // Se o erro é porque a instância não existe, mostra UI de criar instância
+                // Erro 403 ou mensagem "invalid key supplied" indica que a instância não foi criada
+                if (response.mensagem &&
+                    (response.mensagem.includes('403') ||
+                     response.mensagem.includes('invalid key') ||
+                     response.mensagem.includes('instância não existe'))) {
+
+                    // Trata como instância não criada
+                    this.atualizarStatusConexao({
+                        conectado: false,
+                        status: 'desconectado'
+                    });
+                } else {
+                    // Outro tipo de erro - mostra para o usuário
+                    this.mostrarErro(response.mensagem || 'Erro ao verificar status');
+                }
             }
         } catch (error) {
             console.error('Erro ao verificar status:', error);
+
+            // Verifica se é erro 500 com mensagem de invalid key
+            if (error.status === 500 && error.data && error.data.mensagem) {
+                const mensagem = error.data.mensagem;
+
+                if (mensagem.includes('403') ||
+                    mensagem.includes('invalid key') ||
+                    mensagem.includes('instância não existe')) {
+
+                    // Trata como instância não criada
+                    this.atualizarStatusConexao({
+                        conectado: false,
+                        status: 'desconectado'
+                    });
+                    return;
+                }
+            }
+
+            // Erro real - mostra para o usuário
             this.mostrarErro('Erro ao verificar status da conexão');
         }
     },
