@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Helpers\ErrorLogger;
+
 /**
  * Classe auxiliar para manipulação de datas
  */
@@ -16,6 +18,11 @@ class AuxiliarData
             $dt = new \DateTime($data);
             return $dt->format($formato);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'formatar_data',
+                'data' => $data,
+                'formato' => $formato
+            ]);
             return $data;
         }
     }
@@ -47,6 +54,10 @@ class AuxiliarData
             $dt = new \DateTime($data);
             return $dt->format('Y-m-d');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'converter_data_para_banco',
+                'data' => $data
+            ]);
             return $data;
         }
     }
@@ -101,6 +112,11 @@ class AuxiliarData
             $dt->modify("+{$dias} days");
             return $dt->format('Y-m-d');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'adicionar_dias',
+                'data' => $data,
+                'dias' => $dias
+            ]);
             return $data;
         }
     }
@@ -115,6 +131,11 @@ class AuxiliarData
             $dt->modify("-{$dias} days");
             return $dt->format('Y-m-d');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'subtrair_dias',
+                'data' => $data,
+                'dias' => $dias
+            ]);
             return $data;
         }
     }
@@ -129,6 +150,11 @@ class AuxiliarData
             $dt->modify("+{$meses} months");
             return $dt->format('Y-m-d');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'adicionar_meses',
+                'data' => $data,
+                'meses' => $meses
+            ]);
             return $data;
         }
     }
@@ -143,6 +169,11 @@ class AuxiliarData
             $dt->modify("-{$meses} months");
             return $dt->format('Y-m-d');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'subtrair_meses',
+                'data' => $data,
+                'meses' => $meses
+            ]);
             return $data;
         }
     }
@@ -158,6 +189,11 @@ class AuxiliarData
             $diff = $dt1->diff($dt2);
             return (int) $diff->days;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'diferenca_dias',
+                'data1' => $data1,
+                'data2' => $data2
+            ]);
             return 0;
         }
     }
@@ -172,6 +208,11 @@ class AuxiliarData
             $dt2 = new \DateTime($data2);
             return $dt1 > $dt2;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'comparar_maior',
+                'data1' => $data1,
+                'data2' => $data2
+            ]);
             return false;
         }
     }
@@ -186,6 +227,11 @@ class AuxiliarData
             $dt2 = new \DateTime($data2);
             return $dt1 < $dt2;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'comparar_menor',
+                'data1' => $data1,
+                'data2' => $data2
+            ]);
             return false;
         }
     }
@@ -201,6 +247,12 @@ class AuxiliarData
             $dtFim = new \DateTime($fim);
             return $dt >= $dtInicio && $dt <= $dtFim;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'data_entre',
+                'data' => $data,
+                'inicio' => $inicio,
+                'fim' => $fim
+            ]);
             return false;
         }
     }
@@ -242,6 +294,10 @@ class AuxiliarData
             $dt = new \DateTime($data);
             return $dt->getTimestamp();
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'obter_timestamp',
+                'data' => $data
+            ]);
             return 0;
         }
     }
@@ -264,6 +320,10 @@ class AuxiliarData
             $diaSemana = (int) $dt->format('w');
             return in_array($diaSemana, [0, 6]); // 0 = Domingo, 6 = Sábado
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'verificar_fim_de_semana',
+                'data' => $data
+            ]);
             return false;
         }
     }
@@ -277,6 +337,10 @@ class AuxiliarData
             $dt = new \DateTime($data);
             return $dt->format('Y-m-01');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'primeiro_dia_mes',
+                'data' => $data
+            ]);
             return $data;
         }
     }
@@ -290,6 +354,10 @@ class AuxiliarData
             $dt = new \DateTime($data);
             return $dt->format('Y-m-t');
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'ultimo_dia_mes',
+                'data' => $data
+            ]);
             return $data;
         }
     }
@@ -305,6 +373,10 @@ class AuxiliarData
             $idade = $hoje->diff($nascimento);
             return (int) $idade->y;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'calcular_idade',
+                'data_nascimento' => $dataNascimento
+            ]);
             return 0;
         }
     }
@@ -322,6 +394,10 @@ class AuxiliarData
 
             return "{$dia} de {$mes} de {$ano}";
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'data_por_extenso',
+                'data' => $data
+            ]);
             return $data;
         }
     }
@@ -359,6 +435,10 @@ class AuxiliarData
 
             return 'agora';
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'data_relativa',
+                'data' => $data
+            ]);
             return $data;
         }
     }
@@ -372,6 +452,11 @@ class AuxiliarData
             $dt = \DateTime::createFromFormat($formato, $data);
             return $dt && $dt->format($formato) === $data;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'validacao', 'baixo', [
+                'contexto' => 'validar_data',
+                'data' => $data,
+                'formato' => $formato
+            ]);
             return false;
         }
     }

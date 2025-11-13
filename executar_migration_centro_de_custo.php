@@ -32,6 +32,7 @@ $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
 use App\Core\BancoDados;
+use App\Helpers\ErrorLogger;
 
 try {
     echo "=== Executando Migration 045 - Centro de Custo ===\n\n";
@@ -86,6 +87,15 @@ try {
                 ) {
                     echo "⚠ Item já existe (ignorado)\n";
                 } else {
+                    ErrorLogger::log($e, [
+                        'tipo_erro' => 'database',
+                        'nivel' => 'medio',
+                        'contexto' => [
+                            'script' => 'migration_centro_de_custo',
+                            'descricao' => 'Erro ao executar statement da migration 045'
+                        ]
+                    ]);
+
                     echo "✗ ERRO: $erro\n";
                 }
             }
@@ -97,6 +107,15 @@ try {
     echo "Erros: $erros\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_centro_de_custo',
+            'descricao' => 'Erro fatal ao executar migration 045 - centro de custo'
+        ]
+    ]);
+
     echo "ERRO FATAL: " . $e->getMessage() . "\n";
     exit(1);
 }

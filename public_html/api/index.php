@@ -87,6 +87,11 @@ try {
 
 } catch (\Exception $e) {
     // Log do erro
+    \App\Helpers\ErrorLogger::log($e, 'api', 'critico', [
+        'contexto' => 'ponto_entrada_api',
+        'metodo' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+        'uri' => $_SERVER['REQUEST_URI'] ?? 'UNKNOWN'
+    ]);
     error_log("Erro crítico: " . $e->getMessage());
 
     // Resposta de erro

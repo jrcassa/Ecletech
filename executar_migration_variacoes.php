@@ -32,6 +32,7 @@ $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
 use App\Core\BancoDados;
+use App\Helpers\ErrorLogger;
 
 try {
     echo "=== Executando Migration 042 ===\n\n";
@@ -84,6 +85,15 @@ try {
                 ) {
                     echo "⚠ Item já existe (ignorado)\n";
                 } else {
+                    ErrorLogger::log($e, [
+                        'tipo_erro' => 'database',
+                        'nivel' => 'medio',
+                        'contexto' => [
+                            'script' => 'migration_variacoes',
+                            'descricao' => 'Erro ao executar statement da migration 042'
+                        ]
+                    ]);
+
                     echo "✗ ERRO: $erro\n";
                 }
             }
@@ -95,6 +105,15 @@ try {
     echo "Erros: $erros\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_variacoes',
+            'descricao' => 'Erro fatal ao executar migration 042 - criar tabelas variações valores'
+        ]
+    ]);
+
     echo "ERRO FATAL: " . $e->getMessage() . "\n";
     exit(1);
 }

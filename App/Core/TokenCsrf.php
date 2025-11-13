@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Models\Csrf\ModelCsrfToken;
+use App\Helpers\ErrorLogger;
 
 /**
  * Classe para gerenciamento de tokens CSRF
@@ -31,6 +32,11 @@ class TokenCsrf
             $this->auth = new Autenticacao();
         } catch (\Exception $e) {
             $this->usarBancoDados = false;
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'inicializacao',
+                'nivel' => 'alto',
+                'contexto' => ['classe' => 'TokenCsrf', 'acao' => 'construtor_fallback_sessao']
+            ]);
             error_log("TokenCsrf: Não foi possível conectar ao banco de dados. Usando sessão como fallback. Erro: " . $e->getMessage());
         }
     }
@@ -65,6 +71,11 @@ class TokenCsrf
                     'expira_em' => date('Y-m-d H:i:s', time() + $this->expiracao)
                 ]);
             } catch (\Exception $e) {
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'csrf',
+                    'nivel' => 'medio',
+                    'contexto' => ['metodo' => 'gerar', 'acao' => 'salvar_token_bd']
+                ]);
                 error_log("TokenCsrf: Erro ao salvar token no banco de dados: " . $e->getMessage());
                 // Continua usando sessão como fallback
             }
@@ -93,6 +104,11 @@ class TokenCsrf
                     return true;
                 }
             } catch (\Exception $e) {
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'csrf',
+                    'nivel' => 'medio',
+                    'contexto' => ['metodo' => 'validar', 'acao' => 'validar_token_bd']
+                ]);
                 error_log("TokenCsrf: Erro ao validar token no banco de dados: " . $e->getMessage());
                 // Continua para validação via sessão
             }
@@ -206,6 +222,11 @@ class TokenCsrf
         try {
             return $this->model->limparExpirados();
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'csrf',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'limparTokensExpirados']
+            ]);
             error_log("TokenCsrf: Erro ao limpar tokens expirados: " . $e->getMessage());
             return 0;
         }
@@ -224,6 +245,11 @@ class TokenCsrf
         try {
             return $this->model->limparUsados($diasAtras);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'csrf',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'limparTokensUsados', 'dias_atras' => $diasAtras]
+            ]);
             error_log("TokenCsrf: Erro ao limpar tokens usados: " . $e->getMessage());
             return 0;
         }
@@ -248,6 +274,11 @@ class TokenCsrf
                 'tokens_sessao_atual' => $this->model->contarPorSessao(session_id())
             ];
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'csrf',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'obterEstatisticas']
+            ]);
             error_log("TokenCsrf: Erro ao obter estatísticas: " . $e->getMessage());
             return [
                 'usando_banco_dados' => false,

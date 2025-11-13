@@ -2,6 +2,7 @@
 
 namespace App\Models\S3;
 
+use App\Helpers\ErrorLogger;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 use Exception;
@@ -254,6 +255,11 @@ class ModelS3Cliente
         try {
             return $this->obterCliente()->doesObjectExist($bucket, $key);
         } catch (AwsException $e) {
+            ErrorLogger::log($e, 's3', 'alto', [
+                'contexto' => 'verificar_objeto_existe',
+                'bucket' => $bucket,
+                'key' => $key
+            ]);
             return false;
         }
     }
@@ -321,12 +327,21 @@ class ModelS3Cliente
                 'mensagem' => 'Conexão com S3 estabelecida com sucesso!'
             ];
         } catch (AwsException $e) {
+            ErrorLogger::log($e, 's3', 'alto', [
+                'contexto' => 'teste_conexao_s3',
+                'bucket' => $this->defaultBucket ?? 'test-bucket',
+                'codigo_erro' => $e->getAwsErrorCode()
+            ]);
             return [
                 'sucesso' => false,
                 'mensagem' => 'Falha na conexão: ' . $e->getMessage(),
                 'codigo_erro' => $e->getAwsErrorCode()
             ];
         } catch (Exception $e) {
+            ErrorLogger::log($e, 's3', 'alto', [
+                'contexto' => 'teste_conexao_s3',
+                'bucket' => $this->defaultBucket ?? 'test-bucket'
+            ]);
             return [
                 'sucesso' => false,
                 'mensagem' => $e->getMessage()

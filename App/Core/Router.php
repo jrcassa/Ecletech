@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Helpers\ErrorLogger;
+
 /**
  * Classe para gerenciar rotas da aplicação
  */
@@ -151,6 +153,11 @@ class Router
             $auditoria->registrarRequisicao();
         } catch (\Exception $e) {
             // Não interrompe o fluxo se falhar o registro de auditoria
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'auditoria',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'despachar', 'acao' => 'registrar_requisicao']
+            ]);
             error_log("Erro ao registrar requisição na auditoria: " . $e->getMessage());
         }
 
@@ -183,6 +190,11 @@ class Router
             // Envia a resposta
             $this->enviarResposta($resposta);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'roteamento',
+                'nivel' => 'alto',
+                'contexto' => ['metodo' => 'despachar', 'uri' => $_SERVER['REQUEST_URI'] ?? 'desconhecida']
+            ]);
             $this->responderErro($e);
         }
     }

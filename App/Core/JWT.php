@@ -7,6 +7,7 @@ use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Firebase\JWT\BeforeValidException;
+use App\Helpers\ErrorLogger;
 
 /**
  * Classe para gerenciamento de JSON Web Tokens (JWT)
@@ -84,15 +85,35 @@ class JWT
 
         } catch (ExpiredException $e) {
             // Token expirado
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'autenticacao',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'validar', 'motivo' => 'token_expirado']
+            ]);
             return null;
         } catch (SignatureInvalidException $e) {
             // Assinatura inválida
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'autenticacao',
+                'nivel' => 'critico',
+                'contexto' => ['metodo' => 'validar', 'motivo' => 'assinatura_invalida']
+            ]);
             return null;
         } catch (BeforeValidException $e) {
             // Token ainda não é válido (nbf)
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'autenticacao',
+                'nivel' => 'medio',
+                'contexto' => ['metodo' => 'validar', 'motivo' => 'token_nao_valido_ainda']
+            ]);
             return null;
         } catch (\Exception $e) {
             // Qualquer outro erro
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'autenticacao',
+                'nivel' => 'alto',
+                'contexto' => ['metodo' => 'validar', 'motivo' => 'erro_desconhecido']
+            ]);
             return null;
         }
     }
@@ -132,6 +153,11 @@ class JWT
             return $payload ?: null;
 
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'validacao',
+                'nivel' => 'medio',
+                'contexto' => ['metodo' => 'decodificar', 'motivo' => 'erro_decodificacao']
+            ]);
             return null;
         }
     }

@@ -46,6 +46,7 @@ use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
 use App\Models\Colaborador\ModelColaborador;
 use App\Services\FrotaAbastecimento\ServiceFrotaAbastecimentoNotificacao;
 use App\Models\Whatsapp\ModelWhatsappQueue;
+use App\Helpers\ErrorLogger;
 
 echo "========================================\n";
 echo "TESTE DE NOTIFICAÇÃO WHATSAPP\n";
@@ -104,6 +105,16 @@ try {
         $serviceNotificacao->enviarNotificacaoOrdemCriada($abastecimentoId);
         echo "✅ Método enviarNotificacaoOrdemCriada() executado sem erros\n\n";
     } catch (Exception $e) {
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'exception',
+            'nivel' => 'alto',
+            'contexto' => [
+                'script' => 'test_notificacao',
+                'descricao' => 'Erro ao enviar notificação no teste',
+                'abastecimento_id' => $abastecimentoId ?? null
+            ]
+        ]);
+
         echo "❌ ERRO ao enviar notificação: " . $e->getMessage() . "\n";
         echo "   Stack trace: " . $e->getTraceAsString() . "\n";
         exit(1);
@@ -158,6 +169,15 @@ try {
     echo "php processar_fila_whatsapp.php\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'exception',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'test_notificacao',
+            'descricao' => 'Erro geral no script de teste de notificação'
+        ]
+    ]);
+
     echo "\n❌ ERRO GERAL: " . $e->getMessage() . "\n";
     echo "Stack trace: " . $e->getTraceAsString() . "\n";
     exit(1);
