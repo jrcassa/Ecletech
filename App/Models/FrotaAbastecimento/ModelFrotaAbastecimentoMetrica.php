@@ -28,6 +28,14 @@ class ModelFrotaAbastecimentoMetrica
     }
 
     /**
+     * Alias para buscarPorAbastecimentoId
+     */
+    public function buscarPorAbastecimento(int $abastecimento_id): ?array
+    {
+        return $this->buscarPorAbastecimentoId($abastecimento_id);
+    }
+
+    /**
      * Cria registro de métrica
      */
     public function criar(array $dados): int
@@ -97,6 +105,33 @@ class ModelFrotaAbastecimentoMetrica
             AND fa.status = 'abastecido'
             AND fa.deletado_em IS NULL
             AND m.consumo_km_por_litro IS NOT NULL
+        ";
+
+        $parametros = [$frota_id];
+
+        if ($periodo) {
+            $sql .= " AND fa.data_abastecimento BETWEEN ? AND ?";
+            $parametros[] = $periodo['inicio'];
+            $parametros[] = $periodo['fim'];
+        }
+
+        $resultado = $this->db->buscarUm($sql, $parametros);
+        return $resultado ? (float) $resultado['media'] : null;
+    }
+
+    /**
+     * Calcula média de custo por km de uma frota
+     */
+    public function calcularMediaCustoPorKm(int $frota_id, ?array $periodo = null): ?float
+    {
+        $sql = "
+            SELECT AVG(m.custo_por_km) as media
+            FROM frotas_abastecimentos_metricas m
+            INNER JOIN frotas_abastecimentos fa ON fa.id = m.abastecimento_id
+            WHERE fa.frota_id = ?
+            AND fa.status = 'abastecido'
+            AND fa.deletado_em IS NULL
+            AND m.custo_por_km IS NOT NULL
         ";
 
         $parametros = [$frota_id];

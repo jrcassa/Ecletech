@@ -28,9 +28,23 @@ class ModelFrotaAbastecimentoRelatorioConfiguracao
     }
 
     /**
-     * Busca configuração de um colaborador
+     * Busca todas as configurações de um colaborador
      */
-    public function buscarPorColaborador(int $colaborador_id, string $tipo_relatorio): ?array
+    public function buscarPorColaborador(int $colaborador_id): array
+    {
+        $sql = "
+            SELECT * FROM frotas_abastecimentos_relatorios_configuracoes
+            WHERE colaborador_id = ?
+            ORDER BY tipo_relatorio ASC
+        ";
+
+        return $this->db->buscarTodos($sql, [$colaborador_id]);
+    }
+
+    /**
+     * Busca configuração específica de um colaborador e tipo
+     */
+    public function buscarPorColaboradorETipo(int $colaborador_id, string $tipo_relatorio): ?array
     {
         $sql = "
             SELECT * FROM frotas_abastecimentos_relatorios_configuracoes

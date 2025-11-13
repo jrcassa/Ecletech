@@ -116,25 +116,48 @@ class ServiceFrotaAbastecimento
      */
     public function anexarComprovante(int $abastecimento_id, string $arquivo_base64): array
     {
-        // Validar arquivo
-        $validacao = AuxiliarS3::validarBase64($arquivo_base64, [
-            'tipos_permitidos' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
-            'tamanho_max' => 5 * 1024 * 1024 // 5MB
-        ]);
-
-        if (!$validacao['valido']) {
-            throw new Exception($validacao['erro']);
+        // Validar se é base64 válido
+        if (!AuxiliarS3::validarBase64($arquivo_base64)) {
+            throw new \Exception('Arquivo base64 inválido');
         }
 
+        // Remove prefixo data: se existir
+        $arquivo_base64 = preg_replace('#^data:[\w/]+;base64,#i', '', $arquivo_base64);
+
+        // Decodifica
+        $conteudo = base64_decode($arquivo_base64);
+
+        // Detecta tipo MIME
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $tipoMime = $finfo->buffer($conteudo);
+
+        // Valida tipos permitidos
+        $tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!in_array($tipoMime, $tiposPermitidos)) {
+            throw new \Exception('Tipo de arquivo não permitido. Permitidos: PDF, JPEG, PNG');
+        }
+
+        // Valida tamanho (máx 5MB)
+        if (strlen($conteudo) > 5 * 1024 * 1024) {
+            throw new \Exception('Arquivo muito grande. Máximo: 5MB');
+        }
+
+        // Determina extensão
+        $extensao = match($tipoMime) {
+            'application/pdf' => 'pdf',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            default => 'bin'
+        };
+
         // Preparar dados para upload
-        $nomeOriginal = 'comprovante_' . $abastecimento_id . '.' . $validacao['extensao'];
-        $conteudo = base64_decode($validacao['conteudo']);
+        $nomeOriginal = 'comprovante_' . $abastecimento_id . '.' . $extensao;
 
         // Upload para S3
         $resultado = $this->serviceS3->upload([
             'nome_original' => $nomeOriginal,
             'conteudo' => $conteudo,
-            'tipo_mime' => $validacao['tipo_mime'],
+            'tipo_mime' => $tipoMime,
             'caminho_s3' => 'frota/abastecimentos/' . date('Y/m'),
             'acl' => 'private',
             'metadata' => [
@@ -155,13 +178,18 @@ class ServiceFrotaAbastecimento
      */
     public function obterComprovantes(int $abastecimento_id): array
     {
-        $arquivos = $this->modelS3->listarPorEntidade('frota_abastecimento', $abastecimento_id, 'comprovante_pagamento');
+        $arquivos = $this->modelS3->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
+
+        // Filtrar apenas comprovantes
+        $comprovantes = array_filter($arquivos, function($arquivo) {
+            return ($arquivo['categoria'] ?? '') === 'comprovante_pagamento';
+        });
 
         // Gerar URLs temporárias
-        foreach ($arquivos as &$arquivo) {
-            $arquivo['url_temporaria'] = $this->serviceS3->gerarUrlTemporaria($arquivo['id'], 3600);
+        foreach ($comprovantes as &$arquivo) {
+            $arquivo['url_temporaria'] = $this->serviceS3->obterUrlTemporaria($arquivo['caminho_s3'], 3600);
         }
 
-        return $arquivos;
+        return array_values($comprovantes);
     }
 }
