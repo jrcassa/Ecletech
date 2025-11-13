@@ -8,6 +8,7 @@ use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
 use App\Models\Colaborador\ModelColaborador;
 use App\Models\S3\ModelS3Arquivo;
+use App\Models\S3\ModelS3Cliente;
 use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Services\S3\ServiceS3;
 use App\Core\BancoDados;
@@ -24,6 +25,7 @@ class ServiceFrotaAbastecimentoNotificacao
     private ModelFrotaAbastecimentoAlerta $modelAlerta;
     private ModelColaborador $modelColaborador;
     private ModelS3Arquivo $modelS3Arquivo;
+    private ModelS3Cliente $modelS3Cliente;
     private ServiceWhatsapp $serviceWhatsapp;
     private ServiceS3 $serviceS3;
     private BancoDados $db;
@@ -36,6 +38,7 @@ class ServiceFrotaAbastecimentoNotificacao
         $this->modelAlerta = new ModelFrotaAbastecimentoAlerta();
         $this->modelColaborador = new ModelColaborador();
         $this->modelS3Arquivo = new ModelS3Arquivo();
+        $this->modelS3Cliente = new ModelS3Cliente();
         $this->serviceWhatsapp = new ServiceWhatsapp();
         $this->serviceS3 = new ServiceS3();
         $this->db = BancoDados::obterInstancia();
@@ -119,8 +122,12 @@ class ServiceFrotaAbastecimentoNotificacao
                 $comprovante = reset($comprovantes); // Pega o primeiro elemento do array filtrado
                 error_log("[ABASTECIMENTO {$abastecimento_id}] Comprovante ID: " . $comprovante['id']);
 
-                $resultado = $this->serviceS3->gerarUrlAssinada($comprovante['id'], 3600); // 1 hora
-                $urlComprovante = $resultado['url'] ?? null;
+                // Gerar URL presignada diretamente usando ModelS3Cliente
+                $urlComprovante = $this->modelS3Cliente->getPresignedUrl(
+                    $comprovante['bucket'],
+                    $comprovante['caminho_s3'],
+                    3600 // 1 hora
+                );
                 error_log("[ABASTECIMENTO {$abastecimento_id}] URL gerada: " . ($urlComprovante ? 'SIM' : 'NÃO'));
             } else {
                 error_log("[ABASTECIMENTO {$abastecimento_id}] Nenhum comprovante encontrado");
