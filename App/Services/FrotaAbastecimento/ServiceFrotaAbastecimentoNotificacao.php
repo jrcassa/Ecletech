@@ -57,10 +57,8 @@ class ServiceFrotaAbastecimentoNotificacao
         try {
             $resultado = $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
-                    'tipo_entidade' => 'colaborador',
-                    'entidade_id' => $abastecimento['colaborador_id'],
-                    'numero' => $motorista['celular'],
-                    'nome' => $motorista['nome']
+                    'tipo' => 'colaborador',
+                    'id' => $abastecimento['colaborador_id']
                 ],
                 'tipo' => 'text',
                 'mensagem' => $mensagem,
@@ -106,10 +104,8 @@ class ServiceFrotaAbastecimentoNotificacao
             try {
                 $this->serviceWhatsapp->enviarMensagem([
                     'destinatario' => [
-                        'tipo_entidade' => 'colaborador',
-                        'entidade_id' => $destinatario['id'],
-                        'numero' => $destinatario['celular'],
-                        'nome' => $destinatario['nome']
+                        'tipo' => 'colaborador',
+                        'id' => $destinatario['id']
                     ],
                     'tipo' => 'text',
                     'mensagem' => $mensagem,
@@ -151,10 +147,8 @@ class ServiceFrotaAbastecimentoNotificacao
         try {
             $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
-                    'tipo_entidade' => 'colaborador',
-                    'entidade_id' => $abastecimento['colaborador_id'],
-                    'numero' => $motorista['celular'],
-                    'nome' => $motorista['nome']
+                    'tipo' => 'colaborador',
+                    'id' => $abastecimento['colaborador_id']
                 ],
                 'tipo' => 'text',
                 'mensagem' => $mensagem,
