@@ -206,7 +206,8 @@ class ModelFrotaAbastecimentoAlerta
             $dados['valor_real'] ?? null
         ];
 
-        return $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        return (int) $this->db->obterConexao()->lastInsertId();
     }
 
     /**

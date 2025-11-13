@@ -288,10 +288,11 @@ class ModelFrotaAbastecimento
             $dados['criado_por']
         ];
 
-        $id = $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        $id = (int) $this->db->obterConexao()->lastInsertId();
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'criar', [
+        $this->auditoria->registrar('criar', 'frotas_abastecimentos', $id, null, [
             'frota_id' => $dados['frota_id'],
             'colaborador_id' => $dados['colaborador_id']
         ]);
@@ -332,7 +333,7 @@ class ModelFrotaAbastecimento
         $this->db->executar($sql, $parametros);
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'atualizar', $dados);
+        $this->auditoria->registrar('atualizar', 'frotas_abastecimentos', $id, null, $dados);
 
         return true;
     }
@@ -386,7 +387,7 @@ class ModelFrotaAbastecimento
         $this->db->executar($sql, $parametros);
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'finalizar', $dados);
+        $this->auditoria->registrar('finalizar', 'frotas_abastecimentos', $id, null, $dados);
 
         return true;
     }
@@ -406,7 +407,7 @@ class ModelFrotaAbastecimento
         $this->db->executar($sql, [$observacao, $id]);
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'cancelar', ['observacao' => $observacao]);
+        $this->auditoria->registrar('cancelar', 'frotas_abastecimentos', $id, null, ['observacao' => $observacao]);
 
         return true;
     }
@@ -424,7 +425,8 @@ class ModelFrotaAbastecimento
             AND deletado_em IS NULL
         ";
 
-        return $this->db->executar($sql);
+        $stmt = $this->db->executar($sql);
+        return $stmt->rowCount();
     }
 
     /**
@@ -468,7 +470,7 @@ class ModelFrotaAbastecimento
         $this->db->executar($sql, [$id]);
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'deletar', []);
+        $this->auditoria->registrar('deletar', 'frotas_abastecimentos', $id, null, []);
 
         return true;
     }
@@ -482,7 +484,7 @@ class ModelFrotaAbastecimento
         $this->db->executar($sql, [$id]);
 
         // Registrar auditoria
-        $this->auditoria->registrar('frotas_abastecimentos', $id, 'restaurar', []);
+        $this->auditoria->registrar('restaurar', 'frotas_abastecimentos', $id, null, []);
 
         return true;
     }

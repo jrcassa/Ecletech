@@ -58,7 +58,8 @@ class ModelFrotaAbastecimentoMetrica
             $dados['media_km_por_dia'] ?? null
         ];
 
-        return $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        return (int) $this->db->obterConexao()->lastInsertId();
     }
 
     /**
