@@ -250,8 +250,22 @@ class ModelWhatsappBaileys
      */
     public function sendFile(string $numero, string $tipo, ?string $url, ?string $base64, ?string $caption, ?string $filename): string
     {
-        $data = ['number' => $numero];
+        // Monta payload conforme especificação da API
+        $data = [
+            'id' => $numero,
+            'typeId' => 'user',
+            'type' => $tipo,
+            'options' => [
+                'caption' => $caption ?? '',
+                'replyFrom' => '',
+                'delay' => 0
+            ],
+            'groupOptions' => [
+                'markUser' => false
+            ]
+        ];
 
+        // Adiciona URL ou base64
         if ($url !== null) {
             $data['url'] = $url;
         } elseif ($base64 !== null) {
@@ -260,25 +274,12 @@ class ModelWhatsappBaileys
             throw new \Exception('URL ou base64 é obrigatório');
         }
 
-        if ($caption) {
-            $data['caption'] = $caption;
-        }
-
+        // Adiciona filename se fornecido (útil para documentos)
         if ($filename) {
-            $data['filename'] = $filename;
+            $data['options']['filename'] = $filename;
         }
 
-        // Mapeia tipo para endpoint
-        $endpoints = [
-            'image' => 'message/image',
-            'pdf' => 'message/document',
-            'document' => 'message/document',
-            'audio' => 'message/audio',
-            'video' => 'message/video'
-        ];
-
-        $endpoint = $endpoints[$tipo] ?? 'message/document';
-
-        return $this->request("{$endpoint}?key={$this->instanceToken}", 'POST', $data);
+        // Usa endpoint unificado /message/sendurlfile
+        return $this->request("message/sendurlfile?key={$this->instanceToken}", 'POST', $data);
     }
 }
