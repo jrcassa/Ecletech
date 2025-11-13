@@ -74,7 +74,12 @@ try {
             $stmtUpdate->execute([$log['id']]);
 
             // Tenta reenviar
-            $serviceWhatsapp->enviarMensagem($log['telefone'], $log['mensagem']);
+            $serviceWhatsapp->enviarMensagem([
+                'destinatario' => $log['telefone'],
+                'tipo' => 'text',
+                'mensagem' => $log['mensagem'],
+                'prioridade' => 'normal'
+            ]);
 
             // Marca como enviado
             $modelLog->marcarEnviado($log['id']);
