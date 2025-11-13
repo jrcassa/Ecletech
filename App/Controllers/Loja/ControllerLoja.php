@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Loja;
 
+use App\Controllers\BaseController;
+
 use App\Models\Loja\ModelLoja;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -12,7 +14,7 @@ use App\Helpers\AuxiliarSanitizacao;
  * Controller para gerenciar informações da loja
  * IMPORTANTE: Esta tabela mantém apenas 1 registro (Singleton)
  */
-class ControllerLoja
+class ControllerLoja extends BaseController
 {
     private ModelLoja $model;
     private Autenticacao $auth;
@@ -32,13 +34,13 @@ class ControllerLoja
             $loja = $this->model->obter();
 
             if (!$loja) {
-                AuxiliarResposta::naoEncontrado('Informações da loja não encontradas');
+                $this->naoEncontrado('Informações da loja não encontradas');
                 return;
             }
 
-            AuxiliarResposta::sucesso($loja, 'Informações da loja obtidas com sucesso');
+            $this->sucesso($loja, 'Informações da loja obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -52,11 +54,11 @@ class ControllerLoja
             $idLoja = $this->model->obterIdUnico();
 
             if (!$idLoja) {
-                AuxiliarResposta::naoEncontrado('Registro da loja não encontrado');
+                $this->naoEncontrado('Registro da loja não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitiza os dados
             $dados = $this->sanitizarDados($dados);
@@ -65,7 +67,7 @@ class ControllerLoja
             $validacao = $this->model->validar($dados, $idLoja);
 
             if (!$validacao['valido']) {
-                AuxiliarResposta::validacao($validacao['erros']);
+                $this->validacao($validacao['erros']);
                 return;
             }
 
@@ -121,7 +123,7 @@ class ControllerLoja
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -146,15 +148,15 @@ class ControllerLoja
             $resultado = $this->model->atualizar($idLoja, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar informações da loja', 400);
+                $this->erro('Erro ao atualizar informações da loja', 400);
                 return;
             }
 
             $loja = $this->model->buscarPorId($idLoja);
 
-            AuxiliarResposta::sucesso($loja, 'Informações da loja atualizadas com sucesso');
+            $this->sucesso($loja, 'Informações da loja atualizadas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 

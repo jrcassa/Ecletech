@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Cidade;
 
+use App\Controllers\BaseController;
+
 use App\Models\Cidade\ModelCidade;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarSanitizacao;
 /**
  * Controller para gerenciar cidades
  */
-class ControllerCidade
+class ControllerCidade extends BaseController
 {
     private ModelCidade $model;
     private Autenticacao $auth;
@@ -51,7 +53,7 @@ class ControllerCidade
             $cidades = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $cidades,
                 $total,
                 $paginaAtual,
@@ -59,7 +61,7 @@ class ControllerCidade
                 'Cidades listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -69,21 +71,18 @@ class ControllerCidade
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $cidade = $this->model->buscarPorId((int) $id);
 
             if (!$cidade) {
-                AuxiliarResposta::naoEncontrado('Cidade não encontrada');
+                $this->naoEncontrado('Cidade não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($cidade, 'Cidade encontrada');
+            $this->sucesso($cidade, 'Cidade encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -93,7 +92,7 @@ class ControllerCidade
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -102,7 +101,7 @@ class ControllerCidade
             $erros = $this->validarDados($dados);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -129,9 +128,9 @@ class ControllerCidade
 
             $cidade = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($cidade, 'Cidade cadastrada com sucesso');
+            $this->criado($cidade, 'Cidade cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -141,19 +140,16 @@ class ControllerCidade
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a cidade existe
             $cidadeExistente = $this->model->buscarPorId((int) $id);
             if (!$cidadeExistente) {
-                AuxiliarResposta::naoEncontrado('Cidade não encontrada');
+                $this->naoEncontrado('Cidade não encontrada');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -162,7 +158,7 @@ class ControllerCidade
             $erros = $this->validarDados($dados, (int) $id);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -190,15 +186,15 @@ class ControllerCidade
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar cidade', 400);
+                $this->erro('Erro ao atualizar cidade', 400);
                 return;
             }
 
             $cidade = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($cidade, 'Cidade atualizada com sucesso');
+            $this->sucesso($cidade, 'Cidade atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -208,15 +204,12 @@ class ControllerCidade
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a cidade existe
             $cidade = $this->model->buscarPorId((int) $id);
             if (!$cidade) {
-                AuxiliarResposta::naoEncontrado('Cidade não encontrada');
+                $this->naoEncontrado('Cidade não encontrada');
                 return;
             }
 
@@ -228,13 +221,13 @@ class ControllerCidade
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar cidade', 400);
+                $this->erro('Erro ao deletar cidade', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Cidade removida com sucesso');
+            $this->sucesso(null, 'Cidade removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -246,9 +239,9 @@ class ControllerCidade
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de cidades obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas de cidades obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 

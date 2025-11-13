@@ -2,6 +2,8 @@
 
 namespace App\Controllers\GruposProdutos;
 
+use App\Controllers\BaseController;
+
 use App\Models\GruposProdutos\ModelGruposProdutos;
 use App\Core\Autenticacao;
 use App\Core\BancoDados;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar grupos de produtos
  */
-class ControllerGruposProdutos
+class ControllerGruposProdutos extends BaseController
 {
     private ModelGruposProdutos $model;
     private Autenticacao $auth;
@@ -53,7 +55,7 @@ class ControllerGruposProdutos
             $gruposProdutos = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $gruposProdutos,
                 $total,
                 $paginaAtual,
@@ -61,7 +63,7 @@ class ControllerGruposProdutos
                 'Grupos de produtos listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -71,21 +73,18 @@ class ControllerGruposProdutos
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $grupoProdutos = $this->model->buscarPorId((int) $id);
 
             if (!$grupoProdutos) {
-                AuxiliarResposta::naoEncontrado('Grupo de produtos não encontrado');
+                $this->naoEncontrado('Grupo de produtos não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($grupoProdutos, 'Grupo de produtos encontrado');
+            $this->sucesso($grupoProdutos, 'Grupo de produtos encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -95,7 +94,7 @@ class ControllerGruposProdutos
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -103,7 +102,7 @@ class ControllerGruposProdutos
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -130,9 +129,9 @@ class ControllerGruposProdutos
 
             $grupoProdutos = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($grupoProdutos, 'Grupo de produtos cadastrado com sucesso');
+            $this->criado($grupoProdutos, 'Grupo de produtos cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -142,19 +141,16 @@ class ControllerGruposProdutos
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o grupo existe
             $grupoProdutosExistente = $this->model->buscarPorId((int) $id);
             if (!$grupoProdutosExistente) {
-                AuxiliarResposta::naoEncontrado('Grupo de produtos não encontrado');
+                $this->naoEncontrado('Grupo de produtos não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação dos dados (campos opcionais)
             $regras = [];
@@ -166,7 +162,7 @@ class ControllerGruposProdutos
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -194,15 +190,15 @@ class ControllerGruposProdutos
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar grupo de produtos', 400);
+                $this->erro('Erro ao atualizar grupo de produtos', 400);
                 return;
             }
 
             $grupoProdutos = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($grupoProdutos, 'Grupo de produtos atualizado com sucesso');
+            $this->sucesso($grupoProdutos, 'Grupo de produtos atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -212,15 +208,12 @@ class ControllerGruposProdutos
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o grupo existe
             $grupoProdutos = $this->model->buscarPorId((int) $id);
             if (!$grupoProdutos) {
-                AuxiliarResposta::naoEncontrado('Grupo de produtos não encontrado');
+                $this->naoEncontrado('Grupo de produtos não encontrado');
                 return;
             }
 
@@ -232,13 +225,13 @@ class ControllerGruposProdutos
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar grupo de produtos', 400);
+                $this->erro('Erro ao deletar grupo de produtos', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Grupo de produtos removido com sucesso');
+            $this->sucesso(null, 'Grupo de produtos removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -250,9 +243,9 @@ class ControllerGruposProdutos
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos grupos de produtos obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas dos grupos de produtos obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

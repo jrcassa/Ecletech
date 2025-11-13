@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Whatsapp;
 
+use App\Controllers\BaseController;
+
 use App\Models\Whatsapp\ModelWhatsappBaileys;
 use App\Models\Whatsapp\ModelWhatsappConfiguracao;
 use App\Helpers\AuxiliarResposta;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Controller para gerenciar conexão com WhatsApp
  */
-class ControllerWhatsappConexao
+class ControllerWhatsappConexao extends BaseController
 {
     private ModelWhatsappBaileys $baileys;
     private ModelWhatsappConfiguracao $config;
@@ -94,10 +96,10 @@ class ControllerWhatsappConexao
                 }
             }
 
-            AuxiliarResposta::sucesso($resultado, 'Status obtido');
+            $this->sucesso($resultado, 'Status obtido');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -112,16 +114,16 @@ class ControllerWhatsappConexao
             if (isset($response['error']) && $response['error'] === false) {
                 $this->config->salvar('instancia_status', 'qrcode');
 
-                AuxiliarResposta::sucesso(
+                $this->sucesso(
                     ['response' => $response],
                     'Instância criada com sucesso'
                 );
             } else {
-                AuxiliarResposta::erro($response['message'] ?? 'Erro ao criar instância', 400);
+                $this->erro($response['message'] ?? 'Erro ao criar instância', 400);
             }
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -137,10 +139,10 @@ class ControllerWhatsappConexao
             $this->config->salvar('instancia_telefone', '');
             $this->config->salvar('instancia_nome', '');
 
-            AuxiliarResposta::sucesso(null, 'Instância desconectada com sucesso');
+            $this->sucesso(null, 'Instância desconectada com sucesso');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -168,13 +170,13 @@ class ControllerWhatsappConexao
             }
 
             if ($qrCode) {
-                AuxiliarResposta::sucesso(['qr_code' => $qrCode], 'QR Code obtido');
+                $this->sucesso(['qr_code' => $qrCode], 'QR Code obtido');
             } else {
-                AuxiliarResposta::erro('QR Code não disponível', 400);
+                $this->erro('QR Code não disponível', 400);
             }
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

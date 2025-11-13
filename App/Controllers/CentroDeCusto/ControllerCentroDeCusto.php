@@ -2,6 +2,8 @@
 
 namespace App\Controllers\CentroDeCusto;
 
+use App\Controllers\BaseController;
+
 use App\Models\CentroDeCusto\ModelCentroDeCusto;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar centros de custo
  */
-class ControllerCentroDeCusto
+class ControllerCentroDeCusto extends BaseController
 {
     private ModelCentroDeCusto $model;
     private Autenticacao $auth;
@@ -50,7 +52,7 @@ class ControllerCentroDeCusto
             $centros = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $centros,
                 $total,
                 $paginaAtual,
@@ -58,7 +60,7 @@ class ControllerCentroDeCusto
                 'Centros de custo listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -68,21 +70,18 @@ class ControllerCentroDeCusto
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $centro = $this->model->buscarPorId((int) $id);
 
             if (!$centro) {
-                AuxiliarResposta::naoEncontrado('Centro de custo não encontrado');
+                $this->naoEncontrado('Centro de custo não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($centro, 'Centro de custo encontrado');
+            $this->sucesso($centro, 'Centro de custo encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -92,7 +91,7 @@ class ControllerCentroDeCusto
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -100,7 +99,7 @@ class ControllerCentroDeCusto
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -126,9 +125,9 @@ class ControllerCentroDeCusto
 
             $centro = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($centro, 'Centro de custo cadastrado com sucesso');
+            $this->criado($centro, 'Centro de custo cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -138,19 +137,16 @@ class ControllerCentroDeCusto
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o centro de custo existe
             $centroExistente = $this->model->buscarPorId((int) $id);
             if (!$centroExistente) {
-                AuxiliarResposta::naoEncontrado('Centro de custo não encontrado');
+                $this->naoEncontrado('Centro de custo não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação dos dados (campos opcionais)
             $regras = [];
@@ -162,7 +158,7 @@ class ControllerCentroDeCusto
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -189,15 +185,15 @@ class ControllerCentroDeCusto
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar centro de custo', 400);
+                $this->erro('Erro ao atualizar centro de custo', 400);
                 return;
             }
 
             $centro = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($centro, 'Centro de custo atualizado com sucesso');
+            $this->sucesso($centro, 'Centro de custo atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -207,15 +203,12 @@ class ControllerCentroDeCusto
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o centro de custo existe
             $centro = $this->model->buscarPorId((int) $id);
             if (!$centro) {
-                AuxiliarResposta::naoEncontrado('Centro de custo não encontrado');
+                $this->naoEncontrado('Centro de custo não encontrado');
                 return;
             }
 
@@ -227,13 +220,13 @@ class ControllerCentroDeCusto
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar centro de custo', 400);
+                $this->erro('Erro ao deletar centro de custo', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Centro de custo removido com sucesso');
+            $this->sucesso(null, 'Centro de custo removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -244,9 +237,9 @@ class ControllerCentroDeCusto
     {
         try {
             $estatisticas = $this->model->obterEstatisticas();
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

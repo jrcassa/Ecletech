@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Permissao;
 
+use App\Controllers\BaseController;
+
 use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -10,7 +12,7 @@ use App\Middleware\MiddlewareAcl;
 /**
  * Controlador para gerenciar permissões
  */
-class ControllerPermissao
+class ControllerPermissao extends BaseController
 {
     private ModelColaboradorPermission $model;
 
@@ -41,7 +43,7 @@ class ControllerPermissao
 
             $permissoes = $this->model->listar($filtros);
 
-            AuxiliarResposta::sucesso($permissoes);
+            $this->sucesso($permissoes);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -56,11 +58,11 @@ class ControllerPermissao
             $permissao = $this->model->buscarPorId($id);
 
             if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+                $this->naoEncontrado('Permissão não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($permissao);
+            $this->sucesso($permissao);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -83,7 +85,7 @@ class ControllerPermissao
                 $agrupadas[$modulo][] = $permissao;
             }
 
-            AuxiliarResposta::sucesso($agrupadas);
+            $this->sucesso($agrupadas);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -122,7 +124,7 @@ class ControllerPermissao
             $usuarioId = $_SESSION['usuario']['id'] ?? null;
             $id = $this->model->criar($dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'id' => $id,
                 'mensagem' => 'Permissão criada com sucesso'
             ], 201);
@@ -140,7 +142,7 @@ class ControllerPermissao
             $permissao = $this->model->buscarPorId($id);
 
             if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+                $this->naoEncontrado('Permissão não encontrada');
                 return;
             }
 
@@ -171,7 +173,7 @@ class ControllerPermissao
             $usuarioId = $_SESSION['usuario']['id'] ?? null;
             $this->model->atualizar($id, $dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'mensagem' => 'Permissão atualizada com sucesso'
             ]);
         } catch (\Exception $e) {
@@ -188,7 +190,7 @@ class ControllerPermissao
             $permissao = $this->model->buscarPorId($id);
 
             if (!$permissao) {
-                AuxiliarResposta::naoEncontrado('Permissão não encontrada');
+                $this->naoEncontrado('Permissão não encontrada');
                 return;
             }
 
@@ -196,11 +198,11 @@ class ControllerPermissao
             $sucesso = $this->model->deletar($id, $usuarioId);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso([
+                $this->sucesso([
                     'mensagem' => 'Permissão deletada com sucesso'
                 ]);
             } else {
-                AuxiliarResposta::erro('Não foi possível deletar a permissão', 500);
+                $this->erro('Não foi possível deletar a permissão', 500);
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
@@ -216,7 +218,7 @@ class ControllerPermissao
             $middleware = new MiddlewareAcl();
             $permissoes = $middleware->obterPermissoesUsuarioAtual();
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'permissoes' => $permissoes
             ]);
         } catch (\Exception $e) {

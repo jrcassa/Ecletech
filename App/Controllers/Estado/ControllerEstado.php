@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Estado;
 
+use App\Controllers\BaseController;
+
 use App\Models\Estado\ModelEstado;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarSanitizacao;
 /**
  * Controller para gerenciar estados
  */
-class ControllerEstado
+class ControllerEstado extends BaseController
 {
     private ModelEstado $model;
     private Autenticacao $auth;
@@ -51,7 +53,7 @@ class ControllerEstado
             $estados = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $estados,
                 $total,
                 $paginaAtual,
@@ -59,7 +61,7 @@ class ControllerEstado
                 'Estados listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -69,21 +71,18 @@ class ControllerEstado
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $estado = $this->model->buscarPorId((int) $id);
 
             if (!$estado) {
-                AuxiliarResposta::naoEncontrado('Estado não encontrado');
+                $this->naoEncontrado('Estado não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($estado, 'Estado encontrado');
+            $this->sucesso($estado, 'Estado encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -93,7 +92,7 @@ class ControllerEstado
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -102,7 +101,7 @@ class ControllerEstado
             $erros = $this->validarDados($dados);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -135,9 +134,9 @@ class ControllerEstado
 
             $estado = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($estado, 'Estado cadastrado com sucesso');
+            $this->criado($estado, 'Estado cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -147,19 +146,16 @@ class ControllerEstado
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o estado existe
             $estadoExistente = $this->model->buscarPorId((int) $id);
             if (!$estadoExistente) {
-                AuxiliarResposta::naoEncontrado('Estado não encontrado');
+                $this->naoEncontrado('Estado não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -168,7 +164,7 @@ class ControllerEstado
             $erros = $this->validarDados($dados, (int) $id);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -204,15 +200,15 @@ class ControllerEstado
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar estado', 400);
+                $this->erro('Erro ao atualizar estado', 400);
                 return;
             }
 
             $estado = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($estado, 'Estado atualizado com sucesso');
+            $this->sucesso($estado, 'Estado atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -222,15 +218,12 @@ class ControllerEstado
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o estado existe
             $estado = $this->model->buscarPorId((int) $id);
             if (!$estado) {
-                AuxiliarResposta::naoEncontrado('Estado não encontrado');
+                $this->naoEncontrado('Estado não encontrado');
                 return;
             }
 
@@ -242,13 +235,13 @@ class ControllerEstado
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar estado', 400);
+                $this->erro('Erro ao deletar estado', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Estado removido com sucesso');
+            $this->sucesso(null, 'Estado removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -260,9 +253,9 @@ class ControllerEstado
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de estados obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas de estados obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 

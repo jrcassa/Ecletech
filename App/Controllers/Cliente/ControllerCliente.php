@@ -2,14 +2,13 @@
 
 namespace App\Controllers\Cliente;
 
+use App\Controllers\BaseController;
 use App\Services\Cliente\ServiceCliente;
-use App\Helpers\AuxiliarResposta;
-use App\Helpers\AuxiliarValidacao;
 
 /**
  * Controller para gerenciar clientes
  */
-class ControllerCliente
+class ControllerCliente extends BaseController
 {
     private ServiceCliente $service;
 
@@ -24,39 +23,27 @@ class ControllerCliente
     public function listar(): void
     {
         try {
-            // Obtém parâmetros de filtro e paginação
-            $filtros = [
-                'ativo' => $_GET['ativo'] ?? null,
-                'tipo_pessoa' => $_GET['tipo_pessoa'] ?? null,
-                'busca' => $_GET['busca'] ?? null,
-                'ordenacao' => $_GET['ordenacao'] ?? 'nome',
-                'direcao' => $_GET['direcao'] ?? 'ASC'
-            ];
+            // Obtém parâmetros de filtro e paginação usando BaseController
+            $filtros = $this->obterFiltros(['ativo', 'tipo_pessoa', 'busca']);
+            $paginacao = $this->obterPaginacao();
+            $ordenacao = $this->obterOrdenacao('nome');
 
-            // Remove filtros vazios
-            $filtros = array_filter($filtros, fn($valor) => $valor !== null && $valor !== '');
-
-            // Paginação
-            $paginaAtual = (int) ($_GET['pagina'] ?? 1);
-            $porPagina = (int) ($_GET['por_pagina'] ?? 20);
-            $offset = ($paginaAtual - 1) * $porPagina;
-
-            $filtros['limite'] = $porPagina;
-            $filtros['offset'] = $offset;
+            // Combina todos os parâmetros
+            $parametros = $this->mergeArrays($filtros, $paginacao, $ordenacao);
 
             // Busca dados via Service
-            $clientes = $this->service->listar($filtros);
-            $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
+            $clientes = $this->service->listar($parametros);
+            $total = $this->service->contar(array_diff_key($parametros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $clientes,
                 $total,
-                $paginaAtual,
-                $porPagina,
+                $paginacao['pagina'],
+                $paginacao['por_pagina'],
                 'Clientes listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 
@@ -66,21 +53,19 @@ class ControllerCliente
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
+            if (!$this->validarId($id, 'Cliente')) {
                 return;
             }
 
             $cliente = $this->service->buscarComRelacionamentos((int) $id);
 
-            if (!$cliente) {
-                AuxiliarResposta::naoEncontrado('Cliente não encontrado');
+            if (!$this->validarExistencia($cliente, 'Cliente')) {
                 return;
             }
 
-            AuxiliarResposta::sucesso($cliente, 'Cliente encontrado');
+            $this->sucesso($cliente, 'Cliente encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 
@@ -90,53 +75,25 @@ class ControllerCliente
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
-            // Validação básica
-            $erros = AuxiliarValidacao::validar($dados, [
+            // Validação básica usando BaseController
+            if (!$this->validar($dados, [
                 'tipo_pessoa' => 'obrigatorio|em:PF,PJ',
                 'nome' => 'obrigatorio|min:3|max:200'
-            ]);
-
-            // Validações condicionais por tipo de pessoa
-            if (isset($dados['tipo_pessoa'])) {
-                if ($dados['tipo_pessoa'] === 'PJ') {
-                    // Para PJ, CNPJ é obrigatório
-                    $errosCondicional = AuxiliarValidacao::validar($dados, [
-                        'cnpj' => 'obrigatorio|cnpj'
-                    ]);
-                    $erros = array_merge($erros, $errosCondicional);
-                } elseif ($dados['tipo_pessoa'] === 'PF') {
-                    // Para PF, CPF é obrigatório
-                    $errosCondicional = AuxiliarValidacao::validar($dados, [
-                        'cpf' => 'obrigatorio|cpf'
-                    ]);
-                    $erros = array_merge($erros, $errosCondicional);
-                }
-            }
-
-            // Validações opcionais
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                $errosOpcionais = AuxiliarValidacao::validar($dados, ['email' => 'email']);
-                $erros = array_merge($erros, $errosOpcionais);
-            }
-
-            if (isset($dados['data_nascimento']) && !empty($dados['data_nascimento'])) {
-                $errosOpcionais = AuxiliarValidacao::validar($dados, ['data_nascimento' => 'data']);
-                $erros = array_merge($erros, $errosOpcionais);
-            }
-
-            if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+            ])) {
                 return;
             }
+
+            // Validações condicionais delegadas ao Service
+            // O Service tratará validações de negócio complexas
 
             // Delega para o Service (validações de negócio + criação + transação)
             $cliente = $this->service->criarCompleto($dados);
 
-            AuxiliarResposta::criado($cliente, 'Cliente cadastrado com sucesso');
+            $this->criado($cliente, 'Cliente cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 
@@ -146,139 +103,19 @@ class ControllerCliente
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
+            if (!$this->validarId($id, 'Cliente')) {
                 return;
             }
 
-            // Verifica se o cliente existe
-            $clienteExistente = $this->model->buscarPorId((int) $id);
-            if (!$clienteExistente) {
-                AuxiliarResposta::naoEncontrado('Cliente não encontrado');
-                return;
-            }
+            $dados = $this->obterDados();
 
-            $dados = AuxiliarResposta::obterDados();
+            // Delega para o Service (validações de negócio + atualização + transação)
+            // O Service tratará todas as validações complexas e relacionamentos
+            $cliente = $this->service->atualizarCompleto((int) $id, $dados);
 
-            // Validação dos dados (campos opcionais)
-            $regras = [];
-
-            if (isset($dados['tipo_pessoa'])) {
-                $regras['tipo_pessoa'] = 'obrigatorio|em:PF,PJ';
-            }
-
-            if (isset($dados['nome'])) {
-                $regras['nome'] = 'obrigatorio|min:3|max:200';
-            }
-
-            if (isset($dados['cnpj']) && !empty($dados['cnpj'])) {
-                $regras['cnpj'] = 'cnpj';
-            }
-
-            if (isset($dados['cpf']) && !empty($dados['cpf'])) {
-                $regras['cpf'] = 'cpf';
-            }
-
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                $regras['email'] = 'email';
-            }
-
-            if (isset($dados['data_nascimento']) && !empty($dados['data_nascimento'])) {
-                $regras['data_nascimento'] = 'data';
-            }
-
-            $erros = AuxiliarValidacao::validar($dados, $regras);
-
-            if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
-                return;
-            }
-
-            // Verifica duplicatas (excluindo o próprio cliente)
-            if (isset($dados['cnpj']) && !empty($dados['cnpj'])) {
-                $dados['cnpj'] = preg_replace('/[^0-9]/', '', $dados['cnpj']);
-                if ($this->model->cnpjExiste($dados['cnpj'], (int) $id)) {
-                    AuxiliarResposta::conflito('CNPJ já cadastrado em outro cliente');
-                    return;
-                }
-            }
-
-            if (isset($dados['cpf']) && !empty($dados['cpf'])) {
-                $dados['cpf'] = preg_replace('/[^0-9]/', '', $dados['cpf']);
-                if ($this->model->cpfExiste($dados['cpf'], (int) $id)) {
-                    AuxiliarResposta::conflito('CPF já cadastrado em outro cliente');
-                    return;
-                }
-            }
-
-            if (isset($dados['email']) && !empty($dados['email'])) {
-                if ($this->model->emailExiste($dados['email'], (int) $id)) {
-                    AuxiliarResposta::conflito('Email já cadastrado em outro cliente');
-                    return;
-                }
-            }
-
-            if (isset($dados['external_id']) && !empty($dados['external_id'])) {
-                if ($this->model->externalIdExiste($dados['external_id'], (int) $id)) {
-                    AuxiliarResposta::conflito('External ID já cadastrado em outro cliente');
-                    return;
-                }
-            }
-
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Inicia transação
-            $this->db->iniciarTransacao();
-
-            try {
-                // Atualiza o cliente
-                $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
-
-                if (!$resultado) {
-                    throw new \Exception('Erro ao atualizar cliente');
-                }
-
-                // Processa contatos se existirem
-                if (isset($dados['contatos']) && is_array($dados['contatos'])) {
-                    // Remove contatos antigos
-                    $this->modelContato->deletarPorCliente((int) $id);
-
-                    // Adiciona novos contatos
-                    foreach ($dados['contatos'] as $contato) {
-                        if (isset($contato['nome']) && isset($contato['contato'])) {
-                            $contato['cliente_id'] = (int) $id;
-                            $this->modelContato->criar($contato);
-                        }
-                    }
-                }
-
-                // Processa endereços se existirem
-                if (isset($dados['enderecos']) && is_array($dados['enderecos'])) {
-                    // Remove endereços antigos
-                    $this->modelEndereco->deletarPorCliente((int) $id);
-
-                    // Adiciona novos endereços
-                    foreach ($dados['enderecos'] as $endereco) {
-                        $endereco['cliente_id'] = (int) $id;
-                        $this->modelEndereco->criar($endereco);
-                    }
-                }
-
-                // Confirma a transação
-                $this->db->commit();
-
-                $cliente = $this->service->buscarComRelacionamentos((int) $id);
-
-                AuxiliarResposta::sucesso($cliente, 'Cliente atualizado com sucesso');
-            } catch (\Exception $e) {
-                // Reverte a transação em caso de erro
-                $this->db->rollback();
-                throw $e;
-            }
+            $this->sucesso($cliente, 'Cliente atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 
@@ -288,34 +125,16 @@ class ControllerCliente
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
+            if (!$this->validarId($id, 'Cliente')) {
                 return;
             }
 
-            // Verifica se o cliente existe
-            $cliente = $this->model->buscarPorId((int) $id);
-            if (!$cliente) {
-                AuxiliarResposta::naoEncontrado('Cliente não encontrado');
-                return;
-            }
+            // Deleta via Service
+            $this->service->deletar((int) $id);
 
-            // Obtém usuário autenticado para auditoria
-            $usuarioAutenticado = $this->auth->obterUsuarioAutenticado();
-            $usuarioId = $usuarioAutenticado['id'] ?? null;
-
-            // Deleta o cliente (soft delete)
-            // Os contatos e endereços serão deletados automaticamente por CASCADE
-            $resultado = $this->model->deletar((int) $id, $usuarioId);
-
-            if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar cliente', 400);
-                return;
-            }
-
-            AuxiliarResposta::sucesso(null, 'Cliente removido com sucesso');
+            $this->sucesso(null, 'Cliente removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 
@@ -325,11 +144,11 @@ class ControllerCliente
     public function obterEstatisticas(): void
     {
         try {
-            $estatisticas = $this->model->obterEstatisticas();
+            $estatisticas = $this->service->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos clientes obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas dos clientes obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->tratarErro($e);
         }
     }
 }

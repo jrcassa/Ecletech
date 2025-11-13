@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Colaborador;
 
+use App\Controllers\BaseController;
+
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;
 use App\Models\Colaborador\ModelColaborador;
@@ -12,7 +14,7 @@ use App\Middleware\MiddlewareAcl;
 /**
  * Controlador para gerenciar colaboradores
  */
-class ControllerColaborador
+class ControllerColaborador extends BaseController
 {
     private ModelColaborador $model;
     private GerenciadorUsuario $gerenciadorUsuario;
@@ -63,9 +65,9 @@ class ControllerColaborador
                 unset($admin['senha']);
             }
 
-            AuxiliarResposta::paginado($colaboradores, $total, $pagina, $porPagina);
+            $this->paginado($colaboradores, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -78,16 +80,16 @@ class ControllerColaborador
             $colaborador = $this->model->buscarPorId((int) $id);
 
             if (!$colaborador) {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Remove a senha
             unset($colaborador['senha']);
 
-            AuxiliarResposta::sucesso($colaborador, 'Colaborador encontrado');
+            $this->sucesso($colaborador, 'Colaborador encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -96,7 +98,7 @@ class ControllerColaborador
      */
     public function criar(): void
     {
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
 
         // Validação
         $erros = AuxiliarValidacao::validar($dados, [
@@ -107,7 +109,7 @@ class ControllerColaborador
         ]);
 
         if (!empty($erros)) {
-            AuxiliarResposta::validacao($erros);
+            $this->validacao($erros);
             return;
         }
 
@@ -128,9 +130,9 @@ class ControllerColaborador
             $colaborador = $this->model->buscarPorId($id);
             unset($colaborador['senha']);
 
-            AuxiliarResposta::criado($colaborador, 'Colaborador criado com sucesso');
+            $this->criado($colaborador, 'Colaborador criado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -139,14 +141,14 @@ class ControllerColaborador
      */
     public function atualizar(string $id): void
     {
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
         $colaboradorId = (int) $id;
 
         try {
             $colaborador = $this->model->buscarPorId($colaboradorId);
 
             if (!$colaborador) {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
@@ -165,9 +167,9 @@ class ControllerColaborador
             $colaboradorAtualizado = $this->model->buscarPorId($colaboradorId);
             unset($colaboradorAtualizado['senha']);
 
-            AuxiliarResposta::sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
+            $this->sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -184,19 +186,19 @@ class ControllerColaborador
 
             // Não permite deletar a si mesmo
             if ($usuarioAutenticado && $usuarioAutenticado['id'] == $colaboradorId) {
-                AuxiliarResposta::erro('Não é possível deletar seu próprio usuário', 400);
+                $this->erro('Não é possível deletar seu próprio usuário', 400);
                 return;
             }
 
             $resultado = $this->gerenciadorUsuario->deletar($colaboradorId);
 
             if ($resultado) {
-                AuxiliarResposta::sucesso(null, 'Colaborador deletado com sucesso');
+                $this->sucesso(null, 'Colaborador deletado com sucesso');
             } else {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -214,9 +216,9 @@ class ControllerColaborador
                 'deletar' => $this->acl->verificarPermissao('colaboradores.deletar')
             ];
 
-            AuxiliarResposta::sucesso($permissoes, 'Permissões verificadas');
+            $this->sucesso($permissoes, 'Permissões verificadas');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

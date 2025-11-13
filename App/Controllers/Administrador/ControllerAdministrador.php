@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Administrador;
 
+use App\Controllers\BaseController;
+
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;
 use App\Models\Colaborador\ModelColaborador;
@@ -13,7 +15,7 @@ use App\Middleware\MiddlewareAcl;
  * Controlador para gerenciar colaboradores
  * Todos os métodos verificam permissões ACL antes de executar
  */
-class ControllerAdministrador
+class ControllerAdministrador extends BaseController
 {
     private ModelColaborador $model;
     private GerenciadorUsuario $gerenciadorUsuario;
@@ -37,7 +39,7 @@ class ControllerAdministrador
         try {
             // Verifica permissão ACL
             if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
-                AuxiliarResposta::proibido('Você não tem permissão para visualizar colaboradores');
+                $this->proibido('Você não tem permissão para visualizar colaboradores');
                 return;
             }
 
@@ -71,9 +73,9 @@ class ControllerAdministrador
                 unset($colab['senha']);
             }
 
-            AuxiliarResposta::paginado($colaboradores, $total, $pagina, $porPagina);
+            $this->paginado($colaboradores, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -86,23 +88,23 @@ class ControllerAdministrador
         try {
             // Verifica permissão ACL
             if (!$this->acl->verificarPermissao('colaboradores.visualizar')) {
-                AuxiliarResposta::proibido('Você não tem permissão para visualizar colaboradores');
+                $this->proibido('Você não tem permissão para visualizar colaboradores');
                 return;
             }
 
             $colaborador = $this->model->buscarPorId((int) $id);
 
             if (!$colaborador) {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
             // Remove a senha
             unset($colaborador['senha']);
 
-            AuxiliarResposta::sucesso($colaborador, 'Colaborador encontrado');
+            $this->sucesso($colaborador, 'Colaborador encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -114,11 +116,11 @@ class ControllerAdministrador
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.criar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para criar colaboradores');
+            $this->proibido('Você não tem permissão para criar colaboradores');
             return;
         }
 
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
 
         // Validação
         $erros = AuxiliarValidacao::validar($dados, [
@@ -129,7 +131,7 @@ class ControllerAdministrador
         ]);
 
         if (!empty($erros)) {
-            AuxiliarResposta::validacao($erros);
+            $this->validacao($erros);
             return;
         }
 
@@ -150,9 +152,9 @@ class ControllerAdministrador
             $colaborador = $this->model->buscarPorId($id);
             unset($colaborador['senha']);
 
-            AuxiliarResposta::criado($colaborador, 'Colaborador criado com sucesso');
+            $this->criado($colaborador, 'Colaborador criado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -164,18 +166,18 @@ class ControllerAdministrador
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.editar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para editar colaboradores');
+            $this->proibido('Você não tem permissão para editar colaboradores');
             return;
         }
 
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
         $colaboradorId = (int) $id;
 
         try {
             $colaborador = $this->model->buscarPorId($colaboradorId);
 
             if (!$colaborador) {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
                 return;
             }
 
@@ -194,9 +196,9 @@ class ControllerAdministrador
             $colaboradorAtualizado = $this->model->buscarPorId($colaboradorId);
             unset($colaboradorAtualizado['senha']);
 
-            AuxiliarResposta::sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
+            $this->sucesso($colaboradorAtualizado, 'Colaborador atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -208,7 +210,7 @@ class ControllerAdministrador
     {
         // Verifica permissão ACL
         if (!$this->acl->verificarPermissao('colaboradores.deletar')) {
-            AuxiliarResposta::proibido('Você não tem permissão para deletar colaboradores');
+            $this->proibido('Você não tem permissão para deletar colaboradores');
             return;
         }
 
@@ -220,19 +222,19 @@ class ControllerAdministrador
 
             // Não permite deletar a si mesmo
             if ($usuarioAutenticado && $usuarioAutenticado['id'] == $colaboradorId) {
-                AuxiliarResposta::erro('Não é possível deletar seu próprio usuário', 400);
+                $this->erro('Não é possível deletar seu próprio usuário', 400);
                 return;
             }
 
             $resultado = $this->gerenciadorUsuario->deletar($colaboradorId);
 
             if ($resultado) {
-                AuxiliarResposta::sucesso(null, 'Colaborador deletado com sucesso');
+                $this->sucesso(null, 'Colaborador deletado com sucesso');
             } else {
-                AuxiliarResposta::naoEncontrado('Colaborador não encontrado');
+                $this->naoEncontrado('Colaborador não encontrado');
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -250,9 +252,9 @@ class ControllerAdministrador
                 'deletar' => $this->acl->verificarPermissao('colaboradores.deletar')
             ];
 
-            AuxiliarResposta::sucesso($permissoes, 'Permissões verificadas');
+            $this->sucesso($permissoes, 'Permissões verificadas');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

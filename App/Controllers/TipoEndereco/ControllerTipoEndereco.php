@@ -2,6 +2,8 @@
 
 namespace App\Controllers\TipoEndereco;
 
+use App\Controllers\BaseController;
+
 use App\Models\TipoEndereco\ModelTipoEndereco;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarSanitizacao;
 /**
  * Controller para gerenciar tipos de endereços
  */
-class ControllerTipoEndereco
+class ControllerTipoEndereco extends BaseController
 {
     private ModelTipoEndereco $model;
     private Autenticacao $auth;
@@ -51,7 +53,7 @@ class ControllerTipoEndereco
             $tipos = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $tipos,
                 $total,
                 $paginaAtual,
@@ -59,7 +61,7 @@ class ControllerTipoEndereco
                 'Tipos de endereços listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -69,21 +71,18 @@ class ControllerTipoEndereco
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $tipo = $this->model->buscarPorId((int) $id);
 
             if (!$tipo) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                $this->naoEncontrado('Tipo de endereço não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($tipo, 'Tipo de endereço encontrado');
+            $this->sucesso($tipo, 'Tipo de endereço encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -93,7 +92,7 @@ class ControllerTipoEndereco
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -102,7 +101,7 @@ class ControllerTipoEndereco
             $erros = $this->validarDados($dados);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -129,9 +128,9 @@ class ControllerTipoEndereco
 
             $tipo = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($tipo, 'Tipo de endereço cadastrado com sucesso');
+            $this->criado($tipo, 'Tipo de endereço cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -141,19 +140,16 @@ class ControllerTipoEndereco
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o tipo de endereço existe
             $tipoExistente = $this->model->buscarPorId((int) $id);
             if (!$tipoExistente) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                $this->naoEncontrado('Tipo de endereço não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
             $dados = $this->sanitizarDados($dados);
@@ -162,7 +158,7 @@ class ControllerTipoEndereco
             $erros = $this->validarDados($dados, (int) $id);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -190,15 +186,15 @@ class ControllerTipoEndereco
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar tipo de endereço', 400);
+                $this->erro('Erro ao atualizar tipo de endereço', 400);
                 return;
             }
 
             $tipo = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($tipo, 'Tipo de endereço atualizado com sucesso');
+            $this->sucesso($tipo, 'Tipo de endereço atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -208,15 +204,12 @@ class ControllerTipoEndereco
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o tipo de endereço existe
             $tipo = $this->model->buscarPorId((int) $id);
             if (!$tipo) {
-                AuxiliarResposta::naoEncontrado('Tipo de endereço não encontrado');
+                $this->naoEncontrado('Tipo de endereço não encontrado');
                 return;
             }
 
@@ -228,13 +221,13 @@ class ControllerTipoEndereco
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar tipo de endereço', 400);
+                $this->erro('Erro ao deletar tipo de endereço', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Tipo de endereço removido com sucesso');
+            $this->sucesso(null, 'Tipo de endereço removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -246,9 +239,9 @@ class ControllerTipoEndereco
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de tipos de endereços obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas de tipos de endereços obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 

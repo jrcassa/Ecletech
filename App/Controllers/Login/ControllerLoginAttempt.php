@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Login;
 
+use App\Controllers\BaseController;
+
 use App\Models\Login\ModelLoginAttempt;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar tentativas de login e proteção contra brute force
  */
-class ControllerLoginAttempt
+class ControllerLoginAttempt extends BaseController
 {
     private ModelLoginAttempt $model;
 
@@ -49,7 +51,7 @@ class ControllerLoginAttempt
             $tentativas = $this->model->listarTentativas($filtros);
             $total = $this->model->contarTentativas(array_diff_key($filtros, array_flip(['limite', 'offset'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $tentativas,
                 $total,
                 $paginaAtual,
@@ -57,7 +59,7 @@ class ControllerLoginAttempt
                 'Tentativas de login listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -89,7 +91,7 @@ class ControllerLoginAttempt
             $bloqueios = $this->model->listarBloqueios($filtros);
             $total = $this->model->contarBloqueios(array_diff_key($filtros, array_flip(['limite', 'offset'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $bloqueios,
                 $total,
                 $paginaAtual,
@@ -97,7 +99,7 @@ class ControllerLoginAttempt
                 'Bloqueios ativos listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -109,9 +111,9 @@ class ControllerLoginAttempt
     {
         try {
             $estatisticas = $this->model->obterEstatisticas();
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -125,27 +127,27 @@ class ControllerLoginAttempt
             $dados = json_decode(file_get_contents('php://input'), true);
 
             if (empty($dados['email'])) {
-                AuxiliarResposta::erro('Email é obrigatório', 400);
+                $this->erro('Email é obrigatório', 400);
                 return;
             }
 
             if (!AuxiliarValidacao::email($dados['email'])) {
-                AuxiliarResposta::erro('Email inválido', 400);
+                $this->erro('Email inválido', 400);
                 return;
             }
 
             $sucesso = $this->model->desbloquearEmail($dados['email']);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(
+                $this->sucesso(
                     ['email' => $dados['email']],
                     'Email desbloqueado com sucesso'
                 );
             } else {
-                AuxiliarResposta::erro('Falha ao desbloquear email', 500);
+                $this->erro('Falha ao desbloquear email', 500);
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -159,28 +161,28 @@ class ControllerLoginAttempt
             $dados = json_decode(file_get_contents('php://input'), true);
 
             if (empty($dados['ip_address'])) {
-                AuxiliarResposta::erro('IP é obrigatório', 400);
+                $this->erro('IP é obrigatório', 400);
                 return;
             }
 
             // Validação básica de IP
             if (!filter_var($dados['ip_address'], FILTER_VALIDATE_IP)) {
-                AuxiliarResposta::erro('IP inválido', 400);
+                $this->erro('IP inválido', 400);
                 return;
             }
 
             $sucesso = $this->model->desbloquearIp($dados['ip_address']);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(
+                $this->sucesso(
                     ['ip_address' => $dados['ip_address']],
                     'IP desbloqueado com sucesso'
                 );
             } else {
-                AuxiliarResposta::erro('Falha ao desbloquear IP', 500);
+                $this->erro('Falha ao desbloquear IP', 500);
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -191,23 +193,20 @@ class ControllerLoginAttempt
     public function desbloquearPorId(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $sucesso = $this->model->desbloquearPorId((int) $id);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(
+                $this->sucesso(
                     ['id' => (int) $id],
                     'Bloqueio removido com sucesso'
                 );
             } else {
-                AuxiliarResposta::erro('Falha ao remover bloqueio', 500);
+                $this->erro('Falha ao remover bloqueio', 500);
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -222,27 +221,27 @@ class ControllerLoginAttempt
 
             // Validações
             if (empty($dados['tipo']) || !in_array($dados['tipo'], ['ip', 'email', 'ambos'])) {
-                AuxiliarResposta::erro('Tipo de bloqueio inválido (ip, email ou ambos)', 400);
+                $this->erro('Tipo de bloqueio inválido (ip, email ou ambos)', 400);
                 return;
             }
 
             if (($dados['tipo'] === 'email' || $dados['tipo'] === 'ambos') && empty($dados['email'])) {
-                AuxiliarResposta::erro('Email é obrigatório para este tipo de bloqueio', 400);
+                $this->erro('Email é obrigatório para este tipo de bloqueio', 400);
                 return;
             }
 
             if (($dados['tipo'] === 'ip' || $dados['tipo'] === 'ambos') && empty($dados['ip_address'])) {
-                AuxiliarResposta::erro('IP é obrigatório para este tipo de bloqueio', 400);
+                $this->erro('IP é obrigatório para este tipo de bloqueio', 400);
                 return;
             }
 
             if (!empty($dados['email']) && !AuxiliarValidacao::email($dados['email'])) {
-                AuxiliarResposta::erro('Email inválido', 400);
+                $this->erro('Email inválido', 400);
                 return;
             }
 
             if (!empty($dados['ip_address']) && !filter_var($dados['ip_address'], FILTER_VALIDATE_IP)) {
-                AuxiliarResposta::erro('IP inválido', 400);
+                $this->erro('IP inválido', 400);
                 return;
             }
 
@@ -259,7 +258,7 @@ class ControllerLoginAttempt
             );
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(
+                $this->sucesso(
                     [
                         'tipo' => $dados['tipo'],
                         'email' => $dados['email'] ?? null,
@@ -269,10 +268,10 @@ class ControllerLoginAttempt
                     'Bloqueio criado com sucesso'
                 );
             } else {
-                AuxiliarResposta::erro('Falha ao criar bloqueio', 500);
+                $this->erro('Falha ao criar bloqueio', 500);
             }
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -307,9 +306,9 @@ class ControllerLoginAttempt
                 }
             }
 
-            AuxiliarResposta::sucesso($resultado, 'Status verificado com sucesso');
+            $this->sucesso($resultado, 'Status verificado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

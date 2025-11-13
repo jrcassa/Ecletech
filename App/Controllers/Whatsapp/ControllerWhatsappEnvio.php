@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Whatsapp;
 
+use App\Controllers\BaseController;
+
 use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Models\Whatsapp\ModelWhatsappQueue;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar envio de mensagens WhatsApp
  */
-class ControllerWhatsappEnvio
+class ControllerWhatsappEnvio extends BaseController
 {
     private ServiceWhatsapp $service;
     private ModelWhatsappQueue $queueModel;
@@ -27,7 +29,7 @@ class ControllerWhatsappEnvio
     public function enviar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
@@ -36,24 +38,24 @@ class ControllerWhatsappEnvio
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Valida modo_envio se fornecido
             if (isset($dados['modo_envio']) && !in_array($dados['modo_envio'], ['fila', 'direto'])) {
-                AuxiliarResposta::erro('Modo de envio inválido. Use "fila" ou "direto"', 400);
+                $this->erro('Modo de envio inválido. Use "fila" ou "direto"', 400);
                 return;
             }
 
             // Valida conteúdo conforme tipo
             if ($dados['tipo'] === 'text' && empty($dados['mensagem'])) {
-                AuxiliarResposta::erro('Mensagem é obrigatória para tipo texto', 400);
+                $this->erro('Mensagem é obrigatória para tipo texto', 400);
                 return;
             }
 
             if ($dados['tipo'] !== 'text' && empty($dados['arquivo_url']) && empty($dados['arquivo_base64'])) {
-                AuxiliarResposta::erro('URL ou base64 do arquivo é obrigatório', 400);
+                $this->erro('URL ou base64 do arquivo é obrigatório', 400);
                 return;
             }
 
@@ -73,13 +75,13 @@ class ControllerWhatsappEnvio
                     $retorno['dados'] = $resultado['dados'];
                 }
 
-                AuxiliarResposta::sucesso($retorno, $resultado['mensagem']);
+                $this->sucesso($retorno, $resultado['mensagem']);
             } else {
-                AuxiliarResposta::erro($resultado['erro'], 400);
+                $this->erro($resultado['erro'], 400);
             }
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -92,21 +94,21 @@ class ControllerWhatsappEnvio
             $mensagem = $this->queueModel->buscarPorId($queueId);
 
             if (!$mensagem) {
-                AuxiliarResposta::naoEncontrado('Mensagem não encontrada');
+                $this->naoEncontrado('Mensagem não encontrada');
                 return;
             }
 
             if ($mensagem['status_code'] != 1) {
-                AuxiliarResposta::erro('Só é possível cancelar mensagens pendentes', 400);
+                $this->erro('Só é possível cancelar mensagens pendentes', 400);
                 return;
             }
 
             $this->queueModel->deletar($queueId);
 
-            AuxiliarResposta::sucesso(null, 'Mensagem cancelada com sucesso');
+            $this->sucesso(null, 'Mensagem cancelada com sucesso');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -128,10 +130,10 @@ class ControllerWhatsappEnvio
                 $total = $this->queueModel->contarPendentes();
             }
 
-            AuxiliarResposta::paginado($mensagens, $total, 1, $limit, 'Fila carregada com sucesso');
+            $this->paginado($mensagens, $total, 1, $limit, 'Fila carregada com sucesso');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -144,14 +146,14 @@ class ControllerWhatsappEnvio
             $mensagem = $this->queueModel->buscarPorId($queueId);
 
             if (!$mensagem) {
-                AuxiliarResposta::naoEncontrado('Mensagem não encontrada');
+                $this->naoEncontrado('Mensagem não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($mensagem, 'Mensagem encontrada');
+            $this->sucesso($mensagem, 'Mensagem encontrada');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -162,10 +164,10 @@ class ControllerWhatsappEnvio
     {
         try {
             $stats = $this->service->obterEstatisticas();
-            AuxiliarResposta::sucesso($stats, 'Estatísticas obtidas com sucesso');
+            $this->sucesso($stats, 'Estatísticas obtidas com sucesso');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

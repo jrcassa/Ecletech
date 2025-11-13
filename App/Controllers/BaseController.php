@@ -361,4 +361,138 @@ abstract class BaseController
 
         return $sanitizados;
     }
+
+    /**
+     * Remove campos sensíveis de um array ou conjunto de dados
+     *
+     * @param array|array[] $dados Dados a processar (pode ser array simples ou array de arrays)
+     * @param array $campos Campos a remover (padrão: senha)
+     * @return array Dados sem os campos sensíveis
+     */
+    protected function removerCamposSensiveis(array $dados, array $campos = ['senha']): array
+    {
+        // Verifica se é um array de arrays (lista de registros)
+        if (isset($dados[0]) && is_array($dados[0])) {
+            foreach ($dados as &$item) {
+                foreach ($campos as $campo) {
+                    unset($item[$campo]);
+                }
+            }
+        } else {
+            // Array simples (registro único)
+            foreach ($campos as $campo) {
+                unset($dados[$campo]);
+            }
+        }
+
+        return $dados;
+    }
+
+    /**
+     * Valida se um recurso existe
+     *
+     * @param mixed $recurso Recurso a validar
+     * @param string $nomeTipo Nome do tipo de recurso para mensagem de erro
+     * @return bool True se existe, false e envia erro se não existe
+     */
+    protected function validarExistencia(mixed $recurso, string $nomeTipo = 'Recurso'): bool
+    {
+        if (!$recurso || (is_array($recurso) && empty($recurso))) {
+            $this->naoEncontrado("{$nomeTipo} não encontrado");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Envia resposta de criação (201 Created)
+     *
+     * @param mixed $dados Dados do recurso criado
+     * @param string $mensagem Mensagem de sucesso
+     */
+    protected function criado(mixed $dados = null, string $mensagem = 'Recurso criado com sucesso'): void
+    {
+        AuxiliarResposta::sucesso($dados, $mensagem, 201);
+    }
+
+    /**
+     * Merge de múltiplos arrays de forma segura
+     *
+     * @param array ...$arrays Arrays para fazer merge
+     * @return array Array resultante do merge
+     */
+    protected function mergeArrays(array ...$arrays): array
+    {
+        $resultado = [];
+        foreach ($arrays as $array) {
+            $resultado = array_merge($resultado, $array);
+        }
+        return $resultado;
+    }
+
+    /**
+     * Verifica se a requisição contém um determinado campo
+     *
+     * @param string $campo Nome do campo
+     * @param string $metodo Método HTTP (GET, POST, etc). Se null, verifica ambos
+     * @return bool True se o campo existe
+     */
+    protected function temCampo(string $campo, ?string $metodo = null): bool
+    {
+        if ($metodo === 'GET' || $metodo === null) {
+            if (isset($_GET[$campo])) {
+                return true;
+            }
+        }
+
+        if ($metodo === 'POST' || $metodo === null) {
+            $dados = $this->obterDados();
+            if (isset($dados[$campo])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Converte string para booleano
+     *
+     * @param mixed $valor Valor a converter
+     * @return bool Valor booleano
+     */
+    protected function paraBooleano(mixed $valor): bool
+    {
+        if (is_bool($valor)) {
+            return $valor;
+        }
+
+        if (is_string($valor)) {
+            return in_array(strtolower($valor), ['true', '1', 'yes', 'sim']);
+        }
+
+        return (bool) $valor;
+    }
+
+    /**
+     * Prepara dados para auditoria
+     * Remove campos sensíveis e prepara para log
+     *
+     * @param array $dados Dados a preparar
+     * @return array Dados seguros para auditoria
+     */
+    protected function prepararParaAuditoria(array $dados): array
+    {
+        $dadosAuditoria = $this->removerCamposSensiveis($dados, [
+            'senha',
+            'password',
+            'token',
+            'access_token',
+            'refresh_token',
+            'api_key',
+            'secret'
+        ]);
+
+        return $dadosAuditoria;
+    }
 }

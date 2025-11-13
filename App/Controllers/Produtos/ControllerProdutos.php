@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Produtos;
 
+use App\Controllers\BaseController;
+
 use App\Services\Produto\ServiceProduto;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar produtos (estrutura refatorada - 2 tabelas)
  */
-class ControllerProdutos
+class ControllerProdutos extends BaseController
 {
     private ServiceProduto $service;
 
@@ -48,7 +50,7 @@ class ControllerProdutos
             $produtos = $this->service->listar($filtros);
             $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $produtos,
                 $total,
                 $paginaAtual,
@@ -56,7 +58,7 @@ class ControllerProdutos
                 'Produtos listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -66,21 +68,18 @@ class ControllerProdutos
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $produto = $this->service->buscarPorId((int) $id);
 
             if (!$produto) {
-                AuxiliarResposta::naoEncontrado('Produto não encontrado');
+                $this->naoEncontrado('Produto não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($produto, 'Produto encontrado');
+            $this->sucesso($produto, 'Produto encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -90,7 +89,7 @@ class ControllerProdutos
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -98,16 +97,16 @@ class ControllerProdutos
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + criação)
             $produto = $this->service->criar($dados);
 
-            AuxiliarResposta::criado($produto, 'Produto cadastrado com sucesso');
+            $this->criado($produto, 'Produto cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -117,12 +116,9 @@ class ControllerProdutos
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP
             $regras = [];
@@ -134,16 +130,16 @@ class ControllerProdutos
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + atualização)
             $produto = $this->service->atualizar((int) $id, $dados);
 
-            AuxiliarResposta::sucesso($produto, 'Produto atualizado com sucesso');
+            $this->sucesso($produto, 'Produto atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -153,17 +149,14 @@ class ControllerProdutos
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Delega para o Service
             $this->service->deletar((int) $id);
 
-            AuxiliarResposta::sucesso(null, 'Produto removido com sucesso');
+            $this->sucesso(null, 'Produto removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -175,9 +168,9 @@ class ControllerProdutos
         try {
             $estatisticas = $this->service->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos produtos obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas dos produtos obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }
