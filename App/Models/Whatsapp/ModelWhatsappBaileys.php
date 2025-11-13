@@ -78,6 +78,10 @@ class ModelWhatsappBaileys
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->config->obter('api_timeout', 30));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Segue redirecionamentos (301, 302, etc)
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 3); // Máximo 3 redirecionamentos
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Verifica SSL
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2); // Verifica hostname SSL
 
         // Headers com Authorization Bearer
         $headers = [
