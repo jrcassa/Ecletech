@@ -18,7 +18,7 @@ if (php_sapi_name() !== 'cli') {
 }
 
 // Define diretório raiz
-define('ROOT_PATH', dirname(__DIR__));
+define('ROOT_PATH', dirname(__DIR__, 2));
 
 // Carrega o autoloader do Composer (se existir)
 if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
