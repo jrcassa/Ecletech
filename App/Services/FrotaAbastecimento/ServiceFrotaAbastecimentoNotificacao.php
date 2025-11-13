@@ -106,15 +106,27 @@ class ServiceFrotaAbastecimentoNotificacao
         $urlComprovante = null;
         try {
             $arquivos = $this->modelS3Arquivo->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
+            error_log("[ABASTECIMENTO {$abastecimento_id}] Total de arquivos encontrados: " . count($arquivos));
+
+            // Filtrar apenas comprovantes de pagamento
+            $comprovantes = array_filter($arquivos, function($arquivo) {
+                return ($arquivo['categoria'] ?? '') === 'comprovante_pagamento';
+            });
+            error_log("[ABASTECIMENTO {$abastecimento_id}] Comprovantes filtrados: " . count($comprovantes));
 
             // Pegar o primeiro comprovante (se houver múltiplos, pega o mais recente)
-            if (!empty($arquivos)) {
-                $comprovante = $arquivos[0]; // buscarPorEntidade já ordena por criado_em DESC
+            if (!empty($comprovantes)) {
+                $comprovante = reset($comprovantes); // Pega o primeiro elemento do array filtrado
+                error_log("[ABASTECIMENTO {$abastecimento_id}] Comprovante ID: " . $comprovante['id']);
+
                 $resultado = $this->serviceS3->gerarUrlAssinada($comprovante['id'], 3600); // 1 hora
                 $urlComprovante = $resultado['url'] ?? null;
+                error_log("[ABASTECIMENTO {$abastecimento_id}] URL gerada: " . ($urlComprovante ? 'SIM' : 'NÃO'));
+            } else {
+                error_log("[ABASTECIMENTO {$abastecimento_id}] Nenhum comprovante encontrado");
             }
         } catch (\Exception $e) {
-            error_log("Erro ao buscar comprovante ou gerar URL assinada: " . $e->getMessage());
+            error_log("[ABASTECIMENTO {$abastecimento_id}] Erro ao buscar comprovante: " . $e->getMessage());
         }
 
         foreach ($destinatarios as $destinatario) {
