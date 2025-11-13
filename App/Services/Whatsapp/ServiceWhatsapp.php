@@ -73,7 +73,6 @@ class ServiceWhatsapp
                 'entidade_nome' => $destino['nome'],
                 'tipo_mensagem' => $dados['tipo'],
                 'destinatario' => $destino['numero'],
-                'destinatario_nome' => $destino['nome'],
                 'conteudo' => $dados['mensagem'] ?? $dados['conteudo'] ?? null,
                 'arquivo_url' => $dados['arquivo_url'] ?? null,
                 'arquivo_base64' => $dados['arquivo_base64'] ?? null,
@@ -190,8 +189,8 @@ class ServiceWhatsapp
                 'tipo_evento' => 'enviado_direto',
                 'tipo_entidade' => $dados['tipo_entidade'],
                 'entidade_id' => $dados['entidade_id'],
+                'entidade_nome' => $dados['entidade_nome'],
                 'destinatario' => $dados['destinatario'],
-                'destinatario_nome' => $dados['destinatario_nome'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
                 'dados' => json_encode([
                     'response' => $responseData,
@@ -216,8 +215,8 @@ class ServiceWhatsapp
                 'tipo_evento' => 'erro_envio_direto',
                 'tipo_entidade' => $dados['tipo_entidade'],
                 'entidade_id' => $dados['entidade_id'],
+                'entidade_nome' => $dados['entidade_nome'],
                 'destinatario' => $dados['destinatario'],
-                'destinatario_nome' => $dados['destinatario_nome'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
                 'dados' => json_encode([
                     'erro' => $erro,
