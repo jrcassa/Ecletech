@@ -7,12 +7,14 @@ const FrotaAbastecimentoMotoristaManager = {
     // Estado da aplicação
     state: {
         ordensPendentes: [],
+        formasPagamento: [],
         estatisticas: {
             pendentes: 0,
             finalizados: 0,
             cancelados: 0
         },
-        editandoId: null
+        editandoId: null,
+        comprovanteBase64: null
     },
 
     // Elementos DOM
@@ -48,6 +50,9 @@ const FrotaAbastecimentoMotoristaManager = {
         // Configura event listeners
         this.setupEventListeners();
 
+        // Carrega formas de pagamento
+        await this.carregarFormasPagamento();
+
         // Carrega dados
         await this.carregarDados();
 
@@ -64,10 +69,50 @@ const FrotaAbastecimentoMotoristaManager = {
         this.elements.formFinalizar?.addEventListener('submit', (e) => this.finalizar(e));
         this.elements.btnAtualizar?.addEventListener('click', () => this.carregarDados());
 
+        // Upload de comprovante
+        const inputComprovante = document.getElementById('comprovante');
+        if (inputComprovante) {
+            inputComprovante.addEventListener('change', (e) => this.handleFileUpload(e));
+        }
+
         // Define data/hora atual por padrão
         const agora = new Date();
         agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
         document.getElementById('dataAbastecimento').value = agora.toISOString().slice(0, 16);
+    },
+
+    /**
+     * Carrega formas de pagamento
+     */
+    async carregarFormasPagamento() {
+        try {
+            const response = await API.get('/forma-de-pagamento?por_pagina=999');
+
+            if (response.sucesso) {
+                this.state.formasPagamento = response.dados?.itens || [];
+                this.popularSelectFormasPagamento();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar formas de pagamento:', error);
+        }
+    },
+
+    /**
+     * Popula select de formas de pagamento
+     */
+    popularSelectFormasPagamento() {
+        const select = document.getElementById('formaPagamentoId');
+
+        if (select) {
+            select.innerHTML = '<option value="">Selecione...</option>';
+
+            this.state.formasPagamento.forEach(forma => {
+                const option = document.createElement('option');
+                option.value = forma.id;
+                option.textContent = forma.nome;
+                select.appendChild(option);
+            });
+        }
     },
 
     /**
@@ -274,6 +319,11 @@ const FrotaAbastecimentoMotoristaManager = {
             data_abastecimento: document.getElementById('dataAbastecimento').value
         };
 
+        // Forma de pagamento (opcional)
+        const formaPagamentoId = document.getElementById('formaPagamentoId')?.value;
+        if (formaPagamentoId) dados.forma_pagamento_id = parseInt(formaPagamentoId);
+
+        // Observação (opcional)
         const observacao = document.getElementById('observacaoMotorista').value;
         if (observacao) dados.observacao_motorista = observacao;
 
@@ -284,6 +334,11 @@ const FrotaAbastecimentoMotoristaManager = {
             );
 
             if (response.sucesso) {
+                // Se tem comprovante, envia separadamente
+                if (this.state.comprovanteBase64) {
+                    await this.anexarComprovante(this.state.editandoId);
+                }
+
                 this.fecharModal();
                 await this.carregarDados();
                 Utils.Notificacao.sucesso('Abastecimento finalizado com sucesso!');
@@ -291,6 +346,59 @@ const FrotaAbastecimentoMotoristaManager = {
         } catch (error) {
             this.showModalError(error.data || 'Erro ao finalizar abastecimento');
             console.error('Erro ao finalizar:', error);
+        }
+    },
+
+    /**
+     * Manipula upload de arquivo (converte para base64)
+     */
+    handleFileUpload(e) {
+        const file = e.target.files[0];
+
+        if (!file) {
+            this.state.comprovanteBase64 = null;
+            return;
+        }
+
+        // Valida tipo
+        const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!tiposPermitidos.includes(file.type)) {
+            Utils.Notificacao.erro('Tipo de arquivo não permitido. Use PDF, JPG ou PNG.');
+            e.target.value = '';
+            return;
+        }
+
+        // Valida tamanho (máx 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            Utils.Notificacao.erro('Arquivo muito grande. Máximo: 5MB');
+            e.target.value = '';
+            return;
+        }
+
+        // Converte para base64
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            this.state.comprovanteBase64 = event.target.result;
+        };
+        reader.onerror = () => {
+            Utils.Notificacao.erro('Erro ao ler arquivo');
+            e.target.value = '';
+        };
+        reader.readAsDataURL(file);
+    },
+
+    /**
+     * Anexa comprovante ao abastecimento
+     */
+    async anexarComprovante(abastecimentoId) {
+        try {
+            await API.post(
+                `/frota-abastecimento/${abastecimentoId}/comprovante`,
+                { arquivo: this.state.comprovanteBase64 }
+            );
+        } catch (error) {
+            console.error('Erro ao anexar comprovante:', error);
+            Utils.Notificacao.alerta('Comprovante não foi anexado, mas abastecimento foi finalizado.');
         }
     },
 
