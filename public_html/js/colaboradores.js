@@ -122,10 +122,10 @@ const AdministradoresManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('colaborador.visualizar'),
-                    criar: permissoes.includes('colaborador.criar'),
-                    editar: permissoes.includes('colaborador.editar'),
-                    deletar: permissoes.includes('colaborador.deletar')
+                    visualizar: permissoes.includes('colaboradores.visualizar'),
+                    criar: permissoes.includes('colaboradores.criar'),
+                    editar: permissoes.includes('colaboradores.editar'),
+                    deletar: permissoes.includes('colaboradores.deletar')
                 };
 
                 // Esconde botão novo se não tem permissão de criar

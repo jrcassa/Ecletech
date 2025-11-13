@@ -162,10 +162,10 @@ const ProdutosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('produto.visualizar'),
-                    criar: permissoes.includes('produto.criar'),
-                    editar: permissoes.includes('produto.editar'),
-                    deletar: permissoes.includes('produto.deletar')
+                    visualizar: permissoes.includes('produtos.visualizar'),
+                    criar: permissoes.includes('produtos.criar'),
+                    editar: permissoes.includes('produtos.editar'),
+                    deletar: permissoes.includes('produtos.deletar')
                 };
             }
 
