@@ -5,7 +5,6 @@ namespace App\Controllers\Email;
 use App\Controllers\BaseController;
 use App\Models\Email\ModelEmailSMTP;
 use App\Models\Email\ModelEmailConfiguracao;
-use App\Services\ACL\ServiceACL;
 
 /**
  * Controller para gerenciar conexão SMTP
@@ -14,13 +13,11 @@ class ControllerEmailConexao extends BaseController
 {
     private ModelEmailSMTP $smtp;
     private ModelEmailConfiguracao $config;
-    private ServiceACL $acl;
 
     public function __construct()
     {
         $this->smtp = new ModelEmailSMTP();
         $this->config = new ModelEmailConfiguracao();
-        $this->acl = new ServiceACL();
     }
 
     /**
@@ -30,12 +27,6 @@ class ControllerEmailConexao extends BaseController
     public function status(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar status');
-                return;
-            }
-
             // Valida configurações
             $validacao = $this->smtp->validarConfiguracoes();
 
@@ -64,12 +55,6 @@ class ControllerEmailConexao extends BaseController
     public function testar(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.alterar')) {
-                $this->proibido('Sem permissão para testar conexão');
-                return;
-            }
-
             $resultado = $this->smtp->testarConexao();
 
             if ($resultado['sucesso']) {
@@ -89,12 +74,6 @@ class ControllerEmailConexao extends BaseController
     public function info(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar informações');
-                return;
-            }
-
             $info = $this->smtp->obterInformacoes();
 
             // Remove senha da resposta

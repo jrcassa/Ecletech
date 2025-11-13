@@ -6,7 +6,6 @@ use App\Controllers\BaseController;
 use App\Services\Email\ServiceEmail;
 use App\Models\Email\ModelEmailQueue;
 use App\Models\Email\ModelEmailHistorico;
-use App\Services\ACL\ServiceACL;
 
 /**
  * Controller para gerenciar envio de emails
@@ -16,14 +15,12 @@ class ControllerEmailEnvio extends BaseController
     private ServiceEmail $service;
     private ModelEmailQueue $queueModel;
     private ModelEmailHistorico $historicoModel;
-    private ServiceACL $acl;
 
     public function __construct()
     {
         $this->service = new ServiceEmail();
         $this->queueModel = new ModelEmailQueue();
         $this->historicoModel = new ModelEmailHistorico();
-        $this->acl = new ServiceACL();
     }
 
     /**
@@ -33,12 +30,6 @@ class ControllerEmailEnvio extends BaseController
     public function enviar(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.alterar')) {
-                $this->proibido('Sem permissão para enviar emails');
-                return;
-            }
-
             // Valida dados obrigatórios
             $dados = $this->obterDados();
 
@@ -77,12 +68,6 @@ class ControllerEmailEnvio extends BaseController
     public function listarFila(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar fila de emails');
-                return;
-            }
-
             $status = $this->obterParametro('status');
             $limit = (int) $this->obterParametro('limit', 50);
             $offset = (int) $this->obterParametro('offset', 0);
@@ -111,12 +96,6 @@ class ControllerEmailEnvio extends BaseController
     public function cancelarFila(int $id): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.alterar')) {
-                $this->proibido('Sem permissão para cancelar emails');
-                return;
-            }
-
             $email = $this->queueModel->buscarPorId($id);
 
             if (!$email) {
@@ -140,12 +119,6 @@ class ControllerEmailEnvio extends BaseController
     public function estatisticas(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar estatísticas');
-                return;
-            }
-
             $stats = $this->service->obterEstatisticas();
 
             $this->sucesso($stats);
@@ -161,12 +134,6 @@ class ControllerEmailEnvio extends BaseController
     public function historico(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar histórico');
-                return;
-            }
-
             $filtros = [
                 'data_inicio' => $this->obterParametro('data_inicio'),
                 'data_fim' => $this->obterParametro('data_fim'),

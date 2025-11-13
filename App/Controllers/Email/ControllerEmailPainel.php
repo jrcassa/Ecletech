@@ -4,7 +4,6 @@ namespace App\Controllers\Email;
 
 use App\Controllers\BaseController;
 use App\Services\Email\ServiceEmail;
-use App\Services\ACL\ServiceACL;
 
 /**
  * Controller para o painel de gerenciamento de emails
@@ -12,12 +11,10 @@ use App\Services\ACL\ServiceACL;
 class ControllerEmailPainel extends BaseController
 {
     private ServiceEmail $service;
-    private ServiceACL $acl;
 
     public function __construct()
     {
         $this->service = new ServiceEmail();
-        $this->acl = new ServiceACL();
     }
 
     /**
@@ -27,12 +24,6 @@ class ControllerEmailPainel extends BaseController
     public function dashboard(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.acessar')) {
-                $this->proibido('Sem permissão para acessar painel');
-                return;
-            }
-
             $stats = $this->service->obterEstatisticas();
 
             $this->sucesso($stats);
@@ -48,12 +39,6 @@ class ControllerEmailPainel extends BaseController
     public function processar(): void
     {
         try {
-            // Valida permissão
-            if (!$this->acl->temPermissao('email.alterar')) {
-                $this->proibido('Sem permissão para processar fila');
-                return;
-            }
-
             $dados = $this->obterDados();
             $limit = $dados['limit'] ?? null;
 
