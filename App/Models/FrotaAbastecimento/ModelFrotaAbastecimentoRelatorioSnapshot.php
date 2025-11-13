@@ -147,7 +147,8 @@ class ModelFrotaAbastecimentoRelatorioSnapshot
             $dados['tempo_calculo'] ?? null
         ];
 
-        return $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        return (int) $this->db->obterConexao()->lastInsertId();
     }
 
     /**
@@ -226,6 +227,7 @@ class ModelFrotaAbastecimentoRelatorioSnapshot
             WHERE calculado_em < DATE_SUB(NOW(), INTERVAL ? MONTH)
         ";
 
-        return $this->db->executar($sql, [$meses]);
+        $stmt = $this->db->executar($sql, [$meses]);
+        return $stmt->rowCount();
     }
 }

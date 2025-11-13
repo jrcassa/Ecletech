@@ -40,7 +40,7 @@ try {
 
     // Instancia os models
     $modelLog = new \App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoRelatorioLog();
-    $serviceWhatsapp = new \App\Services\ServiceWhatsapp();
+    $serviceWhatsapp = new \App\Services\Whatsapp\ServiceWhatsapp();
 
     // Busca logs com erro das últimas 24h e com menos de 3 tentativas
     $db = \App\Core\BancoDados::obterInstancia()->obterConexao();

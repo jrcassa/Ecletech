@@ -167,7 +167,8 @@ class ModelFrotaAbastecimentoRelatorioLog
             $dados['processado_em'] ?? date('Y-m-d H:i:s')
         ];
 
-        return $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        return (int) $this->db->obterConexao()->lastInsertId();
     }
 
     /**

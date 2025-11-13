@@ -89,7 +89,7 @@ try {
 
                 $mensagem .= "\nEntre em contato com a gestão para esclarecimentos.";
 
-                $serviceWhatsapp = new \App\Services\ServiceWhatsapp();
+                $serviceWhatsapp = new \App\Services\Whatsapp\ServiceWhatsapp();
                 $serviceWhatsapp->enviarMensagem($ordem['motorista_telefone'], $mensagem);
 
                 echo "[" . date('Y-m-d H:i:s') . "] Notificação enviada para {$ordem['motorista_nome']} ({$ordem['placa']})\n";

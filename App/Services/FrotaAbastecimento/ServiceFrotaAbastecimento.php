@@ -118,7 +118,7 @@ class ServiceFrotaAbastecimento
     {
         // Validar se é base64 válido
         if (!AuxiliarS3::validarBase64($arquivo_base64)) {
-            throw new \Exception('Arquivo base64 inválido');
+            throw new Exception('Arquivo base64 inválido');
         }
 
         // Remove prefixo data: se existir
@@ -134,12 +134,12 @@ class ServiceFrotaAbastecimento
         // Valida tipos permitidos
         $tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
         if (!in_array($tipoMime, $tiposPermitidos)) {
-            throw new \Exception('Tipo de arquivo não permitido. Permitidos: PDF, JPEG, PNG');
+            throw new Exception('Tipo de arquivo não permitido. Permitidos: PDF, JPEG, PNG');
         }
 
         // Valida tamanho (máx 5MB)
         if (strlen($conteudo) > 5 * 1024 * 1024) {
-            throw new \Exception('Arquivo muito grande. Máximo: 5MB');
+            throw new Exception('Arquivo muito grande. Máximo: 5MB');
         }
 
         // Determina extensão
@@ -187,7 +187,8 @@ class ServiceFrotaAbastecimento
 
         // Gerar URLs temporárias
         foreach ($comprovantes as &$arquivo) {
-            $arquivo['url_temporaria'] = $this->serviceS3->obterUrlTemporaria($arquivo['caminho_s3'], 3600);
+            $resultado = $this->serviceS3->gerarUrlAssinada($arquivo['id'], 3600);
+            $arquivo['url_temporaria'] = $resultado['url'] ?? null;
         }
 
         return array_values($comprovantes);

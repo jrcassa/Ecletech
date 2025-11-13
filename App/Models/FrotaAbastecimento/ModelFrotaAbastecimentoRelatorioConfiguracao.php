@@ -143,7 +143,8 @@ class ModelFrotaAbastecimentoRelatorioConfiguracao
             $dados['criado_por'] ?? null
         ];
 
-        return $this->db->executar($sql, $parametros);
+        $this->db->executar($sql, $parametros);
+        return (int) $this->db->obterConexao()->lastInsertId();
     }
 
     /**
