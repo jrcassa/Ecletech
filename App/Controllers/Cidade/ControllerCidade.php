@@ -95,7 +95,7 @@ class ControllerCidade extends BaseController
             $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosCidade($dados);
 
             // Validação dos dados
             $erros = $this->validarDados($dados);
@@ -152,7 +152,7 @@ class ControllerCidade extends BaseController
             $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosCidade($dados);
 
             // Validação dos dados (campos opcionais)
             $erros = $this->validarDados($dados, (int) $id);
@@ -246,9 +246,9 @@ class ControllerCidade extends BaseController
     }
 
     /**
-     * Sanitiza os dados de entrada
+     * Sanitiza os dados de entrada específicos de cidade
      */
-    private function sanitizarDados(array $dados): array
+    private function sanitizarDadosCidade(array $dados): array
     {
         $dadosSanitizados = [];
 

@@ -97,12 +97,12 @@ class ControllerAutenticacao extends BaseController
     }
 
     /**
-     * Obtém o usuário autenticado
+     * Obtém o perfil do usuário autenticado (endpoint /me)
      */
-    public function obterUsuarioAutenticado(): void
+    public function me(): void
     {
         try {
-            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuario = $this->obterUsuarioAutenticado();
 
             if (!$usuario) {
                 $this->naoAutorizado();
@@ -110,11 +110,11 @@ class ControllerAutenticacao extends BaseController
             }
 
             // Remove a senha dos dados retornados
-            unset($usuario['senha']);
+            $usuario = $this->removerCamposSensiveis($usuario);
 
             $this->sucesso($usuario, 'Usuário autenticado');
         } catch (\Exception $e) {
-            $this->erro($e->getMessage(), 500);
+            $this->tratarErro($e, 500);
         }
     }
 

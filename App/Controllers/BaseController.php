@@ -188,6 +188,16 @@ abstract class BaseController
     }
 
     /**
+     * Envia resposta de erro de validação
+     *
+     * @param array $erros Array de erros de validação
+     */
+    protected function validacao(array $erros): void
+    {
+        AuxiliarResposta::validacao($erros);
+    }
+
+    /**
      * Trata exceções de forma padronizada
      *
      * @param \Exception $e Exceção capturada
