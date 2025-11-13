@@ -146,6 +146,7 @@ class ServiceWhatsapp
             'destinatario' => $dados['destinatario'],
             'tipo_mensagem' => $dados['tipo_mensagem'],
             'status' => 'pendente',
+            'status_code' => 1,
             'mensagem' => json_encode([
                 'destinatario' => $dados['destinatario'],
                 'tipo' => $dados['tipo_mensagem']
@@ -221,6 +222,7 @@ class ServiceWhatsapp
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
                 'status' => 'enviado',
+                'status_code' => 2,
                 'mensagem' => json_encode([
                     'response' => $responseData,
                     'conteudo' => $dados['conteudo']
@@ -248,6 +250,7 @@ class ServiceWhatsapp
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
                 'status' => 'erro',
+                'status_code' => 0,
                 'mensagem' => json_encode([
                     'erro' => $erro,
                     'response' => $responseData
@@ -354,6 +357,7 @@ class ServiceWhatsapp
                     'destinatario' => $mensagem['destinatario'],
                     'tipo_mensagem' => $mensagem['tipo_mensagem'],
                     'status' => 'enviado',
+                    'status_code' => 2,
                     'mensagem' => json_encode(['response' => $responseData])
                 ]);
 
@@ -400,6 +404,24 @@ class ServiceWhatsapp
                 'status_code' => 0,
                 'erro_mensagem' => $erro,
                 'tentativas' => $novasTentativas
+            ]);
+
+            // Registra erro definitivo no histórico
+            $this->historicoModel->adicionar([
+                'queue_id' => $queueId,
+                'message_id' => null,
+                'tipo_evento' => 'erro_envio',
+                'tipo_entidade' => $mensagem['tipo_entidade'] ?? null,
+                'entidade_id' => $mensagem['entidade_id'] ?? null,
+                'entidade_nome' => $mensagem['entidade_nome'] ?? null,
+                'destinatario' => $mensagem['destinatario'],
+                'tipo_mensagem' => $mensagem['tipo_mensagem'],
+                'status' => 'erro',
+                'status_code' => 0,
+                'mensagem' => json_encode([
+                    'erro' => $erro,
+                    'tentativas' => $novasTentativas
+                ])
             ]);
         } else {
             // Agenda retry - mantém como pendente para nova tentativa
