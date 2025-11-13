@@ -128,9 +128,13 @@ const AdministradoresManager = {
                     deletar: permissoes.includes('colaboradores.deletar')
                 };
 
-                // Esconde botão novo se não tem permissão de criar
-                if (!this.state.permissoes.criar && this.elements.btnNovo) {
-                    this.elements.btnNovo.style.display = 'none';
+                // Controla visibilidade do botão novo baseado em permissão
+                if (this.elements.btnNovo) {
+                    if (this.state.permissoes.criar) {
+                        this.elements.btnNovo.style.display = 'block';
+                    } else {
+                        this.elements.btnNovo.style.display = 'none';
+                    }
                 }
             }
         } catch (error) {
