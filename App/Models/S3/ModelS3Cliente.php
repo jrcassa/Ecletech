@@ -206,6 +206,35 @@ class ModelS3Cliente
     }
 
     /**
+     * Baixa objeto do S3 e retorna em base64
+     */
+    public function getObjectBase64(string $bucket, string $key): array
+    {
+        try {
+            $result = $this->obterCliente()->getObject([
+                'Bucket' => $bucket,
+                'Key'    => $key,
+            ]);
+
+            $conteudo = (string) $result['Body'];
+            $base64 = base64_encode($conteudo);
+
+            // Extrai nome do arquivo do caminho
+            $pathParts = explode('/', $key);
+            $filename = end($pathParts);
+
+            return [
+                'base64' => $base64,
+                'filename' => $filename,
+                'content_type' => $result['ContentType'] ?? 'application/octet-stream',
+                'size' => $result['ContentLength'] ?? strlen($conteudo)
+            ];
+        } catch (AwsException $e) {
+            throw new Exception("Erro ao baixar objeto: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Gera URL assinada (presigned URL) para download
      */
     public function getPresignedUrl(
