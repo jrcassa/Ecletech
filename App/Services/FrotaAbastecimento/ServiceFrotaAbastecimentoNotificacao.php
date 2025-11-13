@@ -105,8 +105,9 @@ class ServiceFrotaAbastecimentoNotificacao
         // Buscar destinatários via ACL
         $destinatarios = $this->obterDestinatariosNotificacao();
 
-        // Buscar comprovante no S3 e gerar URL assinada
-        $urlComprovante = null;
+        // Buscar comprovante no S3 e baixar em base64
+        $comprovanteBase64 = null;
+        $comprovanteNome = null;
         try {
             $arquivos = $this->modelS3Arquivo->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
             error_log("[ABASTECIMENTO {$abastecimento_id}] Total de arquivos encontrados: " . count($arquivos));
@@ -122,13 +123,14 @@ class ServiceFrotaAbastecimentoNotificacao
                 $comprovante = reset($comprovantes); // Pega o primeiro elemento do array filtrado
                 error_log("[ABASTECIMENTO {$abastecimento_id}] Comprovante ID: " . $comprovante['id']);
 
-                // Gerar URL presignada diretamente usando ModelS3Cliente
-                $urlComprovante = $this->modelS3Cliente->getPresignedUrl(
+                // Baixar arquivo do S3 em base64
+                $arquivoBase64 = $this->modelS3Cliente->getObjectBase64(
                     $comprovante['bucket'],
-                    $comprovante['caminho_s3'],
-                    3600 // 1 hora
+                    $comprovante['caminho_s3']
                 );
-                error_log("[ABASTECIMENTO {$abastecimento_id}] URL gerada: " . ($urlComprovante ? 'SIM' : 'NÃO'));
+                $comprovanteBase64 = $arquivoBase64['base64'];
+                $comprovanteNome = $arquivoBase64['filename'];
+                error_log("[ABASTECIMENTO {$abastecimento_id}] Base64 gerado: " . ($comprovanteBase64 ? 'SIM' : 'NÃO'));
             } else {
                 error_log("[ABASTECIMENTO {$abastecimento_id}] Nenhum comprovante encontrado");
             }
@@ -157,15 +159,16 @@ class ServiceFrotaAbastecimentoNotificacao
                     ]
                 ]);
 
-                // Enviar foto do comprovante se a URL foi gerada com sucesso
-                if (!empty($urlComprovante)) {
+                // Enviar foto do comprovante se o base64 foi gerado com sucesso
+                if (!empty($comprovanteBase64)) {
                     $this->serviceWhatsapp->enviarMensagem([
                         'destinatario' => [
                             'tipo' => 'colaborador',
                             'id' => $destinatario['id']
                         ],
                         'tipo' => 'image',
-                        'arquivo_url' => $urlComprovante,
+                        'arquivo_base64' => $comprovanteBase64,
+                        'arquivo_nome' => $comprovanteNome,
                         'mensagem' => '📷 Comprovante de Abastecimento',
                         'prioridade' => 'normal',
                         'metadata' => [
