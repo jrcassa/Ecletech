@@ -193,7 +193,7 @@ class ServiceFrotaAbastecimentoNotificacao
         $mensagem = "🚗 *Nova Ordem de Abastecimento*\n\n";
         $mensagem .= "Olá *{$abastecimento['motorista_nome']}*,\n\n";
         $mensagem .= "Você tem uma nova ordem de abastecimento:\n\n";
-        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_modelo']}\n";
+        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n";
 
         if ($abastecimento['data_limite']) {
             $dataLimite = date('d/m/Y', strtotime($abastecimento['data_limite']));
@@ -218,7 +218,7 @@ class ServiceFrotaAbastecimentoNotificacao
     {
         $mensagem = "✅ *Abastecimento Realizado*\n\n";
         $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
-        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_modelo']}\n\n";
+        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n\n";
 
         $mensagem .= "📍 *Dados do Abastecimento:*\n";
         $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
