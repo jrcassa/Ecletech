@@ -53,8 +53,7 @@ class ModelWhatsappEntidade
             'numero_formatado' => $dados['numero_formatado'] ?? null,
             'nome' => $dados['nome'] ?? null,
             'email' => $dados['email'] ?? null,
-            'whatsapp_valido' => true,
-            'sincronizado_em' => date('Y-m-d H:i:s')
+            'whatsapp_valido' => true
         ];
 
         if ($existente) {
@@ -113,7 +112,7 @@ class ModelWhatsappEntidade
             'whatsapp_entidades',
             [
                 'total_envios' => 'total_envios + 1',
-                'ultimo_envio_em' => date('Y-m-d H:i:s')
+                'ultimo_envio' => date('Y-m-d H:i:s')
             ],
             'tipo_entidade = ? AND entidade_id = ?',
             [$tipo, $id]
@@ -141,7 +140,7 @@ class ModelWhatsappEntidade
         return $this->db->buscarTodos(
             "SELECT * FROM whatsapp_entidades
              WHERE tipo_entidade = ?
-             AND sincronizado_em < DATE_SUB(NOW(), INTERVAL ? DAY)
+             AND atualizado_em < DATE_SUB(NOW(), INTERVAL ? DAY)
              LIMIT ?",
             [$tipo, $dias, $limit]
         );
