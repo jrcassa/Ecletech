@@ -2,23 +2,21 @@
 
 namespace App\Controllers\Email;
 
-use App\Core\Controller;
-use App\Core\Request;
-use App\Core\Response;
+use App\Controllers\BaseController;
 use App\Models\Email\ModelEmailConfiguracao;
 use App\Services\Email\ServiceEmailEntidade;
 
 /**
  * Controller para gerenciar configurações de email
  */
-class ControllerEmailConfiguracao extends Controller
+class ControllerEmailConfiguracao extends BaseController
 {
     private ModelEmailConfiguracao $model;
     private ServiceEmailEntidade $entidadeService;
 
     public function __construct()
     {
-        parent::__construct();
+        
         $this->model = new ModelEmailConfiguracao();
         $this->entidadeService = new ServiceEmailEntidade();
     }
@@ -27,7 +25,7 @@ class ControllerEmailConfiguracao extends Controller
      * GET /email/config
      * Lista todas as configurações
      */
-    public function listar(Request $request): Response
+    public function listar(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.acessar')) {
@@ -52,7 +50,7 @@ class ControllerEmailConfiguracao extends Controller
      * GET /email/config/{chave}
      * Obtém configuração específica
      */
-    public function obter(Request $request, array $params): Response
+    public function obter(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.acessar')) {
@@ -74,7 +72,7 @@ class ControllerEmailConfiguracao extends Controller
      * POST /email/config/salvar
      * Salva uma configuração
      */
-    public function salvar(Request $request): Response
+    public function salvar(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.alterar')) {
@@ -104,7 +102,7 @@ class ControllerEmailConfiguracao extends Controller
      * POST /email/config/sincronizar-entidade
      * Sincroniza uma entidade
      */
-    public function sincronizarEntidade(Request $request): Response
+    public function sincronizarEntidade(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.alterar')) {
@@ -129,7 +127,7 @@ class ControllerEmailConfiguracao extends Controller
      * POST /email/config/sincronizar-lote
      * Sincroniza entidades em lote
      */
-    public function sincronizarLote(Request $request): Response
+    public function sincronizarLote(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.alterar')) {
@@ -156,7 +154,7 @@ class ControllerEmailConfiguracao extends Controller
      * GET /email/config/categorias
      * Lista categorias disponíveis
      */
-    public function categorias(Request $request): Response
+    public function categorias(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.acessar')) {

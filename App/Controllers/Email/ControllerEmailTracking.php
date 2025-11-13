@@ -2,23 +2,21 @@
 
 namespace App\Controllers\Email;
 
-use App\Core\Controller;
-use App\Core\Request;
-use App\Core\Response;
+use App\Controllers\BaseController;
 use App\Models\Email\ModelEmailHistorico;
 use App\Services\Email\ServiceEmailEntidade;
 
 /**
  * Controller para rastreamento de abertura e cliques
  */
-class ControllerEmailTracking extends Controller
+class ControllerEmailTracking extends BaseController
 {
     private ModelEmailHistorico $historico;
     private ServiceEmailEntidade $entidadeService;
 
     public function __construct()
     {
-        parent::__construct();
+        
         $this->historico = new ModelEmailHistorico();
         $this->entidadeService = new ServiceEmailEntidade();
     }
@@ -27,7 +25,7 @@ class ControllerEmailTracking extends Controller
      * GET /email/track/open/{tracking_code}
      * Rastreia abertura de email (pixel transparente)
      */
-    public function rastrearAbertura(Request $request, array $params): Response
+    public function rastrearAbertura(): void
     {
         $trackingCode = $params['tracking_code'] ?? null;
 
@@ -63,7 +61,7 @@ class ControllerEmailTracking extends Controller
      * GET /email/track/click/{tracking_code}
      * Rastreia clique em link
      */
-    public function rastrearClique(Request $request, array $params): Response
+    public function rastrearClique(): void
     {
         $trackingCode = $params['tracking_code'] ?? null;
         $url = $request->get('url');
@@ -97,7 +95,7 @@ class ControllerEmailTracking extends Controller
      * GET /email/track/stats/{tracking_code}
      * Obtém estatísticas de um email específico
      */
-    public function estatisticas(Request $request, array $params): Response
+    public function estatisticas(): void
     {
         // Valida permissão
         if (!$this->acl->temPermissao('email.acessar')) {
