@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Helpers\AuxiliarRede;
+
 /**
  * Classe para registro de auditoria
  */
@@ -41,8 +43,8 @@ class RegistroAuditoria
                 'registro_id' => $registroId,
                 'dados_antigos' => $dadosAntigos ? json_encode($dadosAntigos) : null,
                 'dados_novos' => $dadosNovos ? json_encode($dadosNovos) : null,
-                'ip' => $this->obterIp(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'ip' => AuxiliarRede::obterIp(),
+                'user_agent' => AuxiliarRede::obterUserAgent(),
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
@@ -93,8 +95,8 @@ class RegistroAuditoria
             $this->db->inserir('auditoria_login', [
                 'colaborador_id' => $colaboradorId,
                 'sucesso' => $sucesso ? 1 : 0,
-                'ip' => $this->obterIp(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'ip' => AuxiliarRede::obterIp(),
+                'user_agent' => AuxiliarRede::obterUserAgent(),
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
@@ -115,8 +117,8 @@ class RegistroAuditoria
             $this->db->inserir('auditoria_login', [
                 'colaborador_id' => $colaboradorId,
                 'acao' => 'logout',
-                'ip' => $this->obterIp(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'ip' => AuxiliarRede::obterIp(),
+                'user_agent' => AuxiliarRede::obterUserAgent(),
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
@@ -151,8 +153,8 @@ class RegistroAuditoria
                 'colaborador_id' => $colaboradorId,
                 'metodo' => $_SERVER['REQUEST_METHOD'],
                 'uri' => $_SERVER['REQUEST_URI'],
-                'ip' => $this->obterIp(),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'ip' => AuxiliarRede::obterIp(),
+                'user_agent' => AuxiliarRede::obterUserAgent(),
                 'payload' => file_get_contents('php://input'),
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
@@ -236,23 +238,6 @@ class RegistroAuditoria
         $dataLimite = date('Y-m-d H:i:s', strtotime("-{$dias} days"));
 
         return $this->db->deletar('auditoria', 'criado_em < ?', [$dataLimite]);
-    }
-
-    /**
-     * Obtém o IP do cliente
-     */
-    private function obterIp(): string
-    {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ??
-              $_SERVER['HTTP_X_REAL_IP'] ??
-              $_SERVER['REMOTE_ADDR'] ??
-              'unknown';
-
-        if (str_contains($ip, ',')) {
-            $ip = trim(explode(',', $ip)[0]);
-        }
-
-        return $ip;
     }
 
     /**
