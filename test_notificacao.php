@@ -5,16 +5,41 @@
  * Execute via CLI: php test_notificacao.php
  */
 
-require_once __DIR__ . '/App/Core/BancoDados.php';
-require_once __DIR__ . '/App/Models/FrotaAbastecimento/ModelFrotaAbastecimento.php';
-require_once __DIR__ . '/App/Models/Colaborador/ModelColaborador.php';
-require_once __DIR__ . '/App/Services/FrotaAbastecimento/ServiceFrotaAbastecimentoNotificacao.php';
-require_once __DIR__ . '/App/Services/Whatsapp/ServiceWhatsapp.php';
-require_once __DIR__ . '/App/Services/Whatsapp/ServiceWhatsappEntidade.php';
-require_once __DIR__ . '/App/Models/Whatsapp/ModelWhatsappQueue.php';
-require_once __DIR__ . '/App/Models/Whatsapp/ModelWhatsappConfiguracao.php';
-require_once __DIR__ . '/App/Models/Whatsapp/ModelWhatsappHistorico.php';
-require_once __DIR__ . '/App/Helpers/AuxiliarWhatsapp.php';
+// Define o nível de erros
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Define o timezone padrão
+date_default_timezone_set('America/Sao_Paulo');
+
+// Carrega o autoloader do Composer
+require __DIR__ . '/vendor/autoload.php';
+
+// Autoloader personalizado
+spl_autoload_register(function ($classe) {
+    $prefixo = 'App\\';
+    $diretorioBase = __DIR__ . '/App/';
+
+    $tamanho = strlen($prefixo);
+    if (strncmp($prefixo, $classe, $tamanho) !== 0) {
+        return;
+    }
+
+    $classeRelativa = substr($classe, $tamanho);
+    $arquivo = $diretorioBase . str_replace('\\', '/', $classeRelativa) . '.php';
+
+    if (file_exists($arquivo)) {
+        require $arquivo;
+    }
+});
+
+// Carrega as variáveis de ambiente
+$caminhoEnv = __DIR__ . '/.env';
+$carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
+$carregadorEnv->carregar($caminhoEnv);
+
+// Inicializa a configuração
+$config = \App\Core\Configuracao::obterInstancia();
 
 use App\Core\BancoDados;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
