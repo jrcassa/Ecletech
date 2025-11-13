@@ -2,7 +2,7 @@
 -- MIGRATION: Sistema de Email com PHPMailer
 -- Data: 2025-01-13
 -- Descrição: Cria estrutura completa de email seguindo padrão WhatsApp
--- Tabelas: 6 (configuracoes, queue, historico, entidades, logs, cron_logs)
+-- Tabelas: 5 (configuracoes, queue, historico, entidades, cron_logs)
 -- =====================================================
 
 -- =====================================================
@@ -190,38 +190,7 @@ CREATE TABLE IF NOT EXISTS `email_entidades` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Entidades associadas ao sistema de email';
 
 -- =====================================================
--- TABELA 5: email_logs
--- Logs detalhados de operações do sistema
--- =====================================================
-CREATE TABLE IF NOT EXISTS `email_logs` (
-    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-
-    -- Tipo de log
-    `tipo` VARCHAR(50) NOT NULL COMMENT 'smtp_connection, smtp_send, queue_process, error, etc',
-    `nivel` ENUM('debug', 'info', 'warning', 'error') NOT NULL DEFAULT 'info',
-
-    -- Conteúdo
-    `mensagem` TEXT NOT NULL COMMENT 'Mensagem do log',
-    `contexto` TEXT NULL COMMENT 'Dados adicionais em JSON',
-
-    -- Rastreamento
-    `message_id` VARCHAR(255) NULL COMMENT 'ID da mensagem relacionada',
-    `queue_id` INT UNSIGNED NULL COMMENT 'ID da fila relacionada',
-    `ip` VARCHAR(45) NULL,
-    `user_agent` VARCHAR(500) NULL,
-
-    -- Timestamp
-    `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    -- Índices
-    INDEX `idx_tipo` (`tipo`),
-    INDEX `idx_nivel` (`nivel`),
-    INDEX `idx_message_id` (`message_id`),
-    INDEX `idx_criado` (`criado_em`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs do sistema de email';
-
--- =====================================================
--- TABELA 6: email_cron_logs
+-- TABELA 5: email_cron_logs
 -- Logs de execução do cron job
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `email_cron_logs` (

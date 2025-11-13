@@ -24,7 +24,6 @@ Sistema completo de gerenciamento e envio de emails integrado ao sistema Ecletec
 - ✅ **Tracking de Cliques** em links
 - ✅ **Retry Automático** com backoff exponencial
 - ✅ **Histórico Completo** de todos os envios
-- ✅ **Sistema de Logs** detalhado
 - ✅ **Permissões ACL** integradas
 - ✅ **API RESTful** completa
 
@@ -40,13 +39,12 @@ Sistema completo de gerenciamento e envio de emails integrado ao sistema Ecletec
 │   ├── ControllerEmailPainel.php
 │   ├── ControllerEmailConfiguracao.php
 │   └── ControllerEmailTracking.php
-├── Models/Email/               # 6 Models
+├── Models/Email/               # 5 Models
 │   ├── ModelEmailConfiguracao.php
 │   ├── ModelEmailQueue.php
 │   ├── ModelEmailHistorico.php
 │   ├── ModelEmailEntidade.php
-│   ├── ModelEmailSMTP.php
-│   └── ModelEmailLog.php
+│   └── ModelEmailSMTP.php
 ├── Services/Email/             # 2 Services
 │   ├── ServiceEmail.php
 │   └── ServiceEmailEntidade.php
@@ -66,14 +64,13 @@ Sistema completo de gerenciamento e envio de emails integrado ao sistema Ecletec
 └── processar_email.php
 ```
 
-### Banco de Dados (6 Tabelas)
+### Banco de Dados (5 Tabelas)
 
 1. **email_configuracoes** - 73 configurações do sistema
 2. **email_queue** - Fila de emails pendentes
 3. **email_historico** - Histórico completo de envios
 4. **email_entidades** - Mapeamento entidade→email
-5. **email_logs** - Logs detalhados
-6. **email_cron_logs** - Logs do processamento cron
+5. **email_cron_logs** - Logs do processamento cron
 
 ## 📦 Instalação
 
@@ -86,7 +83,7 @@ composer update phpmailer/phpmailer
 ### 2. Executar Migrations
 
 ```bash
-# Migration principal (6 tabelas)
+# Migration principal (5 tabelas)
 mysql -u root -p ecletech < database/migrations/2025_01_13_create_email_tables.sql
 
 # Permissões ACL
@@ -424,8 +421,7 @@ SELECT 3, id FROM permissoes WHERE nome = 'email.acessar';
 
 1. Verificar configurações SMTP
 2. Testar conexão: `POST /email/conexao/testar`
-3. Verificar logs: tabela `email_logs`
-4. Verificar cron: `tail -f /var/log/email_cron.log`
+3. Verificar cron: `tail -f /var/log/email_cron.log`
 
 ### Tracking não funciona
 
