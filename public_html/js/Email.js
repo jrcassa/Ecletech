@@ -358,9 +358,12 @@ const EmailManager = {
         if (!this.elements.statusSistemaContainer) return;
 
         const configurado = dados.configurado || false;
-        const smtp_host = dados.smtp_host || 'Não configurado';
-        const smtp_user = dados.smtp_user || 'Não configurado';
-        const smtp_from = dados.smtp_from || 'Não configurado';
+        const info = dados.info || {};
+        const smtp_host = info.host || 'Não configurado';
+        const smtp_user = info.username || 'Não configurado';
+        const smtp_from = info.from_email || 'Não configurado';
+        const smtp_port = info.port || '';
+        const smtp_secure = info.secure || '';
 
         let html = '';
 
@@ -372,8 +375,8 @@ const EmailManager = {
                     <hr>
                     <div class="row">
                         <div class="col-md-6">
-                            <p class="mb-1"><strong>Servidor SMTP:</strong> ${Utils.DOM.escapeHtml(smtp_host)}</p>
-                            <p class="mb-1"><strong>Usuário:</strong> ${Utils.DOM.escapeHtml(smtp_user)}</p>
+                            <p class="mb-1"><strong>Servidor SMTP:</strong> ${Utils.DOM.escapeHtml(smtp_host)}${smtp_port ? ':' + smtp_port : ''}</p>
+                            <p class="mb-1"><strong>Segurança:</strong> ${Utils.DOM.escapeHtml(smtp_secure || 'none')}</p>
                             <p class="mb-1"><strong>Remetente Padrão:</strong> ${Utils.DOM.escapeHtml(smtp_from)}</p>
                         </div>
                         <div class="col-md-6">
@@ -386,11 +389,15 @@ const EmailManager = {
             `;
         } else {
             // Sistema não configurado
+            const erros = dados.erros || [];
+            const mensagemErros = erros.length > 0 ? `<p class="mb-2"><strong>Problemas encontrados:</strong></p><ul class="mb-0">${erros.map(e => '<li>' + Utils.DOM.escapeHtml(e) + '</li>').join('')}</ul>` : '';
+
             html = `
                 <div class="alert alert-warning" role="alert">
                     <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Sistema não configurado</h5>
                     <p>O sistema de email ainda não foi configurado. Configure o servidor SMTP nas configurações.</p>
-                    <button id="btn-ir-configuracoes" class="btn btn-primary">
+                    ${mensagemErros}
+                    <button id="btn-ir-configuracoes" class="btn btn-primary mt-2">
                         <i class="fas fa-cog"></i> Ir para Configurações
                     </button>
                 </div>

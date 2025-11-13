@@ -42,9 +42,17 @@ return function($router) {
         // ROTAS DE CONEXÃO SMTP
         // ============================================
 
+        // GET /email/status - Status da conexão (alias)
+        $router->get('/status', [ControllerEmailConexao::class, 'status'])
+            ->middleware(MiddlewareAcl::requer('email.acessar'));
+
         // GET /email/conexao/status - Status da conexão
         $router->get('/conexao/status', [ControllerEmailConexao::class, 'status'])
             ->middleware(MiddlewareAcl::requer('email.acessar'));
+
+        // POST /email/testar-conexao - Testa conexão SMTP (alias)
+        $router->post('/testar-conexao', [ControllerEmailConexao::class, 'testar'])
+            ->middleware(MiddlewareAcl::requer('email.alterar'));
 
         // POST /email/conexao/testar - Testa conexão SMTP
         $router->post('/conexao/testar', [ControllerEmailConexao::class, 'testar'])
@@ -60,6 +68,10 @@ return function($router) {
 
         // GET /email/painel/dashboard - Dashboard
         $router->get('/painel/dashboard', [ControllerEmailPainel::class, 'dashboard'])
+            ->middleware(MiddlewareAcl::requer('email.acessar'));
+
+        // GET /email/painel/historico - Histórico de emails (alias)
+        $router->get('/painel/historico', [ControllerEmailEnvio::class, 'historico'])
             ->middleware(MiddlewareAcl::requer('email.acessar'));
 
         // POST /email/painel/processar - Processa fila manualmente
