@@ -3,7 +3,7 @@
 namespace App\Services\FrotaAbastecimento;
 
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
-use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoNotificacao;
+// ModelFrotaAbastecimentoNotificacao não é mais utilizado - usando apenas whatsapp_queue
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
 use App\Models\Colaborador\ModelColaborador;
@@ -12,11 +12,12 @@ use App\Core\BancoDados;
 
 /**
  * Service para enviar notificações via WhatsApp
+ * Usa apenas whatsapp_queue - tabela frotas_abastecimentos_notificacoes não é mais utilizada
  */
 class ServiceFrotaAbastecimentoNotificacao
 {
     private ModelFrotaAbastecimento $model;
-    private ModelFrotaAbastecimentoNotificacao $modelNotificacao;
+    // Removido: ModelFrotaAbastecimentoNotificacao - não usado mais
     private ModelFrotaAbastecimentoMetrica $modelMetrica;
     private ModelFrotaAbastecimentoAlerta $modelAlerta;
     private ModelColaborador $modelColaborador;
@@ -26,7 +27,7 @@ class ServiceFrotaAbastecimentoNotificacao
     public function __construct()
     {
         $this->model = new ModelFrotaAbastecimento();
-        $this->modelNotificacao = new ModelFrotaAbastecimentoNotificacao();
+        // Removido: ModelFrotaAbastecimentoNotificacao
         $this->modelMetrica = new ModelFrotaAbastecimentoMetrica();
         $this->modelAlerta = new ModelFrotaAbastecimentoAlerta();
         $this->modelColaborador = new ModelColaborador();
@@ -52,16 +53,7 @@ class ServiceFrotaAbastecimentoNotificacao
         // Montar mensagem
         $mensagem = $this->montarMensagemOrdemCriada($abastecimento);
 
-        // Registrar notificação
-        $notificacaoId = $this->modelNotificacao->criar([
-            'abastecimento_id' => $abastecimento_id,
-            'tipo_notificacao' => 'ordem_criada',
-            'destinatario_id' => $abastecimento['colaborador_id'],
-            'telefone' => $motorista['celular'],
-            'mensagem' => $mensagem
-        ]);
-
-        // Enviar WhatsApp via fila
+        // Enviar WhatsApp via fila (whatsapp_queue)
         try {
             $resultado = $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
@@ -81,13 +73,11 @@ class ServiceFrotaAbastecimentoNotificacao
             ]);
 
             if ($resultado['sucesso']) {
-                $this->modelNotificacao->marcarEnviado($notificacaoId);
                 $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
-            } else {
-                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
             }
         } catch (\Exception $e) {
-            $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+            // Log do erro (opcional)
+            error_log("Erro ao enviar notificação ordem criada: " . $e->getMessage());
         }
     }
 
@@ -112,18 +102,9 @@ class ServiceFrotaAbastecimentoNotificacao
             // Montar mensagem
             $mensagem = $this->montarMensagemAbastecimentoFinalizado($abastecimento, $metricas, $alertas);
 
-            // Registrar notificação
-            $notificacaoId = $this->modelNotificacao->criar([
-                'abastecimento_id' => $abastecimento_id,
-                'tipo_notificacao' => 'abastecimento_finalizado',
-                'destinatario_id' => $destinatario['id'],
-                'telefone' => $destinatario['celular'],
-                'mensagem' => $mensagem
-            ]);
-
-            // Enviar WhatsApp via fila
+            // Enviar WhatsApp via fila (whatsapp_queue)
             try {
-                $resultado = $this->serviceWhatsapp->enviarMensagem([
+                $this->serviceWhatsapp->enviarMensagem([
                     'destinatario' => [
                         'tipo_entidade' => 'colaborador',
                         'entidade_id' => $destinatario['id'],
@@ -139,14 +120,9 @@ class ServiceFrotaAbastecimentoNotificacao
                         'abastecimento_id' => $abastecimento_id
                     ]
                 ]);
-
-                if ($resultado['sucesso']) {
-                    $this->modelNotificacao->marcarEnviado($notificacaoId);
-                } else {
-                    $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
-                }
             } catch (\Exception $e) {
-                $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+                // Log do erro (opcional)
+                error_log("Erro ao enviar notificação abastecimento finalizado: " . $e->getMessage());
             }
         }
 
@@ -171,18 +147,9 @@ class ServiceFrotaAbastecimentoNotificacao
         // Montar mensagem
         $mensagem = $this->montarMensagemOrdemCancelada($abastecimento);
 
-        // Registrar notificação
-        $notificacaoId = $this->modelNotificacao->criar([
-            'abastecimento_id' => $abastecimento_id,
-            'tipo_notificacao' => 'ordem_cancelada',
-            'destinatario_id' => $abastecimento['colaborador_id'],
-            'telefone' => $motorista['celular'],
-            'mensagem' => $mensagem
-        ]);
-
-        // Enviar WhatsApp via fila
+        // Enviar WhatsApp via fila (whatsapp_queue)
         try {
-            $resultado = $this->serviceWhatsapp->enviarMensagem([
+            $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
                     'tipo_entidade' => 'colaborador',
                     'entidade_id' => $abastecimento['colaborador_id'],
@@ -198,14 +165,9 @@ class ServiceFrotaAbastecimentoNotificacao
                     'abastecimento_id' => $abastecimento_id
                 ]
             ]);
-
-            if ($resultado['sucesso']) {
-                $this->modelNotificacao->marcarEnviado($notificacaoId);
-            } else {
-                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
-            }
         } catch (\Exception $e) {
-            $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
+            // Log do erro (opcional)
+            error_log("Erro ao enviar notificação ordem cancelada: " . $e->getMessage());
         }
     }
 

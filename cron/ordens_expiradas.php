@@ -90,7 +90,12 @@ try {
                 $mensagem .= "\nEntre em contato com a gestão para esclarecimentos.";
 
                 $serviceWhatsapp = new \App\Services\Whatsapp\ServiceWhatsapp();
-                $serviceWhatsapp->enviarMensagem($ordem['motorista_telefone'], $mensagem);
+                $serviceWhatsapp->enviarMensagem([
+                    'destinatario' => $ordem['motorista_telefone'],
+                    'tipo' => 'text',
+                    'mensagem' => $mensagem,
+                    'prioridade' => 'alta'
+                ]);
 
                 echo "[" . date('Y-m-d H:i:s') . "] Notificação enviada para {$ordem['motorista_nome']} ({$ordem['placa']})\n";
             } catch (\Exception $e) {
