@@ -329,6 +329,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 25. `ba3567f` - **FIX:** Adiciona suporte a redirecionamentos HTTP no cURL
 26. `f701752` - Docs: Atualiza PR info com commit de suporte a redirecionamentos HTTP
 27. `379d792` - **FIX:** Corrige erros SQL e JavaScript no painel WhatsApp
+28. `93df359` - Docs: Atualiza PR info com commits de correções SQL e JavaScript
+29. `de8cf46` - **FIX:** Corrige renderização da aba de conexão do painel WhatsApp
 
 ---
 
