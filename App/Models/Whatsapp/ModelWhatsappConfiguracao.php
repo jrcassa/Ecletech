@@ -23,19 +23,17 @@ class ModelWhatsappConfiguracao
     public function buscarTodas(): array
     {
         return $this->db->buscarTodos(
-            "SELECT * FROM whatsapp_configuracoes ORDER BY categoria, chave"
+            "SELECT * FROM whatsapp_configuracoes ORDER BY chave"
         );
     }
 
     /**
-     * Busca configurações por categoria
+     * Busca configurações por categoria (DEPRECATED - tabela não tem categoria)
      */
     public function buscarPorCategoria(string $categoria): array
     {
-        return $this->db->buscarTodos(
-            "SELECT * FROM whatsapp_configuracoes WHERE categoria = ? ORDER BY chave",
-            [$categoria]
-        );
+        // Como a tabela não tem categoria, retorna todas
+        return $this->buscarTodas();
     }
 
     /**

@@ -267,7 +267,9 @@ function carregarFila() {
     })
     .done(function(response) {
         if (response.sucesso) {
-            renderizarFila(response.dados);
+            // Resposta paginada tem estrutura: {itens: [], paginacao: {}}
+            const mensagens = response.dados.itens || response.dados || [];
+            renderizarFila(mensagens);
         } else {
             mostrarErro(response.mensagem);
         }
@@ -278,7 +280,7 @@ function carregarFila() {
 }
 
 function renderizarFila(mensagens) {
-    if (!mensagens || mensagens.length === 0) {
+    if (!mensagens || !Array.isArray(mensagens) || mensagens.length === 0) {
         $('#tabela-fila tbody').html('<tr><td colspan="6" class="text-center">Nenhuma mensagem na fila</td></tr>');
         return;
     }
@@ -382,7 +384,9 @@ function carregarHistorico() {
     })
     .done(function(response) {
         if (response.sucesso) {
-            renderizarHistorico(response.dados);
+            // Resposta paginada tem estrutura: {itens: [], paginacao: {}}
+            const eventos = response.dados.itens || response.dados || [];
+            renderizarHistorico(eventos);
         } else {
             mostrarErro(response.mensagem);
         }
@@ -393,7 +397,7 @@ function carregarHistorico() {
 }
 
 function renderizarHistorico(eventos) {
-    if (!eventos || eventos.length === 0) {
+    if (!eventos || !Array.isArray(eventos) || eventos.length === 0) {
         $('#tabela-historico tbody').html('<tr><td colspan="4" class="text-center">Nenhum evento encontrado</td></tr>');
         return;
     }

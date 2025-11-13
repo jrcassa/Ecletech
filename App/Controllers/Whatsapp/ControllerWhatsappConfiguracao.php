@@ -27,22 +27,19 @@ class ControllerWhatsappConfiguracao
     public function listar(): void
     {
         try {
-            $categoria = $_GET['categoria'] ?? null;
+            $configs = $this->model->buscarTodas();
 
-            if ($categoria) {
-                $configs = $this->model->buscarPorCategoria($categoria);
-            } else {
-                $configs = $this->model->buscarTodas();
-            }
-
-            // Organiza por categoria
-            $organizadas = [];
+            // Organiza por prefixo da chave (simula categorias)
+            $organizadas = ['geral' => []];
             foreach ($configs as $config) {
-                $cat = $config['categoria'];
-                if (!isset($organizadas[$cat])) {
-                    $organizadas[$cat] = [];
+                // Agrupa por prefixo da chave (ex: api_*, instancia_*, etc)
+                $partes = explode('_', $config['chave']);
+                $categoria = count($partes) > 1 ? $partes[0] : 'geral';
+
+                if (!isset($organizadas[$categoria])) {
+                    $organizadas[$categoria] = [];
                 }
-                $organizadas[$cat][] = $config;
+                $organizadas[$categoria][] = $config;
             }
 
             AuxiliarResposta::sucesso($organizadas, 'Configurações carregadas');
