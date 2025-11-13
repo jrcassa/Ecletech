@@ -816,7 +816,8 @@ const WhatsAppManager = {
             if (this.elements.inputNumero) {
                 this.elements.inputNumero.style.display = 'none';
             }
-            // TODO: Carregar entidades do tipo selecionado
+            // Carrega entidades do tipo selecionado
+            this.carregarEntidades(tipo);
         } else {
             if (this.elements.selectEntidade) {
                 this.elements.selectEntidade.style.display = 'none';
@@ -825,6 +826,69 @@ const WhatsAppManager = {
                 this.elements.inputNumero.style.display = 'none';
             }
         }
+    },
+
+    /**
+     * Carrega entidades (clientes, colaboradores, etc)
+     */
+    async carregarEntidades(tipo) {
+        if (!this.elements.selectEntidade) return;
+
+        // Mostra loading
+        this.elements.selectEntidade.innerHTML = '<option value="">Carregando...</option>';
+
+        try {
+            // Mapeia tipo para endpoint da API
+            const endpoints = {
+                'cliente': '/cliente',
+                'colaborador': '/colaborador',
+                'fornecedor': '/fornecedor',
+                'transportadora': '/transportadora'
+            };
+
+            const endpoint = endpoints[tipo];
+            if (!endpoint) {
+                this.elements.selectEntidade.innerHTML = '<option value="">Tipo inválido</option>';
+                return;
+            }
+
+            // Busca entidades da API
+            const response = await API.get(`${endpoint}?ativo=1&por_pagina=1000`);
+
+            if (response.sucesso && response.dados) {
+                const entidades = response.dados.itens || response.dados || [];
+                this.popularSelectEntidades(entidades);
+            } else {
+                this.elements.selectEntidade.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+
+        } catch (error) {
+            console.error(`Erro ao carregar ${tipo}s:`, error);
+            this.elements.selectEntidade.innerHTML = '<option value="">Erro ao carregar</option>';
+        }
+    },
+
+    /**
+     * Popula select com entidades
+     */
+    popularSelectEntidades(entidades) {
+        if (!this.elements.selectEntidade) return;
+
+        if (!entidades || entidades.length === 0) {
+            this.elements.selectEntidade.innerHTML = '<option value="">Nenhum registro encontrado</option>';
+            return;
+        }
+
+        let html = '<option value="">Selecione...</option>';
+        entidades.forEach(entidade => {
+            const nome = Utils.DOM.escapeHtml(entidade.nome || entidade.razao_social || 'Sem nome');
+            const telefone = entidade.telefone || entidade.celular || '';
+            const display = telefone ? `${nome} - ${telefone}` : nome;
+
+            html += `<option value="${entidade.id}" data-telefone="${Utils.DOM.escapeHtml(telefone)}">${display}</option>`;
+        });
+
+        this.elements.selectEntidade.innerHTML = html;
     },
 
     /**
