@@ -9,7 +9,6 @@ const FrotaAbastecimentoManager = {
         abastecimentos: [],
         frotas: [],
         colaboradores: [],
-        formasPagamento: [],
         permissoes: {
             visualizar: false,
             criar: false,
@@ -94,8 +93,7 @@ const FrotaAbastecimentoManager = {
         // Carrega dados auxiliares
         await Promise.all([
             this.carregarFrotas(),
-            this.carregarColaboradores(),
-            this.carregarFormasPagamento()
+            this.carregarColaboradores()
         ]);
 
         await this.carregarAbastecimentos();
@@ -236,40 +234,6 @@ const FrotaAbastecimentoManager = {
     },
 
     /**
-     * Carrega formas de pagamento para os selects
-     */
-    async carregarFormasPagamento() {
-        try {
-            const response = await API.get('/forma-pagamento?por_pagina=999');
-
-            if (response.sucesso) {
-                this.state.formasPagamento = response.dados?.itens || [];
-                this.popularSelectFormasPagamento();
-            }
-        } catch (error) {
-            console.error('Erro ao carregar formas de pagamento:', error);
-        }
-    },
-
-    /**
-     * Popula select de formas de pagamento
-     */
-    popularSelectFormasPagamento() {
-        const selectFormaPagamento = document.getElementById('formaPagamentoId');
-
-        if (selectFormaPagamento) {
-            selectFormaPagamento.innerHTML = '<option value="">Selecione...</option>';
-
-            this.state.formasPagamento.forEach(forma => {
-                const option = document.createElement('option');
-                option.value = forma.id;
-                option.textContent = forma.nome;
-                selectFormaPagamento.appendChild(option);
-            });
-        }
-    },
-
-    /**
      * Carrega abastecimentos
      */
     async carregarAbastecimentos() {
@@ -301,7 +265,7 @@ const FrotaAbastecimentoManager = {
                 params.append('data_fim', this.state.filtros.data_fim);
             }
 
-            const response = await API.get(`/frota/abastecimento?${params.toString()}`);
+            const response = await API.get(`/frota-abastecimento?${params.toString()}`);
 
             if (response.sucesso) {
                 this.state.abastecimentos = response.dados?.itens || [];
@@ -460,7 +424,7 @@ const FrotaAbastecimentoManager = {
      */
     async editar(id) {
         try {
-            const response = await API.get(`/frota/abastecimento/${id}`);
+            const response = await API.get(`/frota-abastecimento/${id}`);
 
             if (response.sucesso && response.dados) {
                 const abastecimento = response.dados;
@@ -472,14 +436,7 @@ const FrotaAbastecimentoManager = {
                 document.getElementById('frotaId').value = abastecimento.frota_id || '';
                 document.getElementById('colaboradorId').value = abastecimento.colaborador_id || '';
                 document.getElementById('dataLimite').value = abastecimento.data_limite || '';
-                document.getElementById('dataAbastecimento').value = abastecimento.data_abastecimento || '';
-                document.getElementById('km').value = abastecimento.km || '';
-                document.getElementById('combustivel').value = abastecimento.combustivel || '';
-                document.getElementById('litros').value = abastecimento.litros || '';
-                document.getElementById('valor').value = abastecimento.valor || '';
-                document.getElementById('formaPagamentoId').value = abastecimento.forma_pagamento_id || '';
                 document.getElementById('observacaoAdmin').value = abastecimento.observacao_admin || '';
-                document.getElementById('observacaoMotorista').value = abastecimento.observacao_motorista || '';
 
                 this.elements.modalError.style.display = 'none';
                 Utils.Errors.limparCampos();
@@ -507,55 +464,38 @@ const FrotaAbastecimentoManager = {
             colaborador_id: parseInt(document.getElementById('colaboradorId').value)
         };
 
-        // Campos opcionais
+        // Campos permitidos apenas para criar/editar ordem
         const dataLimite = document.getElementById('dataLimite').value;
         if (dataLimite) dados.data_limite = dataLimite;
 
-        const dataAbastecimento = document.getElementById('dataAbastecimento').value;
-        if (dataAbastecimento) dados.data_abastecimento = dataAbastecimento;
-
-        const km = document.getElementById('km').value;
-        if (km) dados.km = parseInt(km);
-
-        const combustivel = document.getElementById('combustivel').value;
-        if (combustivel) dados.combustivel = combustivel;
-
-        const litros = document.getElementById('litros').value;
-        if (litros) dados.litros = parseFloat(litros);
-
-        const valor = document.getElementById('valor').value;
-        if (valor) dados.valor = parseFloat(valor);
-
-        const formaPagamentoId = document.getElementById('formaPagamentoId').value;
-        if (formaPagamentoId) dados.forma_pagamento_id = parseInt(formaPagamentoId);
-
         const observacaoAdmin = document.getElementById('observacaoAdmin').value;
         if (observacaoAdmin) dados.observacao_admin = observacaoAdmin;
-
-        const observacaoMotorista = document.getElementById('observacaoMotorista').value;
-        if (observacaoMotorista) dados.observacao_motorista = observacaoMotorista;
 
         try {
             let response;
 
             if (this.state.editandoId) {
-                // Atualizar
-                response = await API.put(`/frota/abastecimento/${this.state.editandoId}`, dados);
+                // Atualizar ordem (apenas data_limite e observacao_admin)
+                const dadosAtualizacao = {
+                    data_limite: dados.data_limite,
+                    observacao_admin: dados.observacao_admin
+                };
+                response = await API.put(`/frota-abastecimento/${this.state.editandoId}`, dadosAtualizacao);
             } else {
-                // Criar
-                response = await API.post('/frota/abastecimento', dados);
+                // Criar nova ordem
+                response = await API.post('/frota-abastecimento', dados);
             }
 
             if (response.sucesso) {
                 this.fecharModal();
                 this.carregarAbastecimentos();
-                Utils.Notificacao.sucesso(response.mensagem || 'Abastecimento salvo com sucesso!');
+                Utils.Notificacao.sucesso(response.mensagem || 'Ordem salva com sucesso!');
             }
         } catch (error) {
             // Exibe mensagem de erro com detalhes de validação
-            this.showModalError(error.data || 'Erro ao salvar abastecimento');
-            Utils.Notificacao.erro(error.data || 'Erro ao salvar abastecimento');
-            console.error('Erro ao salvar abastecimento:', error);
+            this.showModalError(error.data || 'Erro ao salvar ordem');
+            Utils.Notificacao.erro(error.data || 'Erro ao salvar ordem');
+            console.error('Erro ao salvar ordem:', error);
         }
     },
 
@@ -568,7 +508,7 @@ const FrotaAbastecimentoManager = {
         }
 
         try {
-            const response = await API.delete(`/frota/abastecimento/${id}`);
+            const response = await API.delete(`/frota-abastecimento/${id}`);
 
             if (response.sucesso) {
                 this.carregarAbastecimentos();
@@ -638,14 +578,7 @@ const FrotaAbastecimentoManager = {
                 'frota_id': 'frotaId',
                 'colaborador_id': 'colaboradorId',
                 'data_limite': 'dataLimite',
-                'data_abastecimento': 'dataAbastecimento',
-                'km': 'km',
-                'combustivel': 'combustivel',
-                'litros': 'litros',
-                'valor': 'valor',
-                'forma_pagamento_id': 'formaPagamentoId',
-                'observacao_admin': 'observacaoAdmin',
-                'observacao_motorista': 'observacaoMotorista'
+                'observacao_admin': 'observacaoAdmin'
             };
 
             Utils.Errors.destacarCampos(error.erros, mapeamentoCampos);
