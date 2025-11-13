@@ -127,6 +127,10 @@ $router->grupo([
     $rotasWhatsapp = require __DIR__ . '/whatsapp.php';
     $rotasWhatsapp($router);
 
+    // Inclui rotas de email
+    $rotasEmail = require __DIR__ . '/email.php';
+    $rotasEmail($router);
+
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'me']);
