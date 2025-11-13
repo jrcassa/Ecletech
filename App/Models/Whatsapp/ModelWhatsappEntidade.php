@@ -108,15 +108,12 @@ class ModelWhatsappEntidade
      */
     public function registrarEnvio(string $tipo, int $id): void
     {
-        $this->db->atualizar(
-            'whatsapp_entidades',
-            [
-                'total_envios' => 'total_envios + 1',
-                'ultimo_envio' => date('Y-m-d H:i:s')
-            ],
-            'tipo_entidade = ? AND entidade_id = ?',
-            [$tipo, $id]
-        );
+        $sql = "UPDATE whatsapp_entidades
+                SET total_envios = total_envios + 1,
+                    ultimo_envio = ?
+                WHERE tipo_entidade = ? AND entidade_id = ?";
+
+        $this->db->executar($sql, [date('Y-m-d H:i:s'), $tipo, $id]);
     }
 
     /**
