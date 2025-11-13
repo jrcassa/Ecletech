@@ -305,7 +305,7 @@ class ServiceWhatsapp
                 case 'text':
                     $response = $this->getBaileys()->sendText(
                         $mensagem['destinatario'],
-                        $mensagem['conteudo']
+                        $mensagem['mensagem']  // Campo 'mensagem' no banco, não 'conteudo'
                     );
                     break;
 
@@ -319,7 +319,7 @@ class ServiceWhatsapp
                         $mensagem['tipo_mensagem'],
                         $mensagem['arquivo_url'] ?? null,
                         $mensagem['arquivo_base64'] ?? null,
-                        $mensagem['conteudo'] ?? null,
+                        $mensagem['mensagem'] ?? null,  // Campo 'mensagem' no banco, não 'conteudo'
                         $mensagem['arquivo_nome'] ?? null
                     );
                     break;
