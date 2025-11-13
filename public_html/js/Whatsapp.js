@@ -1,606 +1,857 @@
-// ============================================
-// WHATSAPP.JS - Sistema de Gerenciamento WhatsApp
-// Versão: 2.0.0 - API RESTful
-// ============================================
+/**
+ * Gerenciador de WhatsApp
+ * Implementa gerenciamento completo de conexão, fila, histórico e configurações do WhatsApp
+ */
 
-// Configuração da API (usa o baseURL do API.js)
-const API_BASE = window.location.origin + '/public_html/api/whatsapp';
-
-// Configuração global do jQuery AJAX para usar credentials e CSRF
-$.ajaxSetup({
-    xhrFields: {
-        withCredentials: true  // Envia cookies automaticamente
+const WhatsAppManager = {
+    // Estado da aplicação
+    state: {
+        conectado: false,
+        statusInstancia: null,
+        qrCode: null,
+        permissoes: {
+            visualizar: true,
+            criar: true,
+            editar: false,
+            deletar: false
+        },
+        intervalStatusCheck: null,
+        tabAtual: 'conexao',
+        estatisticas: {
+            pendentes: 0,
+            processando: 0,
+            enviados: 0,
+            erros: 0
+        }
     },
-    crossDomain: false,
-    beforeSend: function(xhr, settings) {
-        // Adiciona CSRF token para requisições que não sejam GET
-        if (settings.type !== 'GET' && typeof API !== 'undefined') {
-            const csrfToken = API.getCsrfToken();
-            if (csrfToken) {
-                xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+
+    // Elementos DOM
+    elements: {
+        // Menu lateral
+        menuItems: document.querySelectorAll('.list-group-item[data-tab]'),
+
+        // Nome do usuário
+        nomeUsuario: document.getElementById('nome-usuario'),
+        listaPermissoes: document.getElementById('lista-permissoes'),
+        menuConfiguracoes: document.getElementById('menu-configuracoes'),
+        lockConfiguracoes: document.getElementById('lock-configuracoes'),
+
+        // Tabs
+        tabConexao: document.getElementById('tab-conexao'),
+        tabTeste: document.getElementById('tab-teste'),
+        tabFila: document.getElementById('tab-fila'),
+        tabHistorico: document.getElementById('tab-historico'),
+        tabConfiguracoes: document.getElementById('tab-configuracoes'),
+
+        // Status da instância
+        statusInstanciaContainer: document.getElementById('status-instancia-container'),
+
+        // Fila
+        tabelaFila: document.getElementById('tabela-fila'),
+        statPendentes: document.getElementById('stat-pendentes'),
+        statProcessando: document.getElementById('stat-processando'),
+        statEnviados: document.getElementById('stat-enviados'),
+        statErros: document.getElementById('stat-erros'),
+
+        // Histórico
+        tabelaHistorico: document.getElementById('tabela-historico'),
+        filtroDataInicio: document.getElementById('filtro-data-inicio'),
+        filtroDataFim: document.getElementById('filtro-data-fim'),
+        filtroStatus: document.getElementById('filtro-status'),
+
+        // Configurações
+        containerConfiguracoes: document.getElementById('container-configuracoes'),
+
+        // Formulário de teste
+        formTesteEnvio: document.getElementById('form-teste-envio'),
+        tipoDestinatario: document.getElementById('tipo-destinatario'),
+        selectEntidade: document.getElementById('select-entidade'),
+        inputNumero: document.getElementById('input-numero'),
+        tipoMensagem: document.getElementById('tipo-mensagem'),
+        campoTexto: document.getElementById('campo-texto'),
+        campoUrl: document.getElementById('campo-url'),
+        campoCaption: document.getElementById('campo-caption')
+    },
+
+    /**
+     * Inicializa o gerenciador
+     */
+    async init() {
+        console.log('WhatsApp Manager iniciado - v3.0');
+
+        // Verifica autenticação
+        if (!AuthAPI.isAuthenticated()) {
+            return;
+        }
+
+        // Configura event listeners
+        this.setupEventListeners();
+
+        // Carrega dados iniciais
+        await this.carregarNomeUsuario();
+        await this.carregarPermissoes();
+        await this.verificarStatusInstancia();
+        await this.carregarDashboard();
+    },
+
+    /**
+     * Configura event listeners
+     */
+    setupEventListeners() {
+        // Navegação entre tabs
+        this.elements.menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tab = item.getAttribute('data-tab');
+                this.trocarTab(tab);
+            });
+        });
+
+        // Formulário de teste de envio
+        if (this.elements.formTesteEnvio) {
+            this.elements.formTesteEnvio.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.enviarMensagemTeste();
+            });
+        }
+
+        // Tipo de destinatário
+        if (this.elements.tipoDestinatario) {
+            this.elements.tipoDestinatario.addEventListener('change', () => {
+                this.alterarTipoDestinatario();
+            });
+        }
+
+        // Tipo de mensagem
+        if (this.elements.tipoMensagem) {
+            this.elements.tipoMensagem.addEventListener('change', () => {
+                this.alterarTipoMensagem();
+            });
+        }
+
+        // Filtros de histórico
+        const btnFiltrarHistorico = document.querySelector('#tab-historico .btn-primary');
+        if (btnFiltrarHistorico) {
+            btnFiltrarHistorico.addEventListener('click', () => {
+                this.carregarHistorico();
+            });
+        }
+
+        // Botão atualizar fila
+        const btnAtualizarFila = document.querySelector('#tab-fila .btn-outline-primary');
+        if (btnAtualizarFila) {
+            btnAtualizarFila.addEventListener('click', () => {
+                this.carregarFila();
+            });
+        }
+    },
+
+    /**
+     * Carrega nome do usuário
+     */
+    async carregarNomeUsuario() {
+        const usuario = API.getUser();
+
+        if (usuario && usuario.nome) {
+            if (this.elements.nomeUsuario) {
+                this.elements.nomeUsuario.textContent = usuario.nome;
+            }
+        } else {
+            try {
+                const response = await API.get('/me');
+
+                if (response.sucesso) {
+                    const user = response.dados?.usuario || response.dados?.user || response.dados;
+
+                    if (user && user.nome && this.elements.nomeUsuario) {
+                        this.elements.nomeUsuario.textContent = user.nome;
+                        API.setUser(user);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar nome do usuário:', error);
+                if (this.elements.nomeUsuario) {
+                    this.elements.nomeUsuario.textContent = 'Usuário';
+                }
             }
         }
-    }
-});
+    },
 
-// Variáveis Globais
-let PODE_ALTERAR = false;
-let PODE_DELETAR = false;
-let intervalStatusCheck = null;
+    /**
+     * Carrega permissões do usuário
+     */
+    async carregarPermissoes() {
+        if (!this.elements.listaPermissoes) return;
 
-// ============================================
-// INICIALIZAÇÃO
-// ============================================
+        this.elements.listaPermissoes.innerHTML = '<li class="mb-2"><i class="fas fa-spinner fa-spin"></i> Carregando...</li>';
 
-$(document).ready(function() {
-    console.log('WhatsApp Manager iniciado - v2.0');
+        try {
+            const response = await API.get('/me');
 
-    // Navegação entre tabs
-    inicializarNavegacao();
+            if (response.sucesso) {
+                const user = response.dados?.usuario || response.dados?.user || response.dados;
+                this.renderizarPermissoes(user);
+            } else {
+                this.elements.listaPermissoes.innerHTML = '<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar permissões:', error);
+            this.elements.listaPermissoes.innerHTML = '<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>';
+        }
+    },
 
-    // Eventos de formulários
-    inicializarEventos();
+    /**
+     * Renderiza permissões do usuário
+     */
+    renderizarPermissoes(user) {
+        if (!this.elements.listaPermissoes) return;
 
-    // Carrega status inicial
-    verificarStatusInstancia();
+        const permissoes = [];
 
-    // Carrega dashboard
-    carregarDashboard();
-});
+        // Perfil do usuário
+        if (user.tipo_usuario || user.role) {
+            const tipo = user.tipo_usuario || user.role;
+            permissoes.push({
+                icone: 'fa-user-shield',
+                texto: `Perfil: ${Utils.String.capitalize(tipo)}`,
+                classe: 'text-primary'
+            });
+        }
 
-// ============================================
-// NAVEGAÇÃO
-// ============================================
+        // Verifica permissões
+        if (user.pode_alterar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
+            this.state.permissoes.editar = true;
+            permissoes.push({
+                icone: 'fa-edit',
+                texto: 'Alterar Configurações',
+                classe: 'text-success'
+            });
+        }
 
-function inicializarNavegacao() {
-    $('.list-group-item').click(function(e) {
-        e.preventDefault();
+        if (user.pode_deletar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
+            this.state.permissoes.deletar = true;
+            permissoes.push({
+                icone: 'fa-trash',
+                texto: 'Deletar Mensagens',
+                classe: 'text-warning'
+            });
+        }
 
-        $('.list-group-item').removeClass('active');
-        $(this).addClass('active');
+        // Permissões padrão
+        permissoes.push({
+            icone: 'fa-paper-plane',
+            texto: 'Enviar Mensagens',
+            classe: 'text-info'
+        });
 
-        const tab = $(this).data('tab');
-        $('.tab-pane-custom').hide();
-        $(`#tab-${tab}`).show();
+        permissoes.push({
+            icone: 'fa-list',
+            texto: 'Visualizar Fila',
+            classe: 'text-info'
+        });
+
+        // Renderiza
+        let html = '';
+        permissoes.forEach(perm => {
+            html += `
+                <li class="mb-2 ${perm.classe}">
+                    <i class="fas ${perm.icone}"></i> ${perm.texto}
+                </li>
+            `;
+        });
+
+        this.elements.listaPermissoes.innerHTML = html;
+
+        // Desabilita menu de configurações se não tiver permissão
+        if (!this.state.permissoes.editar) {
+            if (this.elements.menuConfiguracoes) {
+                this.elements.menuConfiguracoes.classList.add('permissao-negada');
+            }
+            if (this.elements.lockConfiguracoes) {
+                this.elements.lockConfiguracoes.style.display = 'block';
+            }
+        }
+    },
+
+    /**
+     * Troca de tab
+     */
+    trocarTab(tab) {
+        // Remove active de todos os itens do menu
+        this.elements.menuItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Adiciona active no item clicado
+        const itemAtivo = document.querySelector(`.list-group-item[data-tab="${tab}"]`);
+        if (itemAtivo) {
+            itemAtivo.classList.add('active');
+        }
+
+        // Esconde todas as tabs
+        const allTabs = document.querySelectorAll('.tab-pane-custom');
+        allTabs.forEach(t => {
+            t.style.display = 'none';
+        });
+
+        // Mostra a tab selecionada
+        const tabElement = document.getElementById(`tab-${tab}`);
+        if (tabElement) {
+            tabElement.style.display = 'block';
+        }
+
+        this.state.tabAtual = tab;
 
         // Carrega dados da tab
         switch(tab) {
             case 'conexao':
-                verificarStatusInstancia();
+                this.verificarStatusInstancia();
                 break;
             case 'fila':
-                carregarFila();
+                this.carregarFila();
                 break;
             case 'historico':
-                carregarHistorico();
+                this.carregarHistorico();
                 break;
             case 'configuracoes':
-                carregarConfiguracoes();
+                this.carregarConfiguracoes();
                 break;
         }
-    });
-}
+    },
 
-// ============================================
-// EVENTOS
-// ============================================
+    /**
+     * Verifica status da instância
+     */
+    async verificarStatusInstancia() {
+        if (!this.elements.statusInstanciaContainer) return;
 
-function inicializarEventos() {
-    // Nota: evento de btn-desconectar e btn-criar-instancia são vinculados dinamicamente
-    // em atualizarStatusConexao() pois os botões são criados dinamicamente
+        try {
+            const response = await API.get('/whatsapp/conexao/status');
 
-    // Formulário de envio de teste
-    $('#form-enviar-teste').submit(function(e) {
-        e.preventDefault();
-        enviarMensagemTeste();
-    });
-
-    // Botão processar fila
-    $('#btn-processar-fila').click(function() {
-        processarFila();
-    });
-
-    // Filtro de fila
-    $('#filtro-status-fila').change(function() {
-        carregarFila();
-    });
-
-    // Filtro de histórico
-    $('#btn-filtrar-historico').click(function() {
-        carregarHistorico();
-    });
-}
-
-// ============================================
-// CONEXÃO
-// ============================================
-
-function verificarStatusInstancia() {
-    $.ajax({
-        url: `${API_BASE}/conexao/status`,
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            atualizarStatusConexao(response.dados);
-        } else {
-            mostrarErro(response.mensagem);
+            if (response.sucesso) {
+                this.atualizarStatusConexao(response.dados);
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao verificar status');
+            }
+        } catch (error) {
+            console.error('Erro ao verificar status:', error);
+            this.mostrarErro('Erro ao verificar status da conexão');
         }
-    })
-    .fail(function(xhr) {
-        mostrarErro('Erro ao verificar status da conexão');
-    });
-}
+    },
 
-function atualizarStatusConexao(dados) {
-    let html = '';
+    /**
+     * Atualiza UI do status da conexão
+     */
+    atualizarStatusConexao(dados) {
+        if (!this.elements.statusInstanciaContainer) return;
 
-    if (dados.conectado) {
-        // Conectado
-        html = `
-            <div class="alert alert-success" role="alert">
-                <h5 class="alert-heading"><i class="fas fa-check-circle"></i> WhatsApp Conectado</h5>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Telefone:</strong> ${dados.telefone || 'N/A'}</p>
-                        <p class="mb-1"><strong>Nome:</strong> ${dados.nome || 'N/A'}</p>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <button id="btn-desconectar" class="btn btn-danger">
-                            <i class="fas fa-power-off"></i> Desconectar
-                        </button>
+        let html = '';
+
+        if (dados.conectado) {
+            // Conectado
+            html = `
+                <div class="alert alert-success" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-check-circle"></i> WhatsApp Conectado</h5>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Telefone:</strong> ${Utils.DOM.escapeHtml(dados.telefone || 'N/A')}</p>
+                            <p class="mb-1"><strong>Nome:</strong> ${Utils.DOM.escapeHtml(dados.nome || 'N/A')}</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button id="btn-desconectar" class="btn btn-danger">
+                                <i class="fas fa-power-off"></i> Desconectar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        // Para auto-refresh de QR code
-        if (intervalStatusCheck) {
-            clearInterval(intervalStatusCheck);
-            intervalStatusCheck = null;
-        }
+            // Para auto-refresh de QR code
+            if (this.state.intervalStatusCheck) {
+                clearInterval(this.state.intervalStatusCheck);
+                this.state.intervalStatusCheck = null;
+            }
 
-    } else if (dados.status === 'qrcode' && dados.qr_code) {
-        // Aguardando QR Code
-        html = `
-            <div class="alert alert-warning" role="alert">
-                <h5 class="alert-heading"><i class="fas fa-qrcode"></i> Aguardando Conexão</h5>
-                <p>Escaneie o QR Code abaixo com seu WhatsApp para conectar:</p>
-                <div class="text-center">
-                    <img src="${dados.qr_code}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
-                    <p class="mt-3 text-muted"><small>O QR Code é atualizado automaticamente a cada 5 segundos</small></p>
+        } else if (dados.status === 'qrcode' && dados.qr_code) {
+            // Aguardando QR Code
+            html = `
+                <div class="alert alert-warning" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-qrcode"></i> Aguardando Conexão</h5>
+                    <p>Escaneie o QR Code abaixo com seu WhatsApp para conectar:</p>
+                    <div class="text-center">
+                        <div class="qr-container">
+                            <img src="${dados.qr_code}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                        </div>
+                        <p class="mt-3 text-muted"><small>O QR Code é atualizado automaticamente a cada 5 segundos</small></p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        // Auto-refresh QR code a cada 5 segundos
-        if (!intervalStatusCheck) {
-            intervalStatusCheck = setInterval(verificarStatusInstancia, 5000);
-        }
+            // Auto-refresh QR code
+            if (!this.state.intervalStatusCheck) {
+                this.state.intervalStatusCheck = setInterval(() => {
+                    this.verificarStatusInstancia();
+                }, 5000);
+            }
 
-    } else {
-        // Desconectado
-        html = `
-            <div class="alert alert-danger" role="alert">
-                <h5 class="alert-heading"><i class="fas fa-times-circle"></i> WhatsApp Desconectado</h5>
-                <p>A instância do WhatsApp não está conectada.</p>
-                <button id="btn-criar-instancia" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Criar Instância
-                </button>
-            </div>
-        `;
-
-        if (intervalStatusCheck) {
-            clearInterval(intervalStatusCheck);
-            intervalStatusCheck = null;
-        }
-    }
-
-    $('#status-instancia-container').html(html);
-
-    // Re-bind eventos dos botões
-    $('#btn-desconectar').off('click').on('click', function() {
-        desconectarWhatsApp();
-    });
-
-    $('#btn-criar-instancia').off('click').on('click', function() {
-        criarInstancia();
-    });
-}
-
-function criarInstancia() {
-    Swal.fire({
-        title: 'Criar Instância',
-        text: 'Deseja criar uma nova instância do WhatsApp?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, criar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `${API_BASE}/conexao/criar`,
-                method: 'POST',
-                dataType: 'json'
-            })
-            .done(function(response) {
-                if (response.sucesso) {
-                    mostrarSucesso('Instância criada com sucesso. Aguardando QR Code...');
-                    verificarStatusInstancia();
-                } else {
-                    mostrarErro(response.mensagem);
-                }
-            })
-            .fail(function() {
-                mostrarErro('Erro ao criar instância');
-            });
-        }
-    });
-}
-
-function desconectarWhatsApp() {
-    Swal.fire({
-        title: 'Confirmar Desconexão',
-        text: 'Deseja realmente desconectar a instância do WhatsApp?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, desconectar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `${API_BASE}/conexao/desconectar`,
-                method: 'POST',
-                dataType: 'json'
-            })
-            .done(function(response) {
-                if (response.sucesso) {
-                    mostrarSucesso('Instância desconectada com sucesso');
-                    verificarStatusInstancia();
-                } else {
-                    mostrarErro(response.mensagem);
-                }
-            })
-            .fail(function() {
-                mostrarErro('Erro ao desconectar instância');
-            });
-        }
-    });
-}
-
-// ============================================
-// ENVIO DE MENSAGENS
-// ============================================
-
-function enviarMensagemTeste() {
-    const destinatario = $('#destinatario').val();
-    const tipoMensagem = $('#tipo-mensagem').val();
-    const mensagem = $('#mensagem-teste').val();
-
-    if (!destinatario) {
-        mostrarErro('Informe o destinatário');
-        return;
-    }
-
-    if (tipoMensagem === 'text' && !mensagem) {
-        mostrarErro('Informe a mensagem');
-        return;
-    }
-
-    const dados = {
-        destinatario: destinatario,
-        tipo: tipoMensagem,
-        mensagem: mensagem,
-        prioridade: 5
-    };
-
-    $.ajax({
-        url: `${API_BASE}/enviar`,
-        method: 'POST',
-        data: JSON.stringify(dados),
-        contentType: 'application/json',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            mostrarSucesso('Mensagem adicionada à fila com sucesso');
-            $('#form-enviar-teste')[0].reset();
         } else {
-            mostrarErro(response.mensagem);
-        }
-    })
-    .fail(function() {
-        mostrarErro('Erro ao enviar mensagem');
-    });
-}
-
-// ============================================
-// FILA
-// ============================================
-
-function carregarFila() {
-    const status = $('#filtro-status-fila').val();
-    const url = status ? `${API_BASE}/fila?status=${status}` : `${API_BASE}/fila`;
-
-    $.ajax({
-        url: url,
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            // Resposta paginada tem estrutura: {itens: [], paginacao: {}}
-            const mensagens = response.dados.itens || response.dados || [];
-            renderizarFila(mensagens);
-        } else {
-            mostrarErro(response.mensagem);
-        }
-    })
-    .fail(function() {
-        mostrarErro('Erro ao carregar fila');
-    });
-}
-
-function renderizarFila(mensagens) {
-    if (!mensagens || !Array.isArray(mensagens) || mensagens.length === 0) {
-        $('#tabela-fila tbody').html('<tr><td colspan="6" class="text-center">Nenhuma mensagem na fila</td></tr>');
-        return;
-    }
-
-    let html = '';
-    mensagens.forEach(msg => {
-        const statusBadge = obterBadgeStatus(msg.status_code);
-        html += `
-            <tr>
-                <td>${msg.id}</td>
-                <td>${msg.destinatario_nome || msg.destinatario}</td>
-                <td>${msg.tipo_mensagem}</td>
-                <td>${statusBadge}</td>
-                <td>${msg.tentativas || 0}</td>
-                <td>
-                    <button class="btn btn-sm btn-danger" onclick="cancelarMensagem(${msg.id})" ${msg.status_code != 1 ? 'disabled' : ''}>
-                        <i class="fas fa-times"></i>
+            // Desconectado
+            html = `
+                <div class="alert alert-danger" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-times-circle"></i> WhatsApp Desconectado</h5>
+                    <p>A instância do WhatsApp não está conectada.</p>
+                    <button id="btn-criar-instancia" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Criar Instância
                     </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    $('#tabela-fila tbody').html(html);
-}
-
-function cancelarMensagem(id) {
-    Swal.fire({
-        title: 'Confirmar Cancelamento',
-        text: 'Deseja cancelar esta mensagem?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, cancelar',
-        cancelButtonText: 'Não'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `${API_BASE}/fila/${id}`,
-                method: 'DELETE',
-                dataType: 'json'
-            })
-            .done(function(response) {
-                if (response.sucesso) {
-                    mostrarSucesso('Mensagem cancelada');
-                    carregarFila();
-                } else {
-                    mostrarErro(response.mensagem);
-                }
-            })
-            .fail(function() {
-                mostrarErro('Erro ao cancelar mensagem');
-            });
-        }
-    });
-}
-
-// ============================================
-// DASHBOARD
-// ============================================
-
-function carregarDashboard() {
-    $.ajax({
-        url: `${API_BASE}/painel/dashboard`,
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            atualizarDashboard(response.dados);
-        }
-    })
-    .fail(function() {
-        console.error('Erro ao carregar dashboard');
-    });
-}
-
-function atualizarDashboard(stats) {
-    $('#stat-pendentes').text(stats.pendentes || 0);
-    $('#stat-enviadas').text(stats.enviado || 0);
-    $('#stat-entregues').text(stats.entregue || 0);
-    $('#stat-erros').text(stats.erro || 0);
-}
-
-// ============================================
-// HISTÓRICO
-// ============================================
-
-function carregarHistorico() {
-    const dataInicio = $('#filtro-data-inicio').val();
-    const dataFim = $('#filtro-data-fim').val();
-
-    let url = `${API_BASE}/painel/historico?limit=50`;
-
-    if (dataInicio) url += `&data_inicio=${dataInicio}`;
-    if (dataFim) url += `&data_fim=${dataFim}`;
-
-    $.ajax({
-        url: url,
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            // Resposta paginada tem estrutura: {itens: [], paginacao: {}}
-            const eventos = response.dados.itens || response.dados || [];
-            renderizarHistorico(eventos);
-        } else {
-            mostrarErro(response.mensagem);
-        }
-    })
-    .fail(function() {
-        mostrarErro('Erro ao carregar histórico');
-    });
-}
-
-function renderizarHistorico(eventos) {
-    if (!eventos || !Array.isArray(eventos) || eventos.length === 0) {
-        $('#tabela-historico tbody').html('<tr><td colspan="4" class="text-center">Nenhum evento encontrado</td></tr>');
-        return;
-    }
-
-    let html = '';
-    eventos.forEach(evt => {
-        html += `
-            <tr>
-                <td>${evt.id}</td>
-                <td>${evt.tipo_evento}</td>
-                <td>${evt.destinatario || '-'}</td>
-                <td>${formatarData(evt.criado_em)}</td>
-            </tr>
-        `;
-    });
-
-    $('#tabela-historico tbody').html(html);
-}
-
-// ============================================
-// CONFIGURAÇÕES
-// ============================================
-
-function carregarConfiguracoes() {
-    $.ajax({
-        url: `${API_BASE}/config`,
-        method: 'GET',
-        dataType: 'json'
-    })
-    .done(function(response) {
-        if (response.sucesso) {
-            renderizarConfiguracoes(response.dados);
-        } else {
-            mostrarErro(response.mensagem);
-        }
-    })
-    .fail(function() {
-        mostrarErro('Erro ao carregar configurações');
-    });
-}
-
-function renderizarConfiguracoes(configs) {
-    let html = '';
-
-    Object.keys(configs).forEach(categoria => {
-        html += `<h5 class="mt-4">${categoria}</h5><div class="row">`;
-
-        configs[categoria].forEach(config => {
-            html += `
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">${config.descricao}</label>
-                    <input type="text" class="form-control" value="${config.valor}" data-chave="${config.chave}">
-                    <small class="text-muted">Padrão: ${config.valor_padrao}</small>
                 </div>
+            `;
+
+            if (this.state.intervalStatusCheck) {
+                clearInterval(this.state.intervalStatusCheck);
+                this.state.intervalStatusCheck = null;
+            }
+        }
+
+        this.elements.statusInstanciaContainer.innerHTML = html;
+
+        // Re-bind eventos dos botões
+        const btnDesconectar = document.getElementById('btn-desconectar');
+        if (btnDesconectar) {
+            btnDesconectar.addEventListener('click', () => this.desconectarWhatsApp());
+        }
+
+        const btnCriarInstancia = document.getElementById('btn-criar-instancia');
+        if (btnCriarInstancia) {
+            btnCriarInstancia.addEventListener('click', () => this.criarInstancia());
+        }
+    },
+
+    /**
+     * Cria instância do WhatsApp
+     */
+    async criarInstancia() {
+        if (!confirm('Deseja criar uma nova instância do WhatsApp?')) {
+            return;
+        }
+
+        try {
+            const response = await API.post('/whatsapp/conexao/criar', {});
+
+            if (response.sucesso) {
+                this.mostrarSucesso('Instância criada com sucesso. Aguardando QR Code...');
+                await this.verificarStatusInstancia();
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao criar instância');
+            }
+        } catch (error) {
+            console.error('Erro ao criar instância:', error);
+            this.mostrarErro('Erro ao criar instância');
+        }
+    },
+
+    /**
+     * Desconecta WhatsApp
+     */
+    async desconectarWhatsApp() {
+        if (!confirm('Deseja realmente desconectar a instância do WhatsApp?')) {
+            return;
+        }
+
+        try {
+            const response = await API.post('/whatsapp/conexao/desconectar', {});
+
+            if (response.sucesso) {
+                this.mostrarSucesso('Instância desconectada com sucesso');
+                await this.verificarStatusInstancia();
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao desconectar');
+            }
+        } catch (error) {
+            console.error('Erro ao desconectar:', error);
+            this.mostrarErro('Erro ao desconectar instância');
+        }
+    },
+
+    /**
+     * Carrega dashboard/estatísticas
+     */
+    async carregarDashboard() {
+        try {
+            const response = await API.get('/whatsapp/painel/dashboard');
+
+            if (response.sucesso) {
+                this.atualizarDashboard(response.dados);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dashboard:', error);
+        }
+    },
+
+    /**
+     * Atualiza estatísticas do dashboard
+     */
+    atualizarDashboard(stats) {
+        if (this.elements.statPendentes) {
+            this.elements.statPendentes.textContent = stats.pendentes || 0;
+        }
+        if (this.elements.statProcessando) {
+            this.elements.statProcessando.textContent = stats.processando || 0;
+        }
+        if (this.elements.statEnviados) {
+            this.elements.statEnviados.textContent = stats.enviado || stats.enviados || 0;
+        }
+        if (this.elements.statErros) {
+            this.elements.statErros.textContent = stats.erro || stats.erros || 0;
+        }
+
+        this.state.estatisticas = {
+            pendentes: stats.pendentes || 0,
+            processando: stats.processando || 0,
+            enviados: stats.enviado || stats.enviados || 0,
+            erros: stats.erro || stats.erros || 0
+        };
+    },
+
+    /**
+     * Carrega fila de mensagens
+     */
+    async carregarFila() {
+        if (!this.elements.tabelaFila) return;
+
+        this.elements.tabelaFila.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> <span class="ms-2">Carregando...</span></td></tr>';
+
+        try {
+            const response = await API.get('/whatsapp/fila');
+
+            if (response.sucesso) {
+                const mensagens = response.dados.itens || response.dados || [];
+                this.renderizarFila(mensagens);
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao carregar fila');
+                this.elements.tabelaFila.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erro ao carregar fila</td></tr>';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar fila:', error);
+            this.mostrarErro('Erro ao carregar fila');
+            this.elements.tabelaFila.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Erro ao carregar fila</td></tr>';
+        }
+    },
+
+    /**
+     * Renderiza tabela da fila
+     */
+    renderizarFila(mensagens) {
+        if (!this.elements.tabelaFila) return;
+
+        if (!mensagens || mensagens.length === 0) {
+            this.elements.tabelaFila.innerHTML = '<tr><td colspan="7" class="text-center">Nenhuma mensagem na fila</td></tr>';
+            return;
+        }
+
+        let html = '';
+        mensagens.forEach(msg => {
+            const statusBadge = this.obterBadgeStatus(msg.status_code);
+            const destinatario = Utils.DOM.escapeHtml(msg.destinatario_nome || msg.destinatario || '-');
+            const tipo = Utils.String.capitalize(msg.tipo_mensagem || 'text');
+            const tentativas = msg.tentativas || 0;
+            const dataCriacao = Utils.Format.dataHora(msg.criado_em || msg.created_at);
+
+            html += `
+                <tr>
+                    <td>${msg.id}</td>
+                    <td>${destinatario}</td>
+                    <td>${tipo}</td>
+                    <td>${statusBadge}</td>
+                    <td>${tentativas}</td>
+                    <td>${dataCriacao}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="WhatsAppManager.cancelarMensagem(${msg.id})" ${msg.status_code != 1 ? 'disabled' : ''}>
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
         });
 
-        html += '</div>';
-    });
+        this.elements.tabelaFila.innerHTML = html;
+    },
 
-    $('#container-configuracoes').html(html);
-}
-
-function processarFila() {
-    Swal.fire({
-        title: 'Processar Fila',
-        text: 'Quantas mensagens deseja processar?',
-        input: 'number',
-        inputValue: 10,
-        showCancelButton: true,
-        confirmButtonText: 'Processar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `${API_BASE}/painel/processar`,
-                method: 'POST',
-                data: JSON.stringify({ limit: parseInt(result.value) }),
-                contentType: 'application/json',
-                dataType: 'json'
-            })
-            .done(function(response) {
-                if (response.sucesso) {
-                    mostrarSucesso(response.mensagem);
-                    carregarFila();
-                    carregarDashboard();
-                } else {
-                    mostrarErro(response.mensagem);
-                }
-            })
-            .fail(function() {
-                mostrarErro('Erro ao processar fila');
-            });
+    /**
+     * Cancela mensagem da fila
+     */
+    async cancelarMensagem(id) {
+        if (!confirm('Deseja cancelar esta mensagem?')) {
+            return;
         }
-    });
-}
 
-// ============================================
-// UTILITÁRIOS
-// ============================================
+        try {
+            const response = await API.delete(`/whatsapp/fila/${id}`);
 
-function obterBadgeStatus(code) {
-    const badges = {
-        0: '<span class="badge bg-danger">Erro</span>',
-        1: '<span class="badge bg-warning">Pendente</span>',
-        2: '<span class="badge bg-info">Enviado</span>',
-        3: '<span class="badge bg-primary">Entregue</span>',
-        4: '<span class="badge bg-success">Lido</span>'
-    };
-    return badges[code] || '<span class="badge bg-secondary">Desconhecido</span>';
-}
+            if (response.sucesso) {
+                this.mostrarSucesso('Mensagem cancelada');
+                await this.carregarFila();
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao cancelar mensagem');
+            }
+        } catch (error) {
+            console.error('Erro ao cancelar mensagem:', error);
+            this.mostrarErro('Erro ao cancelar mensagem');
+        }
+    },
 
-function formatarData(data) {
-    if (!data) return '-';
-    const d = new Date(data);
-    return d.toLocaleString('pt-BR');
-}
+    /**
+     * Carrega histórico
+     */
+    async carregarHistorico() {
+        if (!this.elements.tabelaHistorico) return;
 
-function mostrarSucesso(mensagem) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Sucesso!',
-        text: mensagem,
-        timer: 3000,
-        showConfirmButton: false
-    });
-}
+        this.elements.tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> <span class="ms-2">Carregando...</span></td></tr>';
 
-function mostrarErro(mensagem) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: mensagem
-    });
-}
+        try {
+            const dataInicio = this.elements.filtroDataInicio?.value || '';
+            const dataFim = this.elements.filtroDataFim?.value || '';
+            const status = this.elements.filtroStatus?.value || '';
 
-// Limpa intervalo ao sair da página
-$(window).on('beforeunload', function() {
-    if (intervalStatusCheck) {
-        clearInterval(intervalStatusCheck);
+            let url = '/whatsapp/painel/historico?limit=50';
+            if (dataInicio) url += `&data_inicio=${dataInicio}`;
+            if (dataFim) url += `&data_fim=${dataFim}`;
+            if (status) url += `&status=${status}`;
+
+            const response = await API.get(url);
+
+            if (response.sucesso) {
+                const eventos = response.dados.itens || response.dados || [];
+                this.renderizarHistorico(eventos);
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao carregar histórico');
+                this.elements.tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Erro ao carregar histórico</td></tr>';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar histórico:', error);
+            this.mostrarErro('Erro ao carregar histórico');
+            this.elements.tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Erro ao carregar histórico</td></tr>';
+        }
+    },
+
+    /**
+     * Renderiza tabela do histórico
+     */
+    renderizarHistorico(eventos) {
+        if (!this.elements.tabelaHistorico) return;
+
+        if (!eventos || eventos.length === 0) {
+            this.elements.tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum evento encontrado</td></tr>';
+            return;
+        }
+
+        let html = '';
+        eventos.forEach(evt => {
+            const dataCriacao = Utils.Format.dataHora(evt.criado_em || evt.created_at);
+            const destinatario = Utils.DOM.escapeHtml(evt.destinatario_nome || evt.destinatario || '-');
+            const tipo = Utils.String.capitalize(evt.tipo_mensagem || evt.tipo_evento || '-');
+            const statusBadge = this.obterBadgeStatus(evt.status_code);
+            const tempoProcessamento = evt.tempo_processamento ? `${evt.tempo_processamento}s` : '-';
+            const dataLeitura = evt.lido_em ? Utils.Format.dataHora(evt.lido_em) : '-';
+
+            html += `
+                <tr>
+                    <td>${dataCriacao}</td>
+                    <td>${destinatario}</td>
+                    <td>${tipo}</td>
+                    <td>${statusBadge}</td>
+                    <td>${tempoProcessamento}</td>
+                    <td>${dataLeitura}</td>
+                </tr>
+            `;
+        });
+
+        this.elements.tabelaHistorico.innerHTML = html;
+    },
+
+    /**
+     * Carrega configurações
+     */
+    async carregarConfiguracoes() {
+        if (!this.elements.containerConfiguracoes) return;
+
+        this.elements.containerConfiguracoes.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-3 text-muted">Carregando configurações...</p></div>';
+
+        try {
+            const response = await API.get('/whatsapp/config');
+
+            if (response.sucesso) {
+                this.renderizarConfiguracoes(response.dados);
+            } else {
+                this.mostrarErro(response.mensagem || 'Erro ao carregar configurações');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar configurações:', error);
+            this.mostrarErro('Erro ao carregar configurações');
+        }
+    },
+
+    /**
+     * Renderiza configurações
+     */
+    renderizarConfiguracoes(configs) {
+        if (!this.elements.containerConfiguracoes) return;
+
+        let html = '';
+
+        Object.keys(configs).forEach(categoria => {
+            html += `<h5 class="mt-4">${Utils.String.capitalize(categoria)}</h5><div class="row">`;
+
+            configs[categoria].forEach(config => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">${Utils.DOM.escapeHtml(config.descricao)}</label>
+                        <input type="text" class="form-control" value="${Utils.DOM.escapeHtml(config.valor)}" data-chave="${config.chave}">
+                        <small class="text-muted">Padrão: ${Utils.DOM.escapeHtml(config.valor_padrao)}</small>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+        });
+
+        this.elements.containerConfiguracoes.innerHTML = html;
+    },
+
+    /**
+     * Altera tipo de destinatário
+     */
+    alterarTipoDestinatario() {
+        const tipo = this.elements.tipoDestinatario?.value;
+
+        if (tipo === 'numero') {
+            if (this.elements.selectEntidade) {
+                this.elements.selectEntidade.style.display = 'none';
+            }
+            if (this.elements.inputNumero) {
+                this.elements.inputNumero.style.display = 'block';
+            }
+        } else if (tipo) {
+            if (this.elements.selectEntidade) {
+                this.elements.selectEntidade.style.display = 'block';
+            }
+            if (this.elements.inputNumero) {
+                this.elements.inputNumero.style.display = 'none';
+            }
+            // TODO: Carregar entidades do tipo selecionado
+        } else {
+            if (this.elements.selectEntidade) {
+                this.elements.selectEntidade.style.display = 'none';
+            }
+            if (this.elements.inputNumero) {
+                this.elements.inputNumero.style.display = 'none';
+            }
+        }
+    },
+
+    /**
+     * Altera tipo de mensagem
+     */
+    alterarTipoMensagem() {
+        const tipo = this.elements.tipoMensagem?.value;
+
+        if (tipo === 'text') {
+            if (this.elements.campoTexto) {
+                this.elements.campoTexto.style.display = 'block';
+            }
+            if (this.elements.campoUrl) {
+                this.elements.campoUrl.style.display = 'none';
+            }
+            if (this.elements.campoCaption) {
+                this.elements.campoCaption.style.display = 'none';
+            }
+        } else {
+            if (this.elements.campoTexto) {
+                this.elements.campoTexto.style.display = 'none';
+            }
+            if (this.elements.campoUrl) {
+                this.elements.campoUrl.style.display = 'block';
+            }
+            if (this.elements.campoCaption) {
+                this.elements.campoCaption.style.display = 'block';
+            }
+        }
+    },
+
+    /**
+     * Envia mensagem de teste
+     */
+    async enviarMensagemTeste() {
+        // TODO: Implementar envio de mensagem de teste
+        this.mostrarErro('Função de envio de teste ainda não implementada');
+    },
+
+    /**
+     * Obtém badge de status
+     */
+    obterBadgeStatus(code) {
+        const badges = {
+            0: '<span class="badge bg-danger">Erro</span>',
+            1: '<span class="badge bg-warning">Pendente</span>',
+            2: '<span class="badge bg-info">Enviado</span>',
+            3: '<span class="badge bg-primary">Entregue</span>',
+            4: '<span class="badge bg-success">Lido</span>'
+        };
+        return badges[code] || '<span class="badge bg-secondary">Desconhecido</span>';
+    },
+
+    /**
+     * Mostra mensagem de sucesso
+     */
+    mostrarSucesso(mensagem) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: mensagem,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            alert(mensagem);
+        }
+    },
+
+    /**
+     * Mostra mensagem de erro
+     */
+    mostrarErro(mensagem) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: mensagem
+            });
+        } else {
+            alert(mensagem);
+        }
+    },
+
+    /**
+     * Cleanup ao sair da página
+     */
+    cleanup() {
+        if (this.state.intervalStatusCheck) {
+            clearInterval(this.state.intervalStatusCheck);
+            this.state.intervalStatusCheck = null;
+        }
     }
-});
+};
+
+// Inicializa quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => WhatsAppManager.init());
+} else {
+    WhatsAppManager.init();
+}
+
+// Cleanup ao sair da página
+window.addEventListener('beforeunload', () => WhatsAppManager.cleanup());
+
+// Expõe globalmente para uso em onclick
+window.WhatsAppManager = WhatsAppManager;
