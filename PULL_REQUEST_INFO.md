@@ -327,6 +327,8 @@ UPDATE whatsapp_configuracoes SET valor = 'colaboradores' WHERE chave = 'entidad
 23. `509435c` - **Debug:** Adiciona URL nas mensagens de erro para facilitar debug
 24. `3edcad7` - Docs: Atualiza PR info com commit de debug de URLs
 25. `ba3567f` - **FIX:** Adiciona suporte a redirecionamentos HTTP no cURL
+26. `f701752` - Docs: Atualiza PR info com commit de suporte a redirecionamentos HTTP
+27. `379d792` - **FIX:** Corrige erros SQL e JavaScript no painel WhatsApp
 
 ---
 
