@@ -9,15 +9,20 @@
 // Define o timezone
 date_default_timezone_set('America/Sao_Paulo');
 
-// Carrega o autoloader
-require __DIR__ . '/../vendor/autoload.php';
+// Define diretório raiz
+define('ROOT_PATH', dirname(__DIR__, 2));
+
+// Carrega o autoloader do Composer (se existir)
+if (file_exists(ROOT_PATH . '/vendor/autoload.php')) {
+    require ROOT_PATH . '/vendor/autoload.php';
+}
 
 use App\Helpers\ErrorLogger;
 
 // Autoloader personalizado
 spl_autoload_register(function ($classe) {
     $prefixo = 'App\\';
-    $diretorioBase = __DIR__ . '/../App/';
+    $diretorioBase = ROOT_PATH . '/App/';
 
     $tamanho = strlen($prefixo);
     if (strncmp($prefixo, $classe, $tamanho) !== 0) {
@@ -36,7 +41,7 @@ try {
     echo "[" . date('Y-m-d H:i:s') . "] Iniciando processamento de relatórios semanais...\n";
 
     // Carrega as variáveis de ambiente
-    $caminhoEnv = __DIR__ . '/../.env';
+    $caminhoEnv = ROOT_PATH . '/.env';
     $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
     $carregadorEnv->carregar($caminhoEnv);
 
