@@ -116,6 +116,25 @@ class ServiceFrotaAbastecimentoNotificacao
                         'abastecimento_id' => $abastecimento_id
                     ]
                 ]);
+
+                // Enviar foto do comprovante se existir
+                if (!empty($abastecimento['foto_comprovante'])) {
+                    $this->serviceWhatsapp->enviarMensagem([
+                        'destinatario' => [
+                            'tipo' => 'colaborador',
+                            'id' => $destinatario['id']
+                        ],
+                        'tipo' => 'image',
+                        'arquivo_url' => $abastecimento['foto_comprovante'],
+                        'mensagem' => '📷 Comprovante de Abastecimento',
+                        'prioridade' => 'normal',
+                        'metadata' => [
+                            'modulo' => 'frota_abastecimento',
+                            'tipo_notificacao' => 'abastecimento_finalizado_foto',
+                            'abastecimento_id' => $abastecimento_id
+                        ]
+                    ]);
+                }
             } catch (\Exception $e) {
                 // Log do erro (opcional)
                 error_log("Erro ao enviar notificação abastecimento finalizado: " . $e->getMessage());
@@ -193,7 +212,17 @@ class ServiceFrotaAbastecimentoNotificacao
         $mensagem = "🚗 *Nova Ordem de Abastecimento*\n\n";
         $mensagem .= "Olá *{$abastecimento['motorista_nome']}*,\n\n";
         $mensagem .= "Você tem uma nova ordem de abastecimento:\n\n";
-        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n";
+
+        // Usar nome da frota, ou modelo/marca como fallback
+        $veiculoNome = !empty($abastecimento['frota_nome'])
+            ? $abastecimento['frota_nome']
+            : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
+
+        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']}";
+        if (!empty($veiculoNome)) {
+            $mensagem .= " - {$veiculoNome}";
+        }
+        $mensagem .= "\n";
 
         if ($abastecimento['data_limite']) {
             $dataLimite = date('d/m/Y', strtotime($abastecimento['data_limite']));
@@ -218,7 +247,17 @@ class ServiceFrotaAbastecimentoNotificacao
     {
         $mensagem = "✅ *Abastecimento Realizado*\n\n";
         $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
-        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n\n";
+
+        // Usar nome da frota, ou modelo/marca como fallback
+        $veiculoNome = !empty($abastecimento['frota_nome'])
+            ? $abastecimento['frota_nome']
+            : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
+
+        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']}";
+        if (!empty($veiculoNome)) {
+            $mensagem .= " - {$veiculoNome}";
+        }
+        $mensagem .= "\n\n";
 
         $mensagem .= "📍 *Dados do Abastecimento:*\n";
         $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
