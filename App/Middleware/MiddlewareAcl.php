@@ -191,4 +191,12 @@ class MiddlewareAcl
         $permissoes = is_array($permissoes) ? $permissoes : [$permissoes];
         return new self($permissoes, $logica);
     }
+
+    /**
+     * Factory method para criar middleware que requer pelo menos uma das permissões (lógica OR)
+     */
+    public static function requerUm(array $permissoes): self
+    {
+        return new self($permissoes, 'OR');
+    }
 }
