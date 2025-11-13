@@ -54,7 +54,7 @@ class ModelWhatsappQueue
     {
         return $this->db->buscarTodos(
             "SELECT * FROM whatsapp_queue
-             WHERE status_code = 1
+             WHERE status = 'pendente'
              AND (agendado_para IS NULL OR agendado_para <= NOW())
              ORDER BY prioridade DESC, criado_em ASC
              LIMIT ?",
@@ -83,7 +83,7 @@ class ModelWhatsappQueue
     {
         $resultado = $this->db->buscarUm(
             "SELECT COUNT(*) as total FROM whatsapp_queue
-             WHERE status_code = 1
+             WHERE status = 'pendente'
              AND (agendado_para IS NULL OR agendado_para <= NOW())"
         );
         return $resultado['total'] ?? 0;
@@ -108,12 +108,19 @@ class ModelWhatsappQueue
     {
         $dados = ['status_code' => $statusCode];
 
-        if ($statusCode === 2) { // Enviado
-            $dados['enviado_em'] = date('Y-m-d H:i:s');
+        // Atualiza status ENUM baseado no status_code
+        if ($statusCode === 0) {
+            $dados['status'] = 'erro';
+        } elseif ($statusCode === 1) {
+            $dados['status'] = 'pendente';
+        } elseif ($statusCode === 2) {
+            $dados['status'] = 'enviado';
+            $dados['data_envio'] = date('Y-m-d H:i:s');
+            $dados['processado_em'] = date('Y-m-d H:i:s');
         }
 
         if ($erro !== null) {
-            $dados['erro'] = $erro;
+            $dados['erro_mensagem'] = $erro;
         }
 
         if ($messageId !== null) {
@@ -146,7 +153,7 @@ class ModelWhatsappQueue
     {
         return $this->db->executar(
             "DELETE FROM whatsapp_queue
-             WHERE status_code IN (2, 3, 4)
+             WHERE status IN ('enviado', 'cancelado')
              AND criado_em < DATE_SUB(NOW(), INTERVAL ? DAY)",
             [$dias]
         )->rowCount();
@@ -159,9 +166,8 @@ class ModelWhatsappQueue
     {
         return $this->db->buscarTodos(
             "SELECT * FROM whatsapp_queue
-             WHERE status_code = 0
+             WHERE status = 'erro'
              AND tentativas < ?
-             AND (proxima_tentativa IS NULL OR proxima_tentativa <= NOW())
              ORDER BY prioridade DESC, criado_em ASC
              LIMIT ?",
             [$maxTentativas, $limit]

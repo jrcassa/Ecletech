@@ -394,19 +394,20 @@ class ServiceWhatsapp
         $maxTentativas = $this->configModel->obter('retry_max_tentativas', 3);
 
         if ($novasTentativas >= $maxTentativas) {
-            // Falha definitiva
-            $this->queueModel->atualizarStatus($queueId, 0, $erro);
+            // Falha definitiva - muda status para 'erro'
+            $this->queueModel->atualizar($queueId, [
+                'status' => 'erro',
+                'status_code' => 0,
+                'erro_mensagem' => $erro,
+                'tentativas' => $novasTentativas
+            ]);
         } else {
-            // Agenda retry
-            $delay = $this->calcularBackoff($novasTentativas);
-            $proximaTentativa = date('Y-m-d H:i:s', time() + $delay);
-
+            // Agenda retry - mantém como pendente para nova tentativa
             $this->queueModel->atualizar($queueId, [
                 'tentativas' => $novasTentativas,
-                'ultima_tentativa' => date('Y-m-d H:i:s'),
-                'proxima_tentativa' => $proximaTentativa,
-                'erro' => $erro,
-                'status_code' => 0
+                'erro_mensagem' => $erro,
+                'status_code' => 0,
+                'status' => 'pendente'
             ]);
         }
     }
