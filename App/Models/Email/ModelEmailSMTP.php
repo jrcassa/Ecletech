@@ -16,12 +16,10 @@ class ModelEmailSMTP
 {
     private PHPMailer $mailer;
     private ModelEmailConfiguracao $config;
-    private ModelEmailLog $log;
 
     public function __construct()
     {
         $this->config = new ModelEmailConfiguracao();
-        $this->log = new ModelEmailLog();
         $this->inicializarMailer();
     }
 
@@ -47,18 +45,6 @@ class ModelEmailSMTP
             $debugLevel = $this->config->obter('smtp_debug', 0);
             $this->mailer->SMTPDebug = $debugLevel;
 
-            if ($debugLevel > 0) {
-                // Debug output customizado (pode ser sobrescrito)
-                $this->mailer->Debugoutput = function($str, $level) {
-                    $this->log->adicionar([
-                        'tipo' => 'smtp_debug',
-                        'nivel' => 'debug',
-                        'mensagem' => $str,
-                        'contexto' => json_encode(['level' => $level])
-                    ]);
-                };
-            }
-
             // Charset e encoding
             $this->mailer->CharSet = $this->config->obter('charset', 'UTF-8');
             $this->mailer->Encoding = $this->config->obter('encoding', 'base64');
@@ -80,16 +66,8 @@ class ModelEmailSMTP
             }
 
         } catch (Exception $e) {
-            $this->log->adicionar([
-                'tipo' => 'smtp_init_error',
-                'nivel' => 'error',
-                'mensagem' => 'Erro ao inicializar PHPMailer: ' . $e->getMessage(),
-                'contexto' => json_encode([
-                    'error' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ])
-            ]);
+            // Log error (silent failure)
+            error_log('Erro ao inicializar PHPMailer: ' . $e->getMessage());
         }
     }
 
@@ -103,12 +81,6 @@ class ModelEmailSMTP
             $this->mailer->smtpConnect();
 
             // Se chegou aqui, conectou com sucesso
-            $this->log->adicionar([
-                'tipo' => 'smtp_test',
-                'nivel' => 'info',
-                'mensagem' => 'Teste de conexão SMTP bem-sucedido'
-            ]);
-
             return [
                 'sucesso' => true,
                 'mensagem' => 'Conexão SMTP estabelecida com sucesso',
@@ -118,13 +90,6 @@ class ModelEmailSMTP
             ];
 
         } catch (Exception $e) {
-            $this->log->adicionar([
-                'tipo' => 'smtp_test_error',
-                'nivel' => 'error',
-                'mensagem' => 'Erro no teste de conexão SMTP: ' . $e->getMessage(),
-                'contexto' => json_encode(['error' => $e->getMessage()])
-            ]);
-
             return [
                 'sucesso' => false,
                 'mensagem' => 'Falha na conexão SMTP',
@@ -247,18 +212,6 @@ class ModelEmailSMTP
             if ($enviado) {
                 $messageId = $this->mailer->getLastMessageID();
 
-                $this->log->adicionar([
-                    'tipo' => 'smtp_send',
-                    'nivel' => 'info',
-                    'mensagem' => 'Email enviado com sucesso',
-                    'contexto' => json_encode([
-                        'message_id' => $messageId,
-                        'destinatario' => $dados['destinatario_email'],
-                        'assunto' => $dados['assunto']
-                    ]),
-                    'message_id' => $messageId
-                ]);
-
                 return [
                     'sucesso' => true,
                     'message_id' => $messageId,
@@ -270,18 +223,6 @@ class ModelEmailSMTP
             }
 
         } catch (Exception $e) {
-            $this->log->adicionar([
-                'tipo' => 'smtp_send_error',
-                'nivel' => 'error',
-                'mensagem' => 'Erro ao enviar email: ' . $e->getMessage(),
-                'contexto' => json_encode([
-                    'error' => $e->getMessage(),
-                    'destinatario' => $dados['destinatario_email'] ?? 'N/A',
-                    'assunto' => $dados['assunto'] ?? 'N/A',
-                    'smtp_error' => $this->mailer->ErrorInfo
-                ])
-            ]);
-
             return [
                 'sucesso' => false,
                 'erro' => $e->getMessage(),

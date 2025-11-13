@@ -7,7 +7,6 @@ use App\Models\Email\ModelEmailConfiguracao;
 use App\Models\Email\ModelEmailHistorico;
 use App\Models\Email\ModelEmailSMTP;
 use App\Models\Email\ModelEmailEntidade;
-use App\Models\Email\ModelEmailLog;
 use App\Services\Email\ServiceEmailEntidade;
 use App\Core\BancoDados;
 use App\Helpers\AuxiliarEmail;
@@ -22,7 +21,6 @@ class ServiceEmail
     private ModelEmailQueue $queueModel;
     private ModelEmailConfiguracao $configModel;
     private ModelEmailHistorico $historicoModel;
-    private ModelEmailLog $logModel;
     private ?ModelEmailSMTP $smtp = null;
     private ServiceEmailEntidade $entidadeService;
 
@@ -32,7 +30,6 @@ class ServiceEmail
         $this->queueModel = new ModelEmailQueue();
         $this->configModel = new ModelEmailConfiguracao();
         $this->historicoModel = new ModelEmailHistorico();
-        $this->logModel = new ModelEmailLog();
         // SMTP é instanciado sob demanda (lazy loading)
         $this->entidadeService = new ServiceEmailEntidade();
     }
@@ -224,13 +221,6 @@ class ServiceEmail
                 'trace' => $e->getTraceAsString()
             ]);
 
-            $this->logModel->adicionar([
-                'tipo' => 'envio_erro',
-                'nivel' => 'error',
-                'mensagem' => 'Erro ao enviar email: ' . $e->getMessage(),
-                'contexto' => json_encode($dados)
-            ]);
-
             return [
                 'sucesso' => false,
                 'erro' => $e->getMessage()
@@ -267,14 +257,6 @@ class ServiceEmail
             'dados_extras' => $dados['dados_extras'],
             'ip_origem' => $dados['ip_origem'],
             'user_agent' => $dados['user_agent']
-        ]);
-
-        $this->logModel->adicionar([
-            'tipo' => 'fila_adicionar',
-            'nivel' => 'info',
-            'mensagem' => 'Email adicionado à fila',
-            'contexto' => json_encode(['queue_id' => $queueId, 'destinatario' => $dados['destinatario_email']]),
-            'queue_id' => $queueId
         ]);
 
         return [
@@ -466,14 +448,6 @@ class ServiceEmail
                     // Volta para pendente para retry
                     $this->queueModel->atualizarStatus($email['id'], 1, $e->getMessage());
                 }
-
-                $this->logModel->adicionar([
-                    'tipo' => 'envio_erro',
-                    'nivel' => 'error',
-                    'mensagem' => 'Erro ao enviar email da fila: ' . $e->getMessage(),
-                    'contexto' => json_encode(['queue_id' => $email['id'], 'tentativas' => $email['tentativas']]),
-                    'queue_id' => $email['id']
-                ]);
             }
 
             // Delay entre envios (anti-spam)
