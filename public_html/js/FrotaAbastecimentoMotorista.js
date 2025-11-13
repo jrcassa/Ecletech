@@ -394,7 +394,7 @@ const FrotaAbastecimentoMotoristaManager = {
         try {
             await API.post(
                 `/frota-abastecimento/${abastecimentoId}/comprovante`,
-                { arquivo: this.state.comprovanteBase64 }
+                { comprovante_base64: this.state.comprovanteBase64 }
             );
         } catch (error) {
             console.error('Erro ao anexar comprovante:', error);
