@@ -91,6 +91,10 @@ $router->grupo([
     $rotasProdutos = require __DIR__ . '/produtos.php';
     $rotasProdutos($router);
 
+    // Inclui rotas de serviços
+    $rotasServicos = require __DIR__ . '/servicos.php';
+    $rotasServicos($router);
+
     // Inclui rotas de loja
     $rotasLoja = require __DIR__ . '/loja.php';
     $rotasLoja($router);
