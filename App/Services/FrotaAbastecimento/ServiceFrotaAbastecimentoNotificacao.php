@@ -262,50 +262,104 @@ class ServiceFrotaAbastecimentoNotificacao
     private function montarMensagemAbastecimentoFinalizado(array $abastecimento, ?array $metricas, array $alertas): string
     {
         $mensagem = "✅ *Abastecimento Realizado*\n\n";
-        $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
+
+        // Informações do veículo e motorista
+        $mensagem .= "┌─ *Informações Gerais*\n";
+        $mensagem .= "│\n";
+        $mensagem .= "│ 👤 *Motorista*\n";
+        $mensagem .= "│    {$abastecimento['motorista_nome']}\n";
+        $mensagem .= "│\n";
 
         // Usar nome da frota, ou modelo/marca como fallback
         $veiculoNome = !empty($abastecimento['frota_nome'])
             ? $abastecimento['frota_nome']
             : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
 
-        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']}";
+        $mensagem .= "│ 🚗 *Veículo*\n";
+        $mensagem .= "│    Placa: {$abastecimento['frota_placa']}\n";
         if (!empty($veiculoNome)) {
-            $mensagem .= " - {$veiculoNome}";
+            $mensagem .= "│    Nome: {$veiculoNome}\n";
         }
-        $mensagem .= "\n\n";
+        $mensagem .= "└─\n\n";
 
-        $mensagem .= "📍 *Dados do Abastecimento:*\n";
-        $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
-        $mensagem .= "• Litros: " . number_format($abastecimento['litros'], 3, ',', '.') . " L\n";
-        $mensagem .= "• Combustível: " . ucfirst($abastecimento['combustivel']) . "\n";
-        $mensagem .= "• Valor: R$ " . number_format($abastecimento['valor'], 2, ',', '.') . "\n";
+        // Dados do abastecimento
+        $mensagem .= "┌─ *Dados do Abastecimento*\n";
+        $mensagem .= "│\n";
 
-        $dataAbastecimento = date('d/m/Y H:i', strtotime($abastecimento['data_abastecimento']));
-        $mensagem .= "• Data/Hora: {$dataAbastecimento}\n";
+        // Formatar KM sem decimais desnecessários
+        $km = $abastecimento['km'];
+        $kmFormatado = (floor($km) == $km) ? number_format($km, 0, ',', '.') : number_format($km, 2, ',', '.');
+        $mensagem .= "│ 📊 *Quilometragem*\n";
+        $mensagem .= "│    {$kmFormatado} km\n";
+        $mensagem .= "│\n";
 
-        if ($metricas) {
-            $mensagem .= "\n💰 *Métricas:*\n";
+        // Combustível com emoji específico
+        $combustivelEmoji = [
+            'gasolina' => '⛽',
+            'etanol' => '🌱',
+            'diesel' => '🚛',
+            'gnv' => '💨',
+            'flex' => '🔄'
+        ];
+        $emoji = $combustivelEmoji[strtolower($abastecimento['combustivel'])] ?? '⛽';
+
+        $mensagem .= "│ {$emoji} *Combustível*\n";
+        $mensagem .= "│    " . ucfirst($abastecimento['combustivel']) . "\n";
+        $mensagem .= "│\n";
+
+        // Litros formatado melhor
+        $mensagem .= "│ 🛢️ *Volume*\n";
+        $mensagem .= "│    " . number_format($abastecimento['litros'], 2, ',', '.') . " litros\n";
+        $mensagem .= "│\n";
+
+        // Valor
+        $mensagem .= "│ 💰 *Valor Total*\n";
+        $mensagem .= "│    R$ " . number_format($abastecimento['valor'], 2, ',', '.') . "\n";
+        $mensagem .= "│\n";
+
+        // Data/Hora separados
+        $dataAbastecimento = date('d/m/Y', strtotime($abastecimento['data_abastecimento']));
+        $horaAbastecimento = date('H:i', strtotime($abastecimento['data_abastecimento']));
+        $mensagem .= "│ 📅 *Data*\n";
+        $mensagem .= "│    {$dataAbastecimento} às {$horaAbastecimento}\n";
+        $mensagem .= "└─\n";
+
+        // Métricas
+        if ($metricas && ($metricas['consumo_km_por_litro'] || $metricas['custo_por_km'] || $metricas['custo_por_litro'])) {
+            $mensagem .= "\n┌─ *Análise e Métricas*\n";
+            $mensagem .= "│\n";
 
             if ($metricas['consumo_km_por_litro']) {
-                $mensagem .= "• Consumo: " . number_format($metricas['consumo_km_por_litro'], 2, ',', '.') . " km/l\n";
+                $mensagem .= "│ ⚡ *Consumo*\n";
+                $mensagem .= "│    " . number_format($metricas['consumo_km_por_litro'], 2, ',', '.') . " km/litro\n";
+                $mensagem .= "│\n";
             }
 
             if ($metricas['custo_por_km']) {
-                $mensagem .= "• Custo/km: R$ " . number_format($metricas['custo_por_km'], 2, ',', '.') . "\n";
+                $mensagem .= "│ 💵 *Custo por KM*\n";
+                $mensagem .= "│    R$ " . number_format($metricas['custo_por_km'], 2, ',', '.') . "\n";
+                $mensagem .= "│\n";
             }
 
             if ($metricas['custo_por_litro']) {
-                $mensagem .= "• Custo/litro: R$ " . number_format($metricas['custo_por_litro'], 2, ',', '.') . "\n";
+                $mensagem .= "│ 💸 *Preço por Litro*\n";
+                $mensagem .= "│    R$ " . number_format($metricas['custo_por_litro'], 2, ',', '.') . "\n";
             }
+
+            $mensagem .= "└─\n";
         }
 
+        // Alertas
         if (!empty($alertas)) {
-            $mensagem .= "\n⚠️ *Alertas:* " . count($alertas) . " detectado(s)\n";
+            $mensagem .= "\n┌─ ⚠️ *Alertas Detectados* (" . count($alertas) . ")\n";
+            $mensagem .= "│\n";
+
             foreach ($alertas as $alerta) {
                 $emoji = $alerta['severidade'] === 'critica' ? '🔴' : ($alerta['severidade'] === 'alta' ? '🟠' : '🟡');
-                $mensagem .= "{$emoji} {$alerta['titulo']}\n";
+                $mensagem .= "│ {$emoji} {$alerta['titulo']}\n";
             }
+
+            $mensagem .= "└─\n";
         }
 
         $mensagem .= "\n---\n";
