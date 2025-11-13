@@ -16,7 +16,6 @@ class ControllerEmailConfiguracao extends BaseController
 
     public function __construct()
     {
-        
         $this->model = new ModelEmailConfiguracao();
         $this->entidadeService = new ServiceEmailEntidade();
     }
@@ -27,41 +26,39 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function listar(): void
     {
-            return $this->erro('Sem permissão para acessar configurações', 403);
+        try {
+            $categoria = $this->obterParametro('categoria');
+
+            if ($categoria) {
+                $configs = $this->model->buscarPorCategoria($categoria);
+            } else {
+                $configs = $this->model->buscarTodas();
+            }
+
+            $this->sucesso($configs);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao listar configurações');
         }
-
-        $categoria = $request->get('categoria');
-
-        if ($categoria) {
-            $configs = $this->model->buscarPorCategoria($categoria);
-        } else {
-            $configs = $this->model->buscarTodas();
-        }
-
-        return $this->sucesso([
-            'configuracoes' => $configs,
-            'total' => count($configs)
-        ]);
     }
 
     /**
      * GET /email/config/{chave}
      * Obtém configuração específica
      */
-    public function obter(): void
+    public function obter(string $chave): void
     {
-            return $this->erro('Sem permissão para acessar configurações', 403);
+        try {
+            $config = $this->model->buscarPorChave($chave);
+
+            if (!$config) {
+                $this->naoEncontrado('Configuração não encontrada');
+                return;
+            }
+
+            $this->sucesso($config);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao obter configuração');
         }
-
-        $chave = $params['chave'];
-
-        $config = $this->model->buscarPorChave($chave);
-
-        if (!$config) {
-            return $this->erro('Configuração não encontrada', 404);
-        }
-
-        return $this->sucesso($config);
     }
 
     /**
@@ -70,25 +67,28 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function salvar(): void
     {
-            return $this->erro('Sem permissão para alterar configurações', 403);
-        }
+        try {
+            $dados = $this->obterDados();
 
-        $dados = $request->getBody();
+            if (empty($dados['chave'])) {
+                $this->erro('Chave da configuração é obrigatória');
+                return;
+            }
 
-        if (empty($dados['chave'])) {
-            return $this->erro('Chave da configuração é obrigatória');
-        }
+            if (!isset($dados['valor'])) {
+                $this->erro('Valor da configuração é obrigatório');
+                return;
+            }
 
-        if (!isset($dados['valor'])) {
-            return $this->erro('Valor da configuração é obrigatório');
-        }
+            $sucesso = $this->model->salvar($dados['chave'], $dados['valor']);
 
-        $sucesso = $this->model->salvar($dados['chave'], $dados['valor']);
-
-        if ($sucesso) {
-            return $this->sucesso(['mensagem' => 'Configuração salva com sucesso']);
-        } else {
-            return $this->erro('Erro ao salvar configuração');
+            if ($sucesso) {
+                $this->sucesso(['mensagem' => 'Configuração salva com sucesso']);
+            } else {
+                $this->erro('Erro ao salvar configuração');
+            }
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao salvar configuração');
         }
     }
 
@@ -98,20 +98,18 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function sincronizarEntidade(): void
     {
-            return $this->erro('Sem permissão para sincronizar entidades', 403);
-        }
-
-        $dados = $request->getBody();
-
-        if (empty($dados['tipo']) || empty($dados['id'])) {
-            return $this->erro('Tipo e ID da entidade são obrigatórios');
-        }
-
         try {
+            $dados = $this->obterDados();
+
+            if (empty($dados['tipo']) || empty($dados['id'])) {
+                $this->erro('Tipo e ID da entidade são obrigatórios');
+                return;
+            }
+
             $resultado = $this->entidadeService->sincronizarEntidade($dados['tipo'], (int) $dados['id']);
-            return $this->sucesso($resultado);
+            $this->sucesso($resultado);
         } catch (\Exception $e) {
-            return $this->erro($e->getMessage());
+            $this->tratarErro($e, 500, 'Erro ao sincronizar entidade');
         }
     }
 
@@ -121,22 +119,20 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function sincronizarLote(): void
     {
-            return $this->erro('Sem permissão para sincronizar entidades', 403);
-        }
-
-        $dados = $request->getBody();
-
-        if (empty($dados['tipo'])) {
-            return $this->erro('Tipo de entidade é obrigatório');
-        }
-
-        $limit = $dados['limit'] ?? 100;
-
         try {
+            $dados = $this->obterDados();
+
+            if (empty($dados['tipo'])) {
+                $this->erro('Tipo de entidade é obrigatório');
+                return;
+            }
+
+            $limit = $dados['limit'] ?? 100;
+
             $resultado = $this->entidadeService->sincronizarLote($dados['tipo'], $limit);
-            return $this->sucesso($resultado);
+            $this->sucesso($resultado);
         } catch (\Exception $e) {
-            return $this->erro($e->getMessage());
+            $this->tratarErro($e, 500, 'Erro ao sincronizar lote');
         }
     }
 
@@ -146,14 +142,15 @@ class ControllerEmailConfiguracao extends BaseController
      */
     public function categorias(): void
     {
-            return $this->erro('Sem permissão para acessar configurações', 403);
+        try {
+            $categorias = $this->model->listarCategorias();
+
+            $this->sucesso([
+                'categorias' => $categorias,
+                'total' => count($categorias)
+            ]);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao listar categorias');
         }
-
-        $categorias = $this->model->listarCategorias();
-
-        return $this->sucesso([
-            'categorias' => $categorias,
-            'total' => count($categorias)
-        ]);
     }
 }

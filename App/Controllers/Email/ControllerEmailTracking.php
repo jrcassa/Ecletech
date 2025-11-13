@@ -16,7 +16,6 @@ class ControllerEmailTracking extends BaseController
 
     public function __construct()
     {
-        
         $this->historico = new ModelEmailHistorico();
         $this->entidadeService = new ServiceEmailEntidade();
     }
@@ -25,20 +24,18 @@ class ControllerEmailTracking extends BaseController
      * GET /email/track/open/{tracking_code}
      * Rastreia abertura de email (pixel transparente)
      */
-    public function rastrearAbertura(): void
+    public function rastrearAbertura(string $tracking_code): void
     {
-        $trackingCode = $params['tracking_code'] ?? null;
-
-        if ($trackingCode) {
+        if ($tracking_code) {
             $ip = $_SERVER['REMOTE_ADDR'] ?? null;
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
             // Registra abertura
-            $registrado = $this->historico->registrarAbertura($trackingCode, $ip, $userAgent);
+            $registrado = $this->historico->registrarAbertura($tracking_code, $ip, $userAgent);
 
             // Se encontrou o email, atualiza também na entidade
             if ($registrado) {
-                $email = $this->historico->buscarUnicoPorTrackingCode($trackingCode);
+                $email = $this->historico->buscarUnicoPorTrackingCode($tracking_code);
                 if ($email && $email['tipo_entidade'] && $email['entidade_id']) {
                     $this->entidadeService->registrarAbertura($email['tipo_entidade'], $email['entidade_id']);
                 }
@@ -61,21 +58,20 @@ class ControllerEmailTracking extends BaseController
      * GET /email/track/click/{tracking_code}
      * Rastreia clique em link
      */
-    public function rastrearClique(): void
+    public function rastrearClique(string $tracking_code): void
     {
-        $trackingCode = $params['tracking_code'] ?? null;
-        $url = $request->get('url');
+        $url = $this->obterParametro('url');
 
-        if ($trackingCode) {
+        if ($tracking_code) {
             $ip = $_SERVER['REMOTE_ADDR'] ?? null;
             $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
             // Registra clique
-            $registrado = $this->historico->registrarClique($trackingCode, $ip, $userAgent);
+            $registrado = $this->historico->registrarClique($tracking_code, $ip, $userAgent);
 
             // Se encontrou o email, atualiza também na entidade
             if ($registrado) {
-                $email = $this->historico->buscarUnicoPorTrackingCode($trackingCode);
+                $email = $this->historico->buscarUnicoPorTrackingCode($tracking_code);
                 if ($email && $email['tipo_entidade'] && $email['entidade_id']) {
                     $this->entidadeService->registrarClique($email['tipo_entidade'], $email['entidade_id']);
                 }
@@ -88,37 +84,37 @@ class ControllerEmailTracking extends BaseController
             exit;
         }
 
-        return $this->erro('URL de destino não encontrada', 404);
+        $this->erro('URL de destino não encontrada', 404);
     }
 
     /**
      * GET /email/track/stats/{tracking_code}
      * Obtém estatísticas de um email específico
      */
-    public function estatisticas(): void
+    public function estatisticas(string $tracking_code): void
     {
-            return $this->erro('Sem permissão para acessar estatísticas', 403);
+        try {
+            $email = $this->historico->buscarUnicoPorTrackingCode($tracking_code);
+
+            if (!$email) {
+                $this->naoEncontrado('Email não encontrado');
+                return;
+            }
+
+            $this->sucesso([
+                'tracking_code' => $tracking_code,
+                'destinatario' => $email['destinatario_email'],
+                'assunto' => $email['assunto'],
+                'status' => $email['status'],
+                'status_code' => $email['status_code'],
+                'data_enviado' => $email['data_enviado'],
+                'data_aberto' => $email['data_aberto'],
+                'data_clicado' => $email['data_clicado'],
+                'ip_abertura' => $email['ip_abertura'],
+                'user_agent' => $email['user_agent']
+            ]);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao obter estatísticas');
         }
-
-        $trackingCode = $params['tracking_code'];
-
-        $email = $this->historico->buscarUnicoPorTrackingCode($trackingCode);
-
-        if (!$email) {
-            return $this->erro('Email não encontrado', 404);
-        }
-
-        return $this->sucesso([
-            'tracking_code' => $trackingCode,
-            'destinatario' => $email['destinatario_email'],
-            'assunto' => $email['assunto'],
-            'status' => $email['status'],
-            'status_code' => $email['status_code'],
-            'data_enviado' => $email['data_enviado'],
-            'data_aberto' => $email['data_aberto'],
-            'data_clicado' => $email['data_clicado'],
-            'ip_abertura' => $email['ip_abertura'],
-            'user_agent' => $email['user_agent']
-        ]);
     }
 }
