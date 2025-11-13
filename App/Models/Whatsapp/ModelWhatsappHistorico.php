@@ -141,4 +141,35 @@ class ModelWhatsappHistorico
             [$dias]
         )->rowCount();
     }
+
+    /**
+     * Conta mensagens únicas por status_code nas últimas 24 horas
+     * Usa message_id DISTINCT para evitar duplicatas quando há múltiplos eventos
+     */
+    public function contarPorStatusUltimas24h(int $statusCode): int
+    {
+        // Para status >= 2 (enviado, entregue, lido), precisamos pegar o maior status por message_id
+        $sql = "SELECT COUNT(DISTINCT message_id) as total
+                FROM whatsapp_historico
+                WHERE message_id IS NOT NULL
+                AND criado_em >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                AND status_code >= ?";
+
+        $resultado = $this->db->buscarUm($sql, [$statusCode]);
+        return $resultado['total'] ?? 0;
+    }
+
+    /**
+     * Conta eventos de erro nas últimas 24 horas
+     */
+    public function contarErrosUltimas24h(): int
+    {
+        $sql = "SELECT COUNT(*) as total
+                FROM whatsapp_historico
+                WHERE status_code = 0
+                AND criado_em >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+
+        $resultado = $this->db->buscarUm($sql);
+        return $resultado['total'] ?? 0;
+    }
 }
