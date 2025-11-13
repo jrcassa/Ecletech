@@ -7,6 +7,7 @@ use App\Models\FrotaAbastecimento\ModelFrotaAbastecimento;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
 use App\Models\Colaborador\ModelColaborador;
+use App\Models\S3\ModelS3Arquivo;
 use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Core\BancoDados;
 
@@ -21,6 +22,7 @@ class ServiceFrotaAbastecimentoNotificacao
     private ModelFrotaAbastecimentoMetrica $modelMetrica;
     private ModelFrotaAbastecimentoAlerta $modelAlerta;
     private ModelColaborador $modelColaborador;
+    private ModelS3Arquivo $modelS3Arquivo;
     private ServiceWhatsapp $serviceWhatsapp;
     private BancoDados $db;
 
@@ -31,6 +33,7 @@ class ServiceFrotaAbastecimentoNotificacao
         $this->modelMetrica = new ModelFrotaAbastecimentoMetrica();
         $this->modelAlerta = new ModelFrotaAbastecimentoAlerta();
         $this->modelColaborador = new ModelColaborador();
+        $this->modelS3Arquivo = new ModelS3Arquivo();
         $this->serviceWhatsapp = new ServiceWhatsapp();
         $this->db = BancoDados::obterInstancia();
     }
@@ -116,6 +119,38 @@ class ServiceFrotaAbastecimentoNotificacao
                         'abastecimento_id' => $abastecimento_id
                     ]
                 ]);
+
+                // Buscar e enviar foto do comprovante se existir
+                $comprovantes = $this->modelS3Arquivo->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
+
+                foreach ($comprovantes as $comprovante) {
+                    // Filtra apenas imagens (categoria comprovante ou tipo MIME de imagem)
+                    if ($comprovante['categoria'] === 'comprovante' ||
+                        (isset($comprovante['tipo_mime']) && strpos($comprovante['tipo_mime'], 'image/') === 0)) {
+
+                        $urlArquivo = $comprovante['url_publica'] ?? $comprovante['caminho_s3'];
+
+                        $this->serviceWhatsapp->enviarMensagem([
+                            'destinatario' => [
+                                'tipo' => 'colaborador',
+                                'id' => $destinatario['id']
+                            ],
+                            'tipo' => 'image',
+                            'arquivo_url' => $urlArquivo,
+                            'mensagem' => '📷 Comprovante de Abastecimento',
+                            'prioridade' => 'normal',
+                            'metadata' => [
+                                'modulo' => 'frota_abastecimento',
+                                'tipo_notificacao' => 'abastecimento_finalizado_foto',
+                                'abastecimento_id' => $abastecimento_id,
+                                's3_arquivo_id' => $comprovante['id']
+                            ]
+                        ]);
+
+                        // Envia apenas o primeiro comprovante
+                        break;
+                    }
+                }
             } catch (\Exception $e) {
                 // Log do erro (opcional)
                 error_log("Erro ao enviar notificação abastecimento finalizado: " . $e->getMessage());
@@ -193,7 +228,17 @@ class ServiceFrotaAbastecimentoNotificacao
         $mensagem = "🚗 *Nova Ordem de Abastecimento*\n\n";
         $mensagem .= "Olá *{$abastecimento['motorista_nome']}*,\n\n";
         $mensagem .= "Você tem uma nova ordem de abastecimento:\n\n";
-        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n";
+
+        // Usar nome da frota, ou modelo/marca como fallback
+        $veiculoNome = !empty($abastecimento['frota_nome'])
+            ? $abastecimento['frota_nome']
+            : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
+
+        $mensagem .= "📌 *Veículo:* {$abastecimento['frota_placa']}";
+        if (!empty($veiculoNome)) {
+            $mensagem .= " - {$veiculoNome}";
+        }
+        $mensagem .= "\n";
 
         if ($abastecimento['data_limite']) {
             $dataLimite = date('d/m/Y', strtotime($abastecimento['data_limite']));
@@ -218,7 +263,17 @@ class ServiceFrotaAbastecimentoNotificacao
     {
         $mensagem = "✅ *Abastecimento Realizado*\n\n";
         $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
-        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']} - {$abastecimento['frota_nome']}\n\n";
+
+        // Usar nome da frota, ou modelo/marca como fallback
+        $veiculoNome = !empty($abastecimento['frota_nome'])
+            ? $abastecimento['frota_nome']
+            : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
+
+        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']}";
+        if (!empty($veiculoNome)) {
+            $mensagem .= " - {$veiculoNome}";
+        }
+        $mensagem .= "\n\n";
 
         $mensagem .= "📍 *Dados do Abastecimento:*\n";
         $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
