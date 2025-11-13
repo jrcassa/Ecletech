@@ -104,16 +104,16 @@ class ModelWhatsappBaileys
         }
 
         if ($error) {
-            throw new \Exception("Erro na requisição: {$error}");
+            throw new \Exception("Erro na requisição para {$url}: {$error}");
         }
 
         if ($httpCode >= 400) {
-            throw new \Exception("Erro HTTP {$httpCode}: {$response}");
+            throw new \Exception("Erro HTTP {$httpCode} na URL {$url}: {$response}");
         }
 
         // Verifica se a resposta está vazia
         if ($response === false || $response === '') {
-            throw new \Exception("Resposta vazia da API. HTTP Code: {$httpCode}");
+            throw new \Exception("Resposta vazia da API para URL {$url}. HTTP Code: {$httpCode}");
         }
 
         return $response;

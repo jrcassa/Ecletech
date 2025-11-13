@@ -31,7 +31,12 @@ class ControllerWhatsappConexao
 
             // Debug: verifica se json_decode falhou
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Erro ao decodificar resposta JSON: ' . json_last_error_msg() . '. Resposta: ' . substr($response, 0, 200));
+                // Tenta extrair a URL da configuração para debug
+                $apiConfig = $this->config->obter('api_base_url', 'não configurada');
+                $instanceToken = $this->config->obter('instancia_token', 'não configurado');
+                $urlDebug = $apiConfig . '/instance/info?key=' . substr($instanceToken, 0, 10) . '...';
+
+                throw new \Exception('Erro ao decodificar resposta JSON: ' . json_last_error_msg() . '. URL: ' . $urlDebug . '. Resposta: ' . substr($response, 0, 200));
             }
 
             // Debug: verifica se resposta é null
