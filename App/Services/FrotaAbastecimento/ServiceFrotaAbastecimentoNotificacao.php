@@ -120,36 +120,23 @@ class ServiceFrotaAbastecimentoNotificacao
                     ]
                 ]);
 
-                // Buscar e enviar foto do comprovante se existir
-                $comprovantes = $this->modelS3Arquivo->buscarPorEntidade('frota_abastecimento', $abastecimento_id);
-
-                foreach ($comprovantes as $comprovante) {
-                    // Filtra apenas imagens (categoria comprovante ou tipo MIME de imagem)
-                    if ($comprovante['categoria'] === 'comprovante' ||
-                        (isset($comprovante['tipo_mime']) && strpos($comprovante['tipo_mime'], 'image/') === 0)) {
-
-                        $urlArquivo = $comprovante['url_publica'] ?? $comprovante['caminho_s3'];
-
-                        $this->serviceWhatsapp->enviarMensagem([
-                            'destinatario' => [
-                                'tipo' => 'colaborador',
-                                'id' => $destinatario['id']
-                            ],
-                            'tipo' => 'image',
-                            'arquivo_url' => $urlArquivo,
-                            'mensagem' => '📷 Comprovante de Abastecimento',
-                            'prioridade' => 'normal',
-                            'metadata' => [
-                                'modulo' => 'frota_abastecimento',
-                                'tipo_notificacao' => 'abastecimento_finalizado_foto',
-                                'abastecimento_id' => $abastecimento_id,
-                                's3_arquivo_id' => $comprovante['id']
-                            ]
-                        ]);
-
-                        // Envia apenas o primeiro comprovante
-                        break;
-                    }
+                // Enviar foto do comprovante se existir
+                if (!empty($abastecimento['foto_comprovante'])) {
+                    $this->serviceWhatsapp->enviarMensagem([
+                        'destinatario' => [
+                            'tipo' => 'colaborador',
+                            'id' => $destinatario['id']
+                        ],
+                        'tipo' => 'image',
+                        'arquivo_url' => $abastecimento['foto_comprovante'],
+                        'mensagem' => '📷 Comprovante de Abastecimento',
+                        'prioridade' => 'normal',
+                        'metadata' => [
+                            'modulo' => 'frota_abastecimento',
+                            'tipo_notificacao' => 'abastecimento_finalizado_foto',
+                            'abastecimento_id' => $abastecimento_id
+                        ]
+                    ]);
                 }
             } catch (\Exception $e) {
                 // Log do erro (opcional)
@@ -262,6 +249,24 @@ class ServiceFrotaAbastecimentoNotificacao
     private function montarMensagemAbastecimentoFinalizado(array $abastecimento, ?array $metricas, array $alertas): string
     {
         $mensagem = "✅ *Abastecimento Realizado*\n\n";
+        $mensagem .= "👤 *Motorista:* {$abastecimento['motorista_nome']}\n";
+
+        // Usar nome da frota, ou modelo/marca como fallback
+        $veiculoNome = !empty($abastecimento['frota_nome'])
+            ? $abastecimento['frota_nome']
+            : trim(($abastecimento['frota_marca'] ?? '') . ' ' . ($abastecimento['frota_modelo'] ?? ''));
+
+        $mensagem .= "🚗 *Veículo:* {$abastecimento['frota_placa']}";
+        if (!empty($veiculoNome)) {
+            $mensagem .= " - {$veiculoNome}";
+        }
+        $mensagem .= "\n\n";
+
+        $mensagem .= "📍 *Dados do Abastecimento:*\n";
+        $mensagem .= "• KM: " . number_format($abastecimento['km'], 2, ',', '.') . "\n";
+        $mensagem .= "• Litros: " . number_format($abastecimento['litros'], 3, ',', '.') . " L\n";
+        $mensagem .= "• Combustível: " . ucfirst($abastecimento['combustivel']) . "\n";
+        $mensagem .= "• Valor: R$ " . number_format($abastecimento['valor'], 2, ',', '.') . "\n";
 
         // Informações do veículo e motorista
         $mensagem .= "┌─ *Informações Gerais*\n";
