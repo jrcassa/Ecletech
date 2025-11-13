@@ -714,21 +714,21 @@ const WhatsAppManager = {
 
         let html = '';
         eventos.forEach(evt => {
-            const dataCriacao = Utils.Format.dataHora(evt.criado_em || evt.created_at);
             const destinatario = Utils.DOM.escapeHtml(evt.destinatario_nome || evt.destinatario || '-');
             const tipo = Utils.String.capitalize(evt.tipo_mensagem || evt.tipo_evento || '-');
             const statusBadge = this.obterBadgeStatus(evt.status_code);
-            const tempoProcessamento = evt.tempo_processamento ? `${evt.tempo_processamento}s` : '-';
-            const dataLeitura = evt.lido_em ? Utils.Format.dataHora(evt.lido_em) : '-';
+            const dataEnviado = evt.data_enviado ? Utils.Format.dataHora(evt.data_enviado) : '-';
+            const dataEntregue = evt.data_entregue ? Utils.Format.dataHora(evt.data_entregue) : '-';
+            const dataLido = evt.data_leitura ? Utils.Format.dataHora(evt.data_leitura) : '-';
 
             html += `
                 <tr>
-                    <td>${dataCriacao}</td>
                     <td>${destinatario}</td>
                     <td>${tipo}</td>
                     <td>${statusBadge}</td>
-                    <td>${tempoProcessamento}</td>
-                    <td>${dataLeitura}</td>
+                    <td>${dataEnviado}</td>
+                    <td>${dataEntregue}</td>
+                    <td>${dataLido}</td>
                 </tr>
             `;
         });
