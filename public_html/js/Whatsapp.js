@@ -86,10 +86,8 @@ function inicializarNavegacao() {
 // ============================================
 
 function inicializarEventos() {
-    // Botão desconectar
-    $('#btn-desconectar').click(function() {
-        desconectarWhatsApp();
-    });
+    // Nota: evento de btn-desconectar e btn-criar-instancia são vinculados dinamicamente
+    // em atualizarStatusConexao() pois os botões são criados dinamicamente
 
     // Formulário de envio de teste
     $('#form-enviar-teste').submit(function(e) {
@@ -136,44 +134,110 @@ function verificarStatusInstancia() {
 }
 
 function atualizarStatusConexao(dados) {
-    const statusHtml = dados.conectado ?
-        '<span class="status-badge status-conectado"><i class="fas fa-check-circle"></i> Conectado</span>' :
-        '<span class="status-badge status-desconectado"><i class="fas fa-times-circle"></i> Desconectado</span>';
-
-    $('#status-conexao').html(statusHtml);
+    let html = '';
 
     if (dados.conectado) {
-        $('#info-telefone').text(dados.telefone || 'N/A');
-        $('#info-nome').text(dados.nome || 'N/A');
-        $('#container-qrcode').hide();
-        $('#container-info-conectado').show();
-        $('#btn-desconectar').show();
+        // Conectado
+        html = `
+            <div class="alert alert-success" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-check-circle"></i> WhatsApp Conectado</h5>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Telefone:</strong> ${dados.telefone || 'N/A'}</p>
+                        <p class="mb-1"><strong>Nome:</strong> ${dados.nome || 'N/A'}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button id="btn-desconectar" class="btn btn-danger">
+                            <i class="fas fa-power-off"></i> Desconectar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
 
         // Para auto-refresh de QR code
         if (intervalStatusCheck) {
             clearInterval(intervalStatusCheck);
             intervalStatusCheck = null;
         }
+
     } else if (dados.status === 'qrcode' && dados.qr_code) {
-        $('#container-qrcode').show();
-        $('#container-info-conectado').hide();
-        $('#btn-desconectar').hide();
-        $('#qrcode-image').attr('src', dados.qr_code);
+        // Aguardando QR Code
+        html = `
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-qrcode"></i> Aguardando Conexão</h5>
+                <p>Escaneie o QR Code abaixo com seu WhatsApp para conectar:</p>
+                <div class="text-center">
+                    <img src="${dados.qr_code}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                    <p class="mt-3 text-muted"><small>O QR Code é atualizado automaticamente a cada 5 segundos</small></p>
+                </div>
+            </div>
+        `;
 
         // Auto-refresh QR code a cada 5 segundos
         if (!intervalStatusCheck) {
             intervalStatusCheck = setInterval(verificarStatusInstancia, 5000);
         }
+
     } else {
-        $('#container-qrcode').hide();
-        $('#container-info-conectado').hide();
-        $('#btn-desconectar').hide();
+        // Desconectado
+        html = `
+            <div class="alert alert-danger" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-times-circle"></i> WhatsApp Desconectado</h5>
+                <p>A instância do WhatsApp não está conectada.</p>
+                <button id="btn-criar-instancia" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Criar Instância
+                </button>
+            </div>
+        `;
 
         if (intervalStatusCheck) {
             clearInterval(intervalStatusCheck);
             intervalStatusCheck = null;
         }
     }
+
+    $('#status-instancia-container').html(html);
+
+    // Re-bind eventos dos botões
+    $('#btn-desconectar').off('click').on('click', function() {
+        desconectarWhatsApp();
+    });
+
+    $('#btn-criar-instancia').off('click').on('click', function() {
+        criarInstancia();
+    });
+}
+
+function criarInstancia() {
+    Swal.fire({
+        title: 'Criar Instância',
+        text: 'Deseja criar uma nova instância do WhatsApp?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, criar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `${API_BASE}/conexao/criar`,
+                method: 'POST',
+                dataType: 'json'
+            })
+            .done(function(response) {
+                if (response.sucesso) {
+                    mostrarSucesso('Instância criada com sucesso. Aguardando QR Code...');
+                    verificarStatusInstancia();
+                } else {
+                    mostrarErro(response.mensagem);
+                }
+            })
+            .fail(function() {
+                mostrarErro('Erro ao criar instância');
+            });
+        }
+    });
 }
 
 function desconectarWhatsApp() {
