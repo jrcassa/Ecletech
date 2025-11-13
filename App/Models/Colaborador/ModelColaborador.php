@@ -95,14 +95,20 @@ class ModelColaborador
      */
     public function criar(array $dados): int
     {
-        $id = $this->db->inserir('colaboradores', [
+        $dadosInserir = [
             'nome' => $dados['nome'],
             'email' => $dados['email'],
             'senha' => $dados['senha'],
             'nivel_id' => $dados['nivel_id'] ?? 1,
             'ativo' => $dados['ativo'] ?? 1,
             'criado_em' => date('Y-m-d H:i:s')
-        ]);
+        ];
+
+        if (isset($dados['celular'])) {
+            $dadosInserir['celular'] = $dados['celular'];
+        }
+
+        $id = $this->db->inserir('colaboradores', $dadosInserir);
 
         $this->auditoria->registrarCriacao('colaboradores', $id, $dados, $dados['colaborador_id'] ?? null);
 
@@ -128,6 +134,10 @@ class ModelColaborador
 
         if (isset($dados['email'])) {
             $dadosAtualizacao['email'] = $dados['email'];
+        }
+
+        if (isset($dados['celular'])) {
+            $dadosAtualizacao['celular'] = $dados['celular'];
         }
 
         if (isset($dados['senha'])) {
