@@ -55,6 +55,22 @@ $router->grupo([
     $rotasFrota = require __DIR__ . '/frota.php';
     $rotasFrota($router);
 
+    // Inclui rotas de frota abastecimento
+    $rotasFrotaAbastecimento = require __DIR__ . '/frota_abastecimento.php';
+    $rotasFrotaAbastecimento($router);
+
+    // Inclui rotas de frota abastecimento métricas
+    $rotasFrotaAbastecimentoMetricas = require __DIR__ . '/frota_abastecimento_metricas.php';
+    $rotasFrotaAbastecimentoMetricas($router);
+
+    // Inclui rotas de frota abastecimento alertas
+    $rotasFrotaAbastecimentoAlertas = require __DIR__ . '/frota_abastecimento_alertas.php';
+    $rotasFrotaAbastecimentoAlertas($router);
+
+    // Inclui rotas de frota abastecimento relatórios
+    $rotasFrotaAbastecimentoRelatorios = require __DIR__ . '/frota_abastecimento_relatorios.php';
+    $rotasFrotaAbastecimentoRelatorios($router);
+
     // Inclui rotas de fornecedores
     $rotasFornecedor = require __DIR__ . '/fornecedor.php';
     $rotasFornecedor($router);
