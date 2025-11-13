@@ -4,16 +4,18 @@
 -- Data: 2025-11-13
 -- ==============================================================================
 --
--- ⚠️ ⚠️ ⚠️  ATENÇÃO: ESTA TABELA ESTÁ DEPRECATED  ⚠️ ⚠️ ⚠️
+-- ⚠️ ⚠️ ⚠️  ATENÇÃO: ESTA TABELA E MODEL FORAM REMOVIDOS  ⚠️ ⚠️ ⚠️
 -- ==============================================================================
 -- ESTA TABELA NÃO É MAIS UTILIZADA!
+-- O MODEL ModelFrotaAbastecimentoNotificacao.php FOI DELETADO!
 --
 -- Todas as notificações WhatsApp agora são gerenciadas exclusivamente através de:
 -- - whatsapp_queue (fila de envio)
 -- - whatsapp_historico (histórico de envios)
 --
 -- Esta migration permanece apenas para referência histórica.
--- Se a tabela já existe no banco, ela pode ser dropada com segurança.
+-- Se a tabela já existe no banco, ela DEVE ser dropada.
+-- Use: database/migrations/999_drop_tabela_frotas_abastecimentos_notificacoes_deprecated.sql
 -- ==============================================================================
 
 -- Criar tabela frotas_abastecimentos_notificacoes (DEPRECATED - NÃO USAR)
