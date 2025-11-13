@@ -9,6 +9,7 @@ use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
 use App\Models\Colaborador\ModelColaborador;
 use App\Models\S3\ModelS3Arquivo;
 use App\Services\Whatsapp\ServiceWhatsapp;
+use App\Services\S3\ServiceS3;
 use App\Core\BancoDados;
 
 /**
@@ -24,6 +25,7 @@ class ServiceFrotaAbastecimentoNotificacao
     private ModelColaborador $modelColaborador;
     private ModelS3Arquivo $modelS3Arquivo;
     private ServiceWhatsapp $serviceWhatsapp;
+    private ServiceS3 $serviceS3;
     private BancoDados $db;
 
     public function __construct()
@@ -35,6 +37,7 @@ class ServiceFrotaAbastecimentoNotificacao
         $this->modelColaborador = new ModelColaborador();
         $this->modelS3Arquivo = new ModelS3Arquivo();
         $this->serviceWhatsapp = new ServiceWhatsapp();
+        $this->serviceS3 = new ServiceS3();
         $this->db = BancoDados::obterInstancia();
     }
 
@@ -99,6 +102,17 @@ class ServiceFrotaAbastecimentoNotificacao
         // Buscar destinatários via ACL
         $destinatarios = $this->obterDestinatariosNotificacao();
 
+        // Gerar URL assinada do comprovante se existir
+        $urlComprovante = null;
+        if (!empty($abastecimento['comprovante_arquivo_id'])) {
+            try {
+                $resultado = $this->serviceS3->gerarUrlAssinada($abastecimento['comprovante_arquivo_id'], 3600); // 1 hora
+                $urlComprovante = $resultado['url'] ?? null;
+            } catch (\Exception $e) {
+                error_log("Erro ao gerar URL assinada do comprovante: " . $e->getMessage());
+            }
+        }
+
         foreach ($destinatarios as $destinatario) {
             // Montar mensagem
             $mensagem = $this->montarMensagemAbastecimentoFinalizado($abastecimento, $metricas, $alertas);
@@ -120,15 +134,15 @@ class ServiceFrotaAbastecimentoNotificacao
                     ]
                 ]);
 
-                // Enviar foto do comprovante se existir
-                if (!empty($abastecimento['foto_comprovante'])) {
+                // Enviar foto do comprovante se a URL foi gerada com sucesso
+                if (!empty($urlComprovante)) {
                     $this->serviceWhatsapp->enviarMensagem([
                         'destinatario' => [
                             'tipo' => 'colaborador',
                             'id' => $destinatario['id']
                         ],
                         'tipo' => 'image',
-                        'arquivo_url' => $abastecimento['foto_comprovante'],
+                        'arquivo_url' => $urlComprovante,
                         'mensagem' => '📷 Comprovante de Abastecimento',
                         'prioridade' => 'normal',
                         'metadata' => [
