@@ -68,6 +68,7 @@ class ModelLoja
 
         // Campos que podem ser atualizados
         $camposAtualizaveis = [
+            'uuid',
             'nome_fantasia',
             'razao_social',
             'cnpj',
