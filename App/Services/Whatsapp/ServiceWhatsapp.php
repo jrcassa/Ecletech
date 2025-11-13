@@ -118,7 +118,7 @@ class ServiceWhatsapp
         $this->historicoModel->adicionar([
             'queue_id' => $queueId,
             'tipo_evento' => 'adicionado_fila',
-            'dados' => json_encode([
+            'mensagem' => json_encode([
                 'destinatario' => $dados['destinatario'],
                 'tipo' => $dados['tipo_mensagem']
             ])
@@ -192,7 +192,7 @@ class ServiceWhatsapp
                 'entidade_nome' => $dados['entidade_nome'],
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
-                'dados' => json_encode([
+                'mensagem' => json_encode([
                     'response' => $responseData,
                     'conteudo' => $dados['conteudo']
                 ])
@@ -218,7 +218,7 @@ class ServiceWhatsapp
                 'entidade_nome' => $dados['entidade_nome'],
                 'destinatario' => $dados['destinatario'],
                 'tipo_mensagem' => $dados['tipo_mensagem'],
-                'dados' => json_encode([
+                'mensagem' => json_encode([
                     'erro' => $erro,
                     'response' => $responseData
                 ])
@@ -318,7 +318,7 @@ class ServiceWhatsapp
                     'queue_id' => $mensagem['id'],
                     'message_id' => $messageId,
                     'tipo_evento' => 'enviado',
-                    'dados' => json_encode(['response' => $responseData])
+                    'mensagem' => json_encode(['response' => $responseData])
                 ]);
 
                 return [
