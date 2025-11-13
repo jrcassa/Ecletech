@@ -115,10 +115,8 @@ try {
 
     try {
         $destinatario = [
-            'tipo_entidade' => 'colaborador',
-            'entidade_id' => $motorista['id'],
-            'numero' => $motorista['celular'],
-            'nome' => $motorista['nome']
+            'tipo' => 'colaborador',
+            'id' => $motorista['id']
         ];
 
         $destino = $entidadeService->resolverDestinatario($destinatario);
@@ -203,10 +201,8 @@ try {
     try {
         $resultado = $serviceWhatsapp->enviarMensagem([
             'destinatario' => [
-                'tipo_entidade' => 'colaborador',
-                'entidade_id' => $motorista['id'],
-                'numero' => $motorista['celular'],
-                'nome' => $motorista['nome']
+                'tipo' => 'colaborador',
+                'id' => $motorista['id']
             ],
             'tipo' => 'text',
             'mensagem' => '🧪 TESTE DE DIAGNÓSTICO - Verificando sistema de notificações',
