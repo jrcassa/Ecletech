@@ -732,8 +732,11 @@ const S3Manager = {
         try {
             const response = await API.get('/s3/config');
 
-            if (response && response.length > 0) {
-                response.forEach(config => {
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const configs = response.dados || [];
+
+            if (configs && configs.length > 0) {
+                configs.forEach(config => {
                     const inputId = this.getConfigInputId(config.chave);
                     const input = document.getElementById(inputId);
 
@@ -808,10 +811,14 @@ const S3Manager = {
             Swal.close();
 
             if (response.sucesso) {
+                // A API retorna { sucesso, mensagem, codigo, dados }
+                const dados = response.dados || {};
+                const bucketPadrao = dados.bucket_padrao || 'Não configurado';
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Conexão OK!',
-                    html: `<p>${response.mensagem}</p><p><strong>Bucket:</strong> ${response.bucket_padrao}</p>`,
+                    html: `<p>${dados.mensagem || response.mensagem}</p><p><strong>Bucket:</strong> ${bucketPadrao}</p>`,
                     confirmButtonColor: '#FF9900'
                 });
             } else {
