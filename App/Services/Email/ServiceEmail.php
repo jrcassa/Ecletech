@@ -161,12 +161,21 @@ class ServiceEmail
                     'tracking_code' => $dadosCompletos['tracking_code']
                 ]);
 
-                // Se não tem corpo_html mas tem corpo_texto, converte para HTML
+                // SEMPRE converte para HTML estruturado quando tracking está habilitado
                 if (empty($dadosCompletos['corpo_html']) && !empty($dadosCompletos['corpo_texto'])) {
-                    $dadosCompletos['corpo_html'] = nl2br($dadosCompletos['corpo_texto']);
-                    $this->logToFile('Converteu corpo_texto para corpo_html para permitir tracking', [
-                        'corpo_html_gerado' => substr($dadosCompletos['corpo_html'], 0, 100) . '...'
+                    $dadosCompletos['corpo_html'] = $this->converterTextoParaHtmlEstruturado($dadosCompletos['corpo_texto']);
+                    $this->logToFile('Converteu corpo_texto para HTML estruturado', [
+                        'corpo_html_gerado' => substr($dadosCompletos['corpo_html'], 0, 200) . '...'
                     ]);
+                } elseif (!empty($dadosCompletos['corpo_html'])) {
+                    // Se já tem HTML mas não tem estrutura completa, envolve em estrutura HTML
+                    if (stripos($dadosCompletos['corpo_html'], '<!DOCTYPE') === false &&
+                        stripos($dadosCompletos['corpo_html'], '<html') === false) {
+                        $dadosCompletos['corpo_html'] = $this->envolverEmHtmlEstruturado($dadosCompletos['corpo_html'], $dadosCompletos['assunto'] ?? 'Email');
+                        $this->logToFile('Envolveu HTML parcial em estrutura completa', [
+                            'corpo_html_preview' => substr($dadosCompletos['corpo_html'], 0, 200) . '...'
+                        ]);
+                    }
                 }
 
                 // Injeta pixel e links de tracking
@@ -502,6 +511,51 @@ class ServiceEmail
             ],
             'smtp' => $this->getSMTP()->obterInformacoes()
         ];
+    }
+
+    /**
+     * Converte texto simples para HTML estruturado completo
+     */
+    private function converterTextoParaHtmlEstruturado(string $texto): string
+    {
+        // Escapa HTML e converte quebras de linha
+        $textoFormatado = nl2br(htmlspecialchars($texto, ENT_QUOTES, 'UTF-8'));
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 20px;">
+        {$textoFormatado}
+    </div>
+</body>
+</html>
+HTML;
+    }
+
+    /**
+     * Envolve HTML parcial em estrutura HTML completa
+     */
+    private function envolverEmHtmlEstruturado(string $htmlParcial, string $titulo = 'Email'): string
+    {
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$titulo}</title>
+</head>
+<body>
+{$htmlParcial}
+</body>
+</html>
+HTML;
     }
 
     /**
