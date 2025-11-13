@@ -256,7 +256,7 @@ class ModelFrotaAbastecimento
     public function buscarUltimoAbastecimentoFrota(int $frota_id): ?array
     {
         $sql = "
-            SELECT km, data_abastecimento
+            SELECT id, km, data_abastecimento
             FROM frotas_abastecimentos
             WHERE frota_id = ?
             AND status = 'abastecido'
