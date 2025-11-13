@@ -194,6 +194,53 @@ class ModelWhatsappBaileys
     }
 
     /**
+     * Obtém QR Code em base64 da instância
+     * Usado quando a instância está aguardando conexão
+     */
+    public function status_instancia()
+    {
+        $retorno = false;
+
+        // URL da API para obter QR Code em base64
+        $url = "https://whatsapp.ecletech.com.br/instance/qrbase64?key=" . urlencode($this->instanceToken);
+
+        // Inicializa o cURL
+        $ch = curl_init($url);
+
+        // Configurações da requisição cURL
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->secureToken,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_HTTPGET, true); // Define que é uma requisição GET
+
+        // Executa a requisição e captura a resposta
+        $response = curl_exec($ch);
+
+        // Verifica se houve erro na execução
+        if (curl_errno($ch)) {
+            $retorno = curl_error($ch);
+        } else {
+            $retorno = $response;
+        }
+
+        // Fecha a conexão cURL
+        curl_close($ch);
+
+        return $retorno;
+    }
+
+    /**
+     * Método alias para compatibilidade
+     * @deprecated Use status_instancia() para QR base64
+     */
+    public function obterQRCodeBase64()
+    {
+        return $this->status_instancia();
+    }
+
+    /**
      * Obtém informações da instância
      */
     public function infoInstancia(): string
