@@ -48,6 +48,8 @@ $caminhoEnv = ROOT_PATH . '/.env';
 $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
+use App\Helpers\ErrorLogger;
+
 /**
  * Classe principal do cron
  */
@@ -116,6 +118,15 @@ class ProcessadorWhatsAppCron
             }
 
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'cron',
+                'nivel' => 'critico',
+                'contexto' => [
+                    'cron_job' => 'processar_whatsapp',
+                    'descricao' => 'Erro crítico ao processar fila WhatsApp'
+                ]
+            ]);
+
             $this->log("ERRO CRÍTICO: " . $e->getMessage());
             $this->log("Stack trace: " . $e->getTraceAsString());
         }
@@ -151,6 +162,15 @@ try {
     $cron->executar();
     exit(0);
 } catch (\Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'cron',
+        'nivel' => 'critico',
+        'contexto' => [
+            'cron_job' => 'processar_whatsapp',
+            'descricao' => 'Erro fatal ao inicializar cron de WhatsApp'
+        ]
+    ]);
+
     echo "[FATAL] " . $e->getMessage() . "\n";
     exit(1);
 }

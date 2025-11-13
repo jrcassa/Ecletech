@@ -3,6 +3,7 @@
 namespace App\Models\Email;
 
 use App\Core\BancoDados;
+use App\Helpers\ErrorLogger;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
@@ -67,6 +68,11 @@ class ModelEmailSMTP
 
         } catch (Exception $e) {
             // Log error (silent failure)
+            ErrorLogger::log($e, 'email', 'alto', [
+                'contexto' => 'inicializacao_phpmailer',
+                'smtp_host' => $this->config->obter('smtp_host', ''),
+                'smtp_port' => $this->config->obter('smtp_port', 587)
+            ]);
             error_log('Erro ao inicializar PHPMailer: ' . $e->getMessage());
         }
     }
@@ -90,6 +96,11 @@ class ModelEmailSMTP
             ];
 
         } catch (Exception $e) {
+            ErrorLogger::log($e, 'email', 'alto', [
+                'contexto' => 'teste_conexao_smtp',
+                'servidor' => $this->config->obter('smtp_host'),
+                'porta' => $this->config->obter('smtp_port')
+            ]);
             return [
                 'sucesso' => false,
                 'mensagem' => 'Falha na conexão SMTP',
@@ -223,6 +234,12 @@ class ModelEmailSMTP
             }
 
         } catch (Exception $e) {
+            ErrorLogger::log($e, 'email', 'alto', [
+                'contexto' => 'envio_email',
+                'destinatario' => $dados['destinatario_email'] ?? null,
+                'assunto' => $dados['assunto'] ?? null,
+                'smtp_error' => $this->mailer->ErrorInfo
+            ]);
             return [
                 'sucesso' => false,
                 'erro' => $e->getMessage(),

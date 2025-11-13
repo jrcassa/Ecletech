@@ -12,6 +12,8 @@ date_default_timezone_set('America/Sao_Paulo');
 // Carrega o autoloader
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Helpers\ErrorLogger;
+
 // Autoloader personalizado
 spl_autoload_register(function ($classe) {
     $prefixo = 'App\\';
@@ -99,6 +101,17 @@ try {
 
                 echo "[" . date('Y-m-d H:i:s') . "] Notificação enviada para {$ordem['motorista_nome']} ({$ordem['placa']})\n";
             } catch (\Exception $e) {
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'api',
+                    'nivel' => 'medio',
+                    'contexto' => [
+                        'cron_job' => 'ordens_expiradas',
+                        'descricao' => 'Erro ao enviar notificação de ordem expirada',
+                        'ordem_id' => $ordem['id'] ?? null,
+                        'motorista' => $ordem['motorista_nome'] ?? null
+                    ]
+                ]);
+
                 echo "[" . date('Y-m-d H:i:s') . "] Erro ao enviar notificação: " . $e->getMessage() . "\n";
             }
         }
@@ -109,6 +122,15 @@ try {
     exit(0);
 
 } catch (\Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'cron',
+        'nivel' => 'alto',
+        'contexto' => [
+            'cron_job' => 'ordens_expiradas',
+            'descricao' => 'Erro ao processar ordens de abastecimento expiradas'
+        ]
+    ]);
+
     echo "[" . date('Y-m-d H:i:s') . "] ERRO: " . $e->getMessage() . "\n";
     echo "[" . date('Y-m-d H:i:s') . "] Trace: " . $e->getTraceAsString() . "\n";
 

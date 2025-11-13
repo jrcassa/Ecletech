@@ -49,6 +49,7 @@ use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Services\Whatsapp\ServiceWhatsappEntidade;
 use App\Models\Whatsapp\ModelWhatsappQueue;
 use App\Helpers\AuxiliarWhatsapp;
+use App\Helpers\ErrorLogger;
 
 echo "========================================\n";
 echo "TESTE DETALHADO - NOTIFICAÇÃO WHATSAPP\n";
@@ -126,6 +127,16 @@ try {
         echo "   Número: {$destino['numero']}\n";
         echo "   Nome: {$destino['nome']}\n\n";
     } catch (Exception $e) {
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'exception',
+            'nivel' => 'alto',
+            'contexto' => [
+                'script' => 'test_notificacao_debug',
+                'descricao' => 'Erro ao resolver destinatário no teste',
+                'motorista_id' => $motorista['id'] ?? null
+            ]
+        ]);
+
         echo "❌ PROBLEMA ENCONTRADO: ServiceWhatsappEntidade::resolverDestinatario() falhou\n";
         echo "   Erro: {$e->getMessage()}\n";
         echo "   Stack: {$e->getTraceAsString()}\n";
@@ -146,6 +157,15 @@ try {
             exit(1);
         }
     } catch (Exception $e) {
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'database',
+            'nivel' => 'critico',
+            'contexto' => [
+                'script' => 'test_notificacao_debug',
+                'descricao' => 'Erro ao verificar existência da tabela whatsapp_queue'
+            ]
+        ]);
+
         echo "❌ Erro ao verificar tabela: {$e->getMessage()}\n";
         exit(1);
     }
@@ -188,6 +208,15 @@ try {
             echo "   (Registro de teste removido)\n\n";
         }
     } catch (Exception $e) {
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'database',
+            'nivel' => 'critico',
+            'contexto' => [
+                'script' => 'test_notificacao_debug',
+                'descricao' => 'Erro ao inserir mensagem diretamente na fila de testes'
+            ]
+        ]);
+
         echo "❌ PROBLEMA ENCONTRADO: Erro ao inserir diretamente na fila\n";
         echo "   Erro: {$e->getMessage()}\n";
         echo "   Stack: {$e->getTraceAsString()}\n";
@@ -241,6 +270,15 @@ try {
             exit(1);
         }
     } catch (Exception $e) {
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'api',
+            'nivel' => 'critico',
+            'contexto' => [
+                'script' => 'test_notificacao_debug',
+                'descricao' => 'Exception ao chamar ServiceWhatsapp::enviarMensagem() no teste'
+            ]
+        ]);
+
         echo "❌ PROBLEMA ENCONTRADO: Exception ao chamar ServiceWhatsapp::enviarMensagem()\n";
         echo "   Erro: {$e->getMessage()}\n";
         echo "   Stack: {$e->getTraceAsString()}\n";
@@ -269,6 +307,15 @@ try {
     echo "ou: tail -f /var/log/php_errors.log\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'exception',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'test_notificacao_debug',
+            'descricao' => 'Erro geral no script de teste de notificação debug'
+        ]
+    ]);
+
     echo "\n❌ ERRO GERAL: " . $e->getMessage() . "\n";
     echo "Stack trace: " . $e->getTraceAsString() . "\n";
     exit(1);

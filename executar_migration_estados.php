@@ -31,6 +31,8 @@ $caminhoEnv = __DIR__ . '/.env';
 $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
+use App\Helpers\ErrorLogger;
+
 try {
     $db = App\Core\BancoDados::obterInstancia();
     $conexao = $db->obterConexao();
@@ -57,6 +59,15 @@ try {
             } catch (PDOException $e) {
                 // Ignora erros de "já existe"
                 if (strpos($e->getMessage(), 'already exists') === false) {
+                    ErrorLogger::log($e, [
+                        'tipo_erro' => 'database',
+                        'nivel' => 'medio',
+                        'contexto' => [
+                            'script' => 'migration_estados',
+                            'descricao' => 'Erro ao executar statement da migration 023'
+                        ]
+                    ]);
+
                     echo "\nErro: " . $e->getMessage() . "\n";
                 }
             }
@@ -95,6 +106,15 @@ try {
             } catch (PDOException $e) {
                 // Ignora erros de "já existe"
                 if (strpos($e->getMessage(), 'Duplicate entry') === false) {
+                    ErrorLogger::log($e, [
+                        'tipo_erro' => 'database',
+                        'nivel' => 'medio',
+                        'contexto' => [
+                            'script' => 'migration_estados',
+                            'descricao' => 'Erro ao executar statement da migration 024 (permissões)'
+                        ]
+                    ]);
+
                     echo "\nErro: " . $e->getMessage() . "\n";
                 }
             }
@@ -114,6 +134,15 @@ try {
     echo "Todas as migrations de estados foram executadas com sucesso!\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_estados',
+            'descricao' => 'Erro fatal ao executar migrations de estados'
+        ]
+    ]);
+
     echo "Erro ao executar migration: " . $e->getMessage() . "\n";
     exit(1);
 }

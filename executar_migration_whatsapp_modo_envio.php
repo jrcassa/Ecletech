@@ -31,6 +31,8 @@ $caminhoEnv = __DIR__ . '/.env';
 $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
+use App\Helpers\ErrorLogger;
+
 try {
     $db = App\Core\BancoDados::obterInstancia();
     $conexao = $db->obterConexao();
@@ -55,6 +57,15 @@ try {
                 // Ignora erros de "já existe"
                 if (strpos($e->getMessage(), 'already exists') === false &&
                     strpos($e->getMessage(), 'Duplicate entry') === false) {
+                    ErrorLogger::log($e, [
+                        'tipo_erro' => 'database',
+                        'nivel' => 'medio',
+                        'contexto' => [
+                            'script' => 'migration_whatsapp_modo_envio',
+                            'descricao' => 'Erro ao executar statement da migration 048'
+                        ]
+                    ]);
+
                     echo "\nErro: " . $e->getMessage() . "\n";
                 }
             }
@@ -76,6 +87,15 @@ try {
     }
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_whatsapp_modo_envio',
+            'descricao' => 'Erro fatal ao executar migration 048 - modo envio whatsapp'
+        ]
+    ]);
+
     echo "Erro ao executar migration: " . $e->getMessage() . "\n";
     exit(1);
 }

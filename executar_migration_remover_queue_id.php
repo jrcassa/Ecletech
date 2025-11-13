@@ -7,6 +7,7 @@
 require_once __DIR__ . '/App/Core/BancoDados.php';
 
 use App\Core\BancoDados;
+use App\Helpers\ErrorLogger;
 
 echo "===========================================\n";
 echo "Migration: Remover queue_id - WhatsApp Histórico\n";
@@ -45,6 +46,15 @@ try {
                 strpos($e->getMessage(), "Unknown column") !== false) {
                 echo "   ⚠ Já foi removido (ignorado)\n\n";
             } else {
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'database',
+                    'nivel' => 'medio',
+                    'contexto' => [
+                        'script' => 'migration_remover_queue_id',
+                        'descricao' => 'Erro ao executar statement da migration 051'
+                    ]
+                ]);
+
                 throw $e;
             }
         }
@@ -60,6 +70,15 @@ try {
     echo "3. Testar envio de mensagens WhatsApp\n\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_remover_queue_id',
+            'descricao' => 'Erro fatal ao executar migration 051 - remover queue_id'
+        ]
+    ]);
+
     echo "\n===========================================\n";
     echo "✗ ERRO: " . $e->getMessage() . "\n";
     echo "===========================================\n";

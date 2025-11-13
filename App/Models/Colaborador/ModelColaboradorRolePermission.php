@@ -4,6 +4,7 @@ namespace App\Models\Colaborador;
 
 use App\Core\BancoDados;
 use App\Core\RegistroAuditoria;
+use App\Helpers\ErrorLogger;
 
 /**
  * Model para gerenciar relação entre roles e permissões
@@ -140,6 +141,11 @@ class ModelColaboradorRolePermission
 
             return true;
         } catch (\Exception $e) {
+            ErrorLogger::log($e, 'database', 'medio', [
+                'contexto' => 'sincronizar_permissoes_role',
+                'role_id' => $roleId,
+                'total_permissoes' => count($permissionIds)
+            ]);
             $this->db->rollback();
             return false;
         }

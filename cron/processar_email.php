@@ -48,6 +48,8 @@ $caminhoEnv = ROOT_PATH . '/.env';
 $carregadorEnv = \App\Core\CarregadorEnv::obterInstancia();
 $carregadorEnv->carregar($caminhoEnv);
 
+use App\Helpers\ErrorLogger;
+
 /**
  * Classe principal do cron
  */
@@ -113,6 +115,15 @@ class ProcessadorEmailCron
             echo "  - Erros: {$resultado['erros']}\n";
 
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'cron',
+                'nivel' => 'alto',
+                'contexto' => [
+                    'cron_job' => 'processar_email',
+                    'descricao' => 'Erro ao processar fila de emails'
+                ]
+            ]);
+
             echo "[" . date('Y-m-d H:i:s') . "] ERRO: " . $e->getMessage() . "\n";
             $this->resultado['erros']++;
         } finally {
@@ -173,6 +184,15 @@ class ProcessadorEmailCron
             ]);
 
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'database',
+                'nivel' => 'medio',
+                'contexto' => [
+                    'cron_job' => 'processar_email',
+                    'descricao' => 'Erro ao registrar log de execução no banco'
+                ]
+            ]);
+
             echo "[" . date('Y-m-d H:i:s') . "] Erro ao registrar log: " . $e->getMessage() . "\n";
         }
     }
@@ -201,6 +221,15 @@ try {
     $processador->executar();
     exit(0); // Sucesso
 } catch (\Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'cron',
+        'nivel' => 'critico',
+        'contexto' => [
+            'cron_job' => 'processar_email',
+            'descricao' => 'Erro fatal ao inicializar cron de email'
+        ]
+    ]);
+
     echo "[" . date('Y-m-d H:i:s') . "] ERRO FATAL: " . $e->getMessage() . "\n";
     echo $e->getTraceAsString() . "\n";
     exit(1); // Erro

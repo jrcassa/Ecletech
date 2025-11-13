@@ -12,6 +12,8 @@ date_default_timezone_set('America/Sao_Paulo');
 // Carrega o autoloader
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Helpers\ErrorLogger;
+
 // Autoloader personalizado
 spl_autoload_register(function ($classe) {
     $prefixo = 'App\\';
@@ -88,6 +90,17 @@ try {
             echo "[" . date('Y-m-d H:i:s') . "] Log ID {$log['id']} enviado com sucesso!\n";
 
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'api',
+                'nivel' => 'medio',
+                'contexto' => [
+                    'cron_job' => 'reprocessar_relatorios',
+                    'descricao' => 'Erro ao reprocessar relatório',
+                    'log_id' => $log['id'] ?? null,
+                    'tentativa' => ($log['tentativas'] ?? 0) + 1
+                ]
+            ]);
+
             // Marca erro novamente
             $modelLog->marcarErro($log['id'], $e->getMessage());
             $totalFalha++;
@@ -104,6 +117,15 @@ try {
     exit(0);
 
 } catch (\Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'cron',
+        'nivel' => 'alto',
+        'contexto' => [
+            'cron_job' => 'reprocessar_relatorios',
+            'descricao' => 'Erro ao reprocessar relatórios com erro de envio'
+        ]
+    ]);
+
     echo "[" . date('Y-m-d H:i:s') . "] ERRO: " . $e->getMessage() . "\n";
     echo "[" . date('Y-m-d H:i:s') . "] Trace: " . $e->getTraceAsString() . "\n";
 

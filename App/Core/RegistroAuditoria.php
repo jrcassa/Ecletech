@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Helpers\AuxiliarRede;
+use App\Helpers\ErrorLogger;
 
 /**
  * Classe para registro de auditoria
@@ -49,6 +50,15 @@ class RegistroAuditoria
             ]);
         } catch (\Exception $e) {
             // Não lança exceção para não interromper o fluxo principal
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'database',
+                'nivel' => 'medio',
+                'contexto' => [
+                    'metodo' => 'registrar',
+                    'tabela' => $tabela,
+                    'acao' => $acao
+                ]
+            ]);
             error_log("Erro ao registrar auditoria: " . $e->getMessage());
         }
     }
@@ -100,6 +110,11 @@ class RegistroAuditoria
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'database',
+                'nivel' => 'alto',
+                'contexto' => ['metodo' => 'registrarLogin']
+            ]);
             error_log("Erro ao registrar login: " . $e->getMessage());
         }
     }
@@ -122,6 +137,11 @@ class RegistroAuditoria
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'database',
+                'nivel' => 'medio',
+                'contexto' => ['metodo' => 'registrarLogout']
+            ]);
             error_log("Erro ao registrar logout: " . $e->getMessage());
         }
     }
@@ -147,6 +167,10 @@ class RegistroAuditoria
             } catch (\Exception $e) {
                 // Ignora erro ao obter usuário autenticado
                 // Requisições não autenticadas terão colaborador_id NULL
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'autenticacao',
+                    'nivel' => 'baixo'
+                ]);
             }
 
             $this->db->inserir('auditoria_requisicoes', [
@@ -159,6 +183,11 @@ class RegistroAuditoria
                 'criado_em' => date('Y-m-d H:i:s')
             ]);
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'database',
+                'nivel' => 'baixo',
+                'contexto' => ['metodo' => 'registrarRequisicao']
+            ]);
             error_log("Erro ao registrar requisição: " . $e->getMessage());
         }
     }

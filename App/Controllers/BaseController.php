@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 use App\Helpers\AuxiliarRede;
+use App\Helpers\ErrorLogger;
 use App\Core\Autenticacao;
 
 /**
@@ -24,6 +25,10 @@ abstract class BaseController
             $autenticacao = new Autenticacao();
             return $autenticacao->obterUsuarioAutenticado();
         } catch (\Exception $e) {
+            ErrorLogger::log($e, [
+                'tipo_erro' => 'autenticacao',
+                'nivel' => 'baixo'
+            ]);
             return null;
         }
     }
@@ -207,6 +212,16 @@ abstract class BaseController
     protected function tratarErro(\Exception $e, int $codigoHttp = 400, ?string $mensagemPersonalizada = null): void
     {
         $mensagem = $mensagemPersonalizada ?? $e->getMessage();
+
+        // Registra erro no banco de dados
+        ErrorLogger::log($e, [
+            'tipo_erro' => 'exception',
+            'nivel' => $codigoHttp >= 500 ? 'critico' : 'medio',
+            'contexto' => [
+                'controller' => get_class($this),
+                'codigo_http' => $codigoHttp
+            ]
+        ]);
 
         // Log do erro para debug
         error_log("Erro no controller: " . get_class($this) . " - " . $e->getMessage());

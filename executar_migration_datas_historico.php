@@ -7,6 +7,7 @@
 require_once __DIR__ . '/App/Core/BancoDados.php';
 
 use App\Core\BancoDados;
+use App\Helpers\ErrorLogger;
 
 echo "===========================================\n";
 echo "Migration: Campos de Data - WhatsApp Histórico\n";
@@ -43,6 +44,15 @@ try {
             if (strpos($e->getMessage(), 'Duplicate column') !== false) {
                 echo "   ⚠ Coluna já existe (ignorado)\n\n";
             } else {
+                ErrorLogger::log($e, [
+                    'tipo_erro' => 'database',
+                    'nivel' => 'medio',
+                    'contexto' => [
+                        'script' => 'migration_datas_historico',
+                        'descricao' => 'Erro ao executar statement da migration 050'
+                    ]
+                ]);
+
                 throw $e;
             }
         }
@@ -58,6 +68,15 @@ try {
     echo "3. Verificar que os webhooks atualizam as datas\n\n";
 
 } catch (Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'database',
+        'nivel' => 'critico',
+        'contexto' => [
+            'script' => 'migration_datas_historico',
+            'descricao' => 'Erro fatal ao executar migration 050 - datas whatsapp historico'
+        ]
+    ]);
+
     echo "\n===========================================\n";
     echo "✗ ERRO: " . $e->getMessage() . "\n";
     echo "===========================================\n";

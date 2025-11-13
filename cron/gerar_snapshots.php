@@ -12,6 +12,8 @@ date_default_timezone_set('America/Sao_Paulo');
 // Carrega o autoloader
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Helpers\ErrorLogger;
+
 // Autoloader personalizado
 spl_autoload_register(function ($classe) {
     $prefixo = 'App\\';
@@ -82,6 +84,15 @@ try {
     exit(0);
 
 } catch (\Exception $e) {
+    ErrorLogger::log($e, [
+        'tipo_erro' => 'cron',
+        'nivel' => 'alto',
+        'contexto' => [
+            'cron_job' => 'gerar_snapshots',
+            'descricao' => 'Erro ao gerar snapshots de relatórios'
+        ]
+    ]);
+
     echo "[" . date('Y-m-d H:i:s') . "] ERRO: " . $e->getMessage() . "\n";
     echo "[" . date('Y-m-d H:i:s') . "] Trace: " . $e->getTraceAsString() . "\n";
 
