@@ -775,25 +775,201 @@ const WhatsAppManager = {
     renderizarConfiguracoes(configs) {
         if (!this.elements.containerConfiguracoes) return;
 
-        let html = '';
+        const categorias = {
+            'instancia': '📱 Instância WhatsApp',
+            'api': '🔌 Conexão API',
+            'webhook': '🔗 Webhook',
+            'fila': '📋 Fila de Envio',
+            'retry': '🔄 Sistema de Retry',
+            'limite': '⚠️ Limites de Envio',
+            'antiban': '🛡️ Anti-Ban',
+            'tipo': '📎 Tipos de Mensagem',
+            'validar': '✅ Validações',
+            'entidade': '👥 Entidades',
+            'cron': '⏰ Tarefas Agendadas',
+            'limpeza': '🧹 Limpeza Automática',
+            'log': '📝 Logs',
+            'sistema': '⚙️ Sistema',
+            'modo': '🚀 Modo de Envio'
+        };
+
+        let html = '<form id="form-configuracoes">';
 
         Object.keys(configs).forEach(categoria => {
-            html += `<h5 class="mt-4">${Utils.String.capitalize(categoria)}</h5><div class="row">`;
+            if (configs[categoria].length === 0) return;
+
+            const tituloCategoria = categorias[categoria] || Utils.String.capitalize(categoria);
+
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">${tituloCategoria}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+            `;
 
             configs[categoria].forEach(config => {
-                html += `
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">${Utils.DOM.escapeHtml(config.descricao)}</label>
-                        <input type="text" class="form-control" value="${Utils.DOM.escapeHtml(config.valor)}" data-chave="${config.chave}">
-                        <small class="text-muted">Padrão: ${Utils.DOM.escapeHtml(config.valor_padrao)}</small>
-                    </div>
-                `;
+                html += this.renderizarCampoConfiguracao(config);
             });
 
-            html += '</div>';
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
         });
 
+        html += `
+            <div class="text-end">
+                <button type="button" class="btn btn-secondary me-2" onclick="WhatsAppManager.carregarConfiguracoes()">
+                    <i class="fas fa-undo"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar Configurações
+                </button>
+            </div>
+        </form>
+        `;
+
         this.elements.containerConfiguracoes.innerHTML = html;
+
+        // Adiciona event listener para salvar
+        document.getElementById('form-configuracoes')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.salvarConfiguracoes();
+        });
+    },
+
+    /**
+     * Renderiza campo individual de configuração
+     */
+    renderizarCampoConfiguracao(config) {
+        const valor = config.valor || '';
+        const chave = config.chave;
+        const descricao = config.descricao || chave;
+        const tipo = config.tipo || 'string';
+
+        let inputHtml = '';
+
+        // Campo de acordo com o tipo
+        if (tipo === 'bool') {
+            const checked = (valor === 'true' || valor === '1' || valor === 1) ? 'checked' : '';
+            inputHtml = `
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="config_${chave}"
+                           data-chave="${chave}" ${checked}>
+                    <label class="form-check-label" for="config_${chave}">
+                        ${Utils.DOM.escapeHtml(descricao)}
+                    </label>
+                </div>
+            `;
+        } else if (tipo === 'int') {
+            inputHtml = `
+                <label class="form-label" for="config_${chave}">${Utils.DOM.escapeHtml(descricao)}</label>
+                <input type="number" class="form-control" id="config_${chave}"
+                       data-chave="${chave}" value="${Utils.DOM.escapeHtml(valor)}">
+            `;
+        } else if (chave.includes('status') || chave.includes('nivel')) {
+            // Select para status/nivel
+            const options = this.obterOpcoesSelect(chave, valor);
+            inputHtml = `
+                <label class="form-label" for="config_${chave}">${Utils.DOM.escapeHtml(descricao)}</label>
+                <select class="form-select" id="config_${chave}" data-chave="${chave}">
+                    ${options}
+                </select>
+            `;
+        } else {
+            // Input de texto padrão
+            inputHtml = `
+                <label class="form-label" for="config_${chave}">${Utils.DOM.escapeHtml(descricao)}</label>
+                <input type="text" class="form-control" id="config_${chave}"
+                       data-chave="${chave}" value="${Utils.DOM.escapeHtml(valor)}">
+            `;
+        }
+
+        // Largura do campo baseado no tipo
+        const colClass = tipo === 'bool' ? 'col-12' : 'col-md-6';
+
+        return `
+            <div class="${colClass} mb-3">
+                ${inputHtml}
+            </div>
+        `;
+    },
+
+    /**
+     * Obtém opções de select para campos específicos
+     */
+    obterOpcoesSelect(chave, valorAtual) {
+        let options = {
+            'instancia_status': ['desconectado', 'conectado', 'qrcode', 'erro'],
+            'log_nivel': ['debug', 'info', 'warning', 'error'],
+            'modo_envio_padrao': ['fila', 'direto']
+        };
+
+        if (!options[chave]) {
+            return `<option value="${Utils.DOM.escapeHtml(valorAtual)}">${Utils.DOM.escapeHtml(valorAtual)}</option>`;
+        }
+
+        return options[chave].map(opt => {
+            const selected = opt === valorAtual ? 'selected' : '';
+            return `<option value="${opt}" ${selected}>${Utils.String.capitalize(opt)}</option>`;
+        }).join('');
+    },
+
+    /**
+     * Salva configurações
+     */
+    async salvarConfiguracoes() {
+        const campos = document.querySelectorAll('[data-chave]');
+        const configuracoes = [];
+
+        campos.forEach(campo => {
+            let valor;
+
+            if (campo.type === 'checkbox') {
+                valor = campo.checked ? 'true' : 'false';
+            } else {
+                valor = campo.value;
+            }
+
+            configuracoes.push({
+                chave: campo.dataset.chave,
+                valor: valor
+            });
+        });
+
+        try {
+            let sucessos = 0;
+            let erros = 0;
+
+            for (const config of configuracoes) {
+                try {
+                    const response = await API.post('/whatsapp/config/salvar', config);
+                    if (response.sucesso) {
+                        sucessos++;
+                    } else {
+                        erros++;
+                    }
+                } catch (error) {
+                    erros++;
+                }
+            }
+
+            if (erros === 0) {
+                this.mostrarSucesso(`${sucessos} configurações salvas com sucesso!`);
+            } else {
+                this.mostrarAlerta(`${sucessos} salvas, ${erros} com erro`);
+            }
+
+            // Recarrega configurações
+            setTimeout(() => this.carregarConfiguracoes(), 1500);
+
+        } catch (error) {
+            console.error('Erro ao salvar configurações:', error);
+            this.mostrarErro('Erro ao salvar configurações');
+        }
     },
 
     /**
@@ -1115,6 +1291,23 @@ const WhatsAppManager = {
                 icon: 'error',
                 title: 'Erro',
                 text: mensagem
+            });
+        } else {
+            alert(mensagem);
+        }
+    },
+
+    /**
+     * Mostra mensagem de alerta
+     */
+    mostrarAlerta(mensagem) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: mensagem,
+                timer: 3000,
+                showConfirmButton: true
             });
         } else {
             alert(mensagem);
