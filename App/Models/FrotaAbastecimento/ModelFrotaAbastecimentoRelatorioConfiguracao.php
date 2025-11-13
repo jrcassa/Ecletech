@@ -65,7 +65,7 @@ class ModelFrotaAbastecimentoRelatorioConfiguracao
                 c.*,
                 col.nome as colaborador_nome,
                 col.email as colaborador_email,
-                col.telefone as colaborador_telefone
+                col.celular as colaborador_celular
             FROM frotas_abastecimentos_relatorios_configuracoes c
             INNER JOIN colaboradores col ON col.id = c.colaborador_id
             WHERE 1=1
@@ -96,14 +96,14 @@ class ModelFrotaAbastecimentoRelatorioConfiguracao
             SELECT
                 c.*,
                 col.nome as colaborador_nome,
-                col.telefone as colaborador_telefone
+                col.celular as colaborador_celular
             FROM frotas_abastecimentos_relatorios_configuracoes c
             INNER JOIN colaboradores col ON col.id = c.colaborador_id
             WHERE c.ativo = TRUE
             AND c.tipo_relatorio = ?
             AND col.ativo = TRUE
             AND col.deletado_em IS NULL
-            AND col.telefone IS NOT NULL
+            AND col.celular IS NOT NULL
         ";
         $parametros = [$tipo_relatorio];
 
