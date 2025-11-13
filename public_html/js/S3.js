@@ -241,20 +241,23 @@ const S3Manager = {
 
             const statusDiv = document.getElementById('statusInfo');
 
-            if (response.configurado) {
-                if (response.habilitado) {
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
+            if (dados.configurado) {
+                if (dados.habilitado) {
                     statusDiv.innerHTML = `
                         <div class="status-badge status-configurado">
                             <i class="fas fa-check-circle"></i> Configurado e Habilitado
                         </div>
-                        <p class="mt-3 text-muted">${response.mensagem}</p>
+                        <p class="mt-3 text-muted">${dados.mensagem || response.mensagem}</p>
                     `;
                 } else {
                     statusDiv.innerHTML = `
                         <div class="status-badge status-desabilitado">
                             <i class="fas fa-pause-circle"></i> Configurado mas Desabilitado
                         </div>
-                        <p class="mt-3 text-muted">${response.mensagem}</p>
+                        <p class="mt-3 text-muted">${dados.mensagem || response.mensagem}</p>
                         <button class="btn btn-s3 mt-2" onclick="S3Manager.enableS3()">
                             <i class="fas fa-play"></i> Habilitar S3
                         </button>
@@ -265,7 +268,7 @@ const S3Manager = {
                     <div class="status-badge status-nao-configurado">
                         <i class="fas fa-exclamation-circle"></i> Não Configurado
                     </div>
-                    <p class="mt-3 text-muted">${response.mensagem}</p>
+                    <p class="mt-3 text-muted">${dados.mensagem || response.mensagem}</p>
                     <button class="btn btn-s3 mt-2" onclick="showTab('configuracoes')">
                         <i class="fas fa-cog"></i> Configurar Agora
                     </button>
@@ -294,8 +297,11 @@ const S3Manager = {
 
             const serverInfoDiv = document.getElementById('serverInfo');
 
-            if (response.configurado) {
-                const configs = response.configuracoes;
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
+            if (dados.configurado) {
+                const configs = dados.configuracoes || {};
                 serverInfoDiv.innerHTML = `
                     <div class="row">
                         <div class="col-md-6">
@@ -328,9 +334,12 @@ const S3Manager = {
 
             const response = await API.get('/s3/health');
 
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
             let html = '<h6>Resultado do Health Check:</h6><ul class="list-group">';
 
-            for (const [check, data] of Object.entries(response.checks)) {
+            for (const [check, data] of Object.entries(dados.checks || {})) {
                 const icon = data.status === 'ok' ? '<i class="fas fa-check-circle text-success"></i>' :
                             data.status === 'erro' ? '<i class="fas fa-times-circle text-danger"></i>' :
                             '<i class="fas fa-exclamation-circle text-warning"></i>';
@@ -342,8 +351,8 @@ const S3Manager = {
             }
 
             html += '</ul>';
-            html += `<p class="mt-3"><strong>Status Geral:</strong> <span class="badge ${response.status === 'ok' ? 'bg-success' : 'bg-danger'}">${response.status.toUpperCase()}</span></p>`;
-            html += `<p class="text-muted">Verificado em: ${response.timestamp}</p>`;
+            html += `<p class="mt-3"><strong>Status Geral:</strong> <span class="badge ${dados.status === 'ok' ? 'bg-success' : 'bg-danger'}">${(dados.status || '').toUpperCase()}</span></p>`;
+            html += `<p class="text-muted">Verificado em: ${dados.timestamp || ''}</p>`;
 
             healthDiv.innerHTML = html;
 
