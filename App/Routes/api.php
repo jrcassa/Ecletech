@@ -131,6 +131,10 @@ $router->grupo([
     $rotasEmail = require __DIR__ . '/email.php';
     $rotasEmail($router);
 
+    // Inclui rotas de S3
+    $rotasS3 = require __DIR__ . '/s3.php';
+    $rotasS3($router);
+
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'me']);
