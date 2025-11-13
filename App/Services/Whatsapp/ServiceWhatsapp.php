@@ -194,9 +194,8 @@ class ServiceWhatsapp
                 $dados['entidade_id']
             );
 
-            // Registra no histórico (sem queue_id) com data_enviado
+            // Registra no histórico com data_enviado
             $this->historicoModel->adicionar([
-                'queue_id' => null,
                 'message_id' => $messageId,
                 'tipo_evento' => 'enviado_direto',
                 'tipo_entidade' => $dados['tipo_entidade'] ?? null,
@@ -225,7 +224,6 @@ class ServiceWhatsapp
 
             // Registra erro no histórico
             $this->historicoModel->adicionar([
-                'queue_id' => null,
                 'message_id' => null,
                 'tipo_evento' => 'erro_envio_direto',
                 'tipo_entidade' => $dados['tipo_entidade'] ?? null,
@@ -327,9 +325,8 @@ class ServiceWhatsapp
                     $mensagem['entidade_id']
                 );
 
-                // Registra no histórico ANTES de deletar (para manter referência do queue_id) com data_enviado
+                // Registra no histórico com data_enviado
                 $this->historicoModel->adicionar([
-                    'queue_id' => $mensagem['id'],
                     'message_id' => $messageId,
                     'tipo_evento' => 'enviado',
                     'tipo_entidade' => $mensagem['tipo_entidade'] ?? null,
@@ -344,7 +341,6 @@ class ServiceWhatsapp
                 ]);
 
                 // Remove da fila após envio bem-sucedido
-                // O queue_id no histórico será setado para NULL automaticamente (ON DELETE SET NULL)
                 $this->queueModel->deletar($mensagem['id']);
 
                 return [
@@ -386,7 +382,6 @@ class ServiceWhatsapp
         if ($novasTentativas >= $maxTentativas) {
             // Falha definitiva - registra no histórico e remove da fila
             $this->historicoModel->adicionar([
-                'queue_id' => $queueId,
                 'message_id' => null,
                 'tipo_evento' => 'erro_envio',
                 'tipo_entidade' => $mensagem['tipo_entidade'] ?? null,
@@ -403,7 +398,6 @@ class ServiceWhatsapp
             ]);
 
             // Remove da fila após erro definitivo
-            // O queue_id no histórico será setado para NULL automaticamente (ON DELETE SET NULL)
             $this->queueModel->deletar($queueId);
         } else {
             // Agenda retry - mantém como pendente para nova tentativa
