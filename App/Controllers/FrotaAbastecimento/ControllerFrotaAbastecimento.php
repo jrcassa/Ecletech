@@ -240,7 +240,8 @@ class ControllerFrotaAbastecimento extends BaseController
                 'data_abastecimento' => 'obrigatorio',
                 'latitude' => 'opcional|max:30',
                 'longitude' => 'opcional|max:30',
-                'observacao_motorista' => 'opcional|max:500'
+                'observacao_motorista' => 'opcional|max:500',
+                'comprovante_base64' => 'opcional' // Aceita comprovante na finalização
             ]);
 
             if (!empty($erros)) {
@@ -270,6 +271,16 @@ class ControllerFrotaAbastecimento extends BaseController
             }
 
             $dados['finalizado_por'] = $usuarioLogado['id'];
+
+            // Se tiver comprovante, anexa ANTES de finalizar (para que a notificação já contenha a foto)
+            if (!empty($dados['comprovante_base64'])) {
+                try {
+                    $this->service->anexarComprovante((int) $id, $dados['comprovante_base64']);
+                } catch (\Exception $e) {
+                    // Log do erro mas não bloqueia finalização
+                    error_log("Erro ao anexar comprovante durante finalização: " . $e->getMessage());
+                }
+            }
 
             // Finaliza via service (calcula métricas, detecta alertas, envia WhatsApp)
             $this->service->finalizarAbastecimento((int) $id, $dados);

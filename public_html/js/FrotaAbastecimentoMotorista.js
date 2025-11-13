@@ -327,6 +327,11 @@ const FrotaAbastecimentoMotoristaManager = {
         const observacao = document.getElementById('observacaoMotorista').value;
         if (observacao) dados.observacao_motorista = observacao;
 
+        // Comprovante (opcional) - envia junto com finalização
+        if (this.state.comprovanteBase64) {
+            dados.comprovante_base64 = this.state.comprovanteBase64;
+        }
+
         try {
             const response = await API.patch(
                 `/frota-abastecimento/${this.state.editandoId}/finalizar`,
@@ -334,11 +339,6 @@ const FrotaAbastecimentoMotoristaManager = {
             );
 
             if (response.sucesso) {
-                // Se tem comprovante, envia separadamente
-                if (this.state.comprovanteBase64) {
-                    await this.anexarComprovante(this.state.editandoId);
-                }
-
                 this.fecharModal();
                 await this.carregarDados();
                 Utils.Notificacao.sucesso('Abastecimento finalizado com sucesso!');
