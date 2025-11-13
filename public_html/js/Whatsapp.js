@@ -41,10 +41,10 @@ $(document).ready(function() {
     // Eventos de formulários
     inicializarEventos();
 
-    // Carrega status inicial
+    // Carrega dados iniciais
+    carregarNomeUsuario();
+    carregarPermissoes();
     verificarStatusInstancia();
-
-    // Carrega dashboard
     carregarDashboard();
 });
 
@@ -79,6 +79,123 @@ function inicializarNavegacao() {
                 break;
         }
     });
+}
+
+// ============================================
+// USUÁRIO E PERMISSÕES
+// ============================================
+
+function carregarNomeUsuario() {
+    const usuario = API.getUser();
+    if (usuario && usuario.nome) {
+        $('#nome-usuario').text(usuario.nome);
+    } else {
+        // Tenta carregar do servidor se não estiver no localStorage
+        API.get('/me')
+            .then(response => {
+                if (response.sucesso) {
+                    const user = response.dados?.usuario || response.dados?.user || response.dados;
+                    if (user && user.nome) {
+                        $('#nome-usuario').text(user.nome);
+                        API.setUser(user);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar nome do usuário:', error);
+                $('#nome-usuario').text('Usuário');
+            });
+    }
+}
+
+function carregarPermissoes() {
+    $('#lista-permissoes').html('<li class="mb-2"><i class="fas fa-spinner fa-spin"></i> Carregando...</li>');
+
+    API.get('/me')
+        .then(response => {
+            if (response.sucesso) {
+                const user = response.dados?.usuario || response.dados?.user || response.dados;
+                renderizarPermissoes(user);
+            } else {
+                $('#lista-permissoes').html('<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar permissões:', error);
+            $('#lista-permissoes').html('<li class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro ao carregar</li>');
+        });
+}
+
+function renderizarPermissoes(user) {
+    let html = '';
+
+    // Verifica permissões básicas do usuário
+    const permissoes = [];
+
+    // Adiciona permissões baseadas no perfil/role
+    if (user.tipo_usuario || user.role) {
+        const tipo = user.tipo_usuario || user.role;
+        permissoes.push({
+            icone: 'fa-user-shield',
+            texto: `Perfil: ${Utils.String.capitalize(tipo)}`,
+            classe: 'text-primary'
+        });
+    }
+
+    // Verifica se pode alterar configurações
+    if (user.pode_alterar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
+        PODE_ALTERAR = true;
+        permissoes.push({
+            icone: 'fa-edit',
+            texto: 'Alterar Configurações',
+            classe: 'text-success'
+        });
+    }
+
+    // Verifica se pode deletar
+    if (user.pode_deletar_whatsapp || user.is_admin || user.tipo_usuario === 'admin') {
+        PODE_DELETAR = true;
+        permissoes.push({
+            icone: 'fa-trash',
+            texto: 'Deletar Mensagens',
+            classe: 'text-warning'
+        });
+    }
+
+    // Permissão de enviar mensagens (todos têm por padrão)
+    permissoes.push({
+        icone: 'fa-paper-plane',
+        texto: 'Enviar Mensagens',
+        classe: 'text-info'
+    });
+
+    // Permissão de visualizar fila
+    permissoes.push({
+        icone: 'fa-list',
+        texto: 'Visualizar Fila',
+        classe: 'text-info'
+    });
+
+    // Renderiza as permissões
+    if (permissoes.length > 0) {
+        permissoes.forEach(perm => {
+            html += `
+                <li class="mb-2 ${perm.classe}">
+                    <i class="fas ${perm.icone}"></i> ${perm.texto}
+                </li>
+            `;
+        });
+    } else {
+        html = '<li class="text-muted"><i class="fas fa-info-circle"></i> Nenhuma permissão específica</li>';
+    }
+
+    $('#lista-permissoes').html(html);
+
+    // Desabilita menu de configurações se não tiver permissão
+    if (!PODE_ALTERAR) {
+        $('#menu-configuracoes').addClass('permissao-negada');
+        $('#lock-configuracoes').show();
+    }
 }
 
 // ============================================
@@ -345,20 +462,26 @@ function carregarFila() {
 
 function renderizarFila(mensagens) {
     if (!mensagens || !Array.isArray(mensagens) || mensagens.length === 0) {
-        $('#tabela-fila tbody').html('<tr><td colspan="6" class="text-center">Nenhuma mensagem na fila</td></tr>');
+        $('#tabela-fila').html('<tr><td colspan="7" class="text-center">Nenhuma mensagem na fila</td></tr>');
         return;
     }
 
     let html = '';
     mensagens.forEach(msg => {
         const statusBadge = obterBadgeStatus(msg.status_code);
+        const destinatario = Utils.DOM.escapeHtml(msg.destinatario_nome || msg.destinatario || '-');
+        const tipo = Utils.String.capitalize(msg.tipo_mensagem || 'text');
+        const tentativas = msg.tentativas || 0;
+        const dataCriacao = Utils.Format.dataHora(msg.criado_em || msg.created_at);
+
         html += `
             <tr>
                 <td>${msg.id}</td>
-                <td>${msg.destinatario_nome || msg.destinatario}</td>
-                <td>${msg.tipo_mensagem}</td>
+                <td>${destinatario}</td>
+                <td>${tipo}</td>
                 <td>${statusBadge}</td>
-                <td>${msg.tentativas || 0}</td>
+                <td>${tentativas}</td>
+                <td>${dataCriacao}</td>
                 <td>
                     <button class="btn btn-sm btn-danger" onclick="cancelarMensagem(${msg.id})" ${msg.status_code != 1 ? 'disabled' : ''}>
                         <i class="fas fa-times"></i>
@@ -368,7 +491,7 @@ function renderizarFila(mensagens) {
         `;
     });
 
-    $('#tabela-fila tbody').html(html);
+    $('#tabela-fila').html(html);
 }
 
 function cancelarMensagem(id) {
@@ -422,10 +545,11 @@ function carregarDashboard() {
 }
 
 function atualizarDashboard(stats) {
+    // Atualiza estatísticas da aba Fila
     $('#stat-pendentes').text(stats.pendentes || 0);
-    $('#stat-enviadas').text(stats.enviado || 0);
-    $('#stat-entregues').text(stats.entregue || 0);
-    $('#stat-erros').text(stats.erro || 0);
+    $('#stat-processando').text(stats.processando || 0);
+    $('#stat-enviados').text(stats.enviado || stats.enviados || 0);
+    $('#stat-erros').text(stats.erro || stats.erros || 0);
 }
 
 // ============================================
@@ -462,23 +586,32 @@ function carregarHistorico() {
 
 function renderizarHistorico(eventos) {
     if (!eventos || !Array.isArray(eventos) || eventos.length === 0) {
-        $('#tabela-historico tbody').html('<tr><td colspan="4" class="text-center">Nenhum evento encontrado</td></tr>');
+        $('#tabela-historico').html('<tr><td colspan="6" class="text-center">Nenhum evento encontrado</td></tr>');
         return;
     }
 
     let html = '';
     eventos.forEach(evt => {
+        const dataCriacao = Utils.Format.dataHora(evt.criado_em || evt.created_at);
+        const destinatario = Utils.DOM.escapeHtml(evt.destinatario_nome || evt.destinatario || '-');
+        const tipo = Utils.String.capitalize(evt.tipo_mensagem || evt.tipo_evento || '-');
+        const statusBadge = obterBadgeStatus(evt.status_code);
+        const tempoProcessamento = evt.tempo_processamento ? `${evt.tempo_processamento}s` : '-';
+        const dataLeitura = evt.lido_em ? Utils.Format.dataHora(evt.lido_em) : '-';
+
         html += `
             <tr>
-                <td>${evt.id}</td>
-                <td>${evt.tipo_evento}</td>
-                <td>${evt.destinatario || '-'}</td>
-                <td>${formatarData(evt.criado_em)}</td>
+                <td>${dataCriacao}</td>
+                <td>${destinatario}</td>
+                <td>${tipo}</td>
+                <td>${statusBadge}</td>
+                <td>${tempoProcessamento}</td>
+                <td>${dataLeitura}</td>
             </tr>
         `;
     });
 
-    $('#tabela-historico tbody').html(html);
+    $('#tabela-historico').html(html);
 }
 
 // ============================================
@@ -572,12 +705,6 @@ function obterBadgeStatus(code) {
         4: '<span class="badge bg-success">Lido</span>'
     };
     return badges[code] || '<span class="badge bg-secondary">Desconhecido</span>';
-}
-
-function formatarData(data) {
-    if (!data) return '-';
-    const d = new Date(data);
-    return d.toLocaleString('pt-BR');
 }
 
 function mostrarSucesso(mensagem) {
