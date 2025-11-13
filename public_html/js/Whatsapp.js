@@ -838,12 +838,12 @@ const WhatsAppManager = {
         this.elements.selectEntidade.innerHTML = '<option value="">Carregando...</option>';
 
         try {
-            // Mapeia tipo para endpoint da API (no plural)
+            // Mapeia tipo para endpoint da API (singular, exceto colaboradores)
             const endpoints = {
-                'cliente': '/clientes',
+                'cliente': '/cliente',
                 'colaborador': '/colaboradores',
-                'fornecedor': '/fornecedores',
-                'transportadora': '/transportadoras'
+                'fornecedor': '/fornecedor',
+                'transportadora': '/transportadora'
             };
 
             const endpoint = endpoints[tipo];
@@ -978,7 +978,7 @@ const WhatsAppManager = {
             };
 
             if (tipoMensagem === 'text') {
-                const texto = document.getElementById('input-texto')?.value;
+                const texto = document.getElementById('mensagem-texto')?.value;
                 if (!texto) {
                     this.mostrarErro('Digite a mensagem de texto');
                     return;
@@ -1036,7 +1036,7 @@ const WhatsAppManager = {
             this.elements.tipoMensagem.value = '';
         }
 
-        const inputTexto = document.getElementById('input-texto');
+        const inputTexto = document.getElementById('mensagem-texto');
         if (inputTexto) {
             inputTexto.value = '';
         }
