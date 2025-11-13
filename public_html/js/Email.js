@@ -673,8 +673,21 @@ const EmailManager = {
     /**
      * Renderiza configurações
      */
-    renderizarConfiguracoes(configs) {
+    renderizarConfiguracoes(dados) {
         if (!this.elements.containerConfiguracoes) return;
+
+        // Se dados é um array, agrupa por categoria
+        let configs = dados;
+        if (Array.isArray(dados)) {
+            configs = {};
+            dados.forEach(config => {
+                const cat = config.categoria || 'outros';
+                if (!configs[cat]) {
+                    configs[cat] = [];
+                }
+                configs[cat].push(config);
+            });
+        }
 
         const categorias = {
             'smtp': '📧 Servidor SMTP',
@@ -687,13 +700,14 @@ const EmailManager = {
             'limpeza': '🧹 Limpeza Automática',
             'log': '📝 Logs',
             'sistema': '⚙️ Sistema',
-            'modo': '🚀 Modo de Envio'
+            'modo': '🚀 Modo de Envio',
+            'outros': '⚙️ Outras Configurações'
         };
 
         let html = '<form id="form-configuracoes">';
 
         Object.keys(configs).forEach(categoria => {
-            if (configs[categoria].length === 0) return;
+            if (!configs[categoria] || configs[categoria].length === 0) return;
 
             const tituloCategoria = categorias[categoria] || Utils.String.capitalize(categoria);
 
@@ -977,6 +991,8 @@ const EmailManager = {
             const mensagem = this.elements.mensagemCorpo?.value;
             const formato = document.querySelector('input[name="formato-email"]:checked')?.value || 'texto';
             const modoEnvio = document.querySelector('input[name="modo-envio"]:checked')?.value || 'fila';
+            const prioridade = document.getElementById('prioridade')?.value || 'normal';
+            const agendadoPara = document.getElementById('agendado-para')?.value || null;
 
             // Validação básica
             if (!tipoDestinatario) {
@@ -1023,10 +1039,21 @@ const EmailManager = {
             const dados = {
                 destinatario: email,
                 assunto: assunto,
-                corpo: mensagem,
-                formato: formato,
-                modo_envio: modoEnvio
+                modo_envio: modoEnvio,
+                prioridade: prioridade
             };
+
+            // Adiciona corpo no formato correto
+            if (formato === 'html') {
+                dados.corpo_html = mensagem;
+            } else {
+                dados.corpo_texto = mensagem;
+            }
+
+            // Adiciona agendamento se foi definido
+            if (agendadoPara) {
+                dados.agendado_para = agendadoPara;
+            }
 
             // Envia para API
             const response = await API.post('/email/enviar', dados);
