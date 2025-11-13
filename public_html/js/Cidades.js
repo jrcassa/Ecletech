@@ -185,7 +185,7 @@ const CidadesManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.cidade.length === 0) {
+        if (this.state.cidades.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -197,7 +197,7 @@ const CidadesManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.cidade.forEach(cidade => {
+        this.state.cidades.forEach(cidade => {
             const tr = document.createElement('tr');
 
             tr.innerHTML = `

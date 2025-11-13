@@ -193,7 +193,7 @@ const EstadosManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.estado.length === 0) {
+        if (this.state.estados.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -205,7 +205,7 @@ const EstadosManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.estado.forEach(estado => {
+        this.state.estados.forEach(estado => {
             const tr = document.createElement('tr');
 
             tr.innerHTML = `
