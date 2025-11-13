@@ -441,10 +441,12 @@ class ServiceEmail
         $html = $dados['corpo_html'];
         $trackingCode = $dados['tracking_code'];
 
+        // Obtém URL base da API
+        $apiBaseUrl = $this->obterUrlBaseApi();
+
         // Injeta pixel de rastreamento (se habilitado)
         if ($this->configModel->obter('tracking_pixel_habilitado', true)) {
-            $pixelUrl = $_ENV['APP_URL'] ?? 'http://localhost';
-            $pixelUrl = rtrim($pixelUrl, '/') . "/email/track/open/{$trackingCode}";
+            $pixelUrl = "{$apiBaseUrl}/email/track/open/{$trackingCode}";
             $pixel = "<img src=\"{$pixelUrl}\" width=\"1\" height=\"1\" alt=\"\" style=\"display:none;\" />";
 
             // Injeta antes do fechamento do body
@@ -453,13 +455,10 @@ class ServiceEmail
 
         // Converte links para tracking (se habilitado)
         if ($this->configModel->obter('tracking_links_habilitado', true)) {
-            $baseUrl = $_ENV['APP_URL'] ?? 'http://localhost';
-            $baseUrl = rtrim($baseUrl, '/');
-
             // Encontra todos os links
             $html = preg_replace_callback(
                 '/<a\s+href=["\']([^"\']+)["\']([^>]*)>/i',
-                function($matches) use ($trackingCode, $baseUrl) {
+                function($matches) use ($trackingCode, $apiBaseUrl) {
                     $originalUrl = $matches[1];
 
                     // Não rastreia links internos ou âncoras
@@ -467,7 +466,7 @@ class ServiceEmail
                         return $matches[0];
                     }
 
-                    $trackingUrl = $baseUrl . "/email/track/click/{$trackingCode}?url=" . urlencode($originalUrl);
+                    $trackingUrl = $apiBaseUrl . "/email/track/click/{$trackingCode}?url=" . urlencode($originalUrl);
                     return "<a href=\"{$trackingUrl}\"{$matches[2]}>";
                 },
                 $html
@@ -477,5 +476,38 @@ class ServiceEmail
         $dados['corpo_html'] = $html;
 
         return $dados;
+    }
+
+    /**
+     * Obtém URL base da API para tracking
+     * Suporta configuração via .env ou fallback inteligente
+     */
+    private function obterUrlBaseApi(): string
+    {
+        // Tenta pegar a URL completa da API (melhor opção)
+        $apiBaseUrl = $_ENV['API_BASE_URL'] ?? null;
+
+        if ($apiBaseUrl) {
+            return rtrim($apiBaseUrl, '/');
+        }
+
+        // Constrói a partir da API_URL
+        $apiUrl = $_ENV['API_URL'] ?? 'http://localhost';
+        $apiUrl = rtrim($apiUrl, '/');
+
+        // Detecta ambiente
+        // Desenvolvimento: tem 'localhost' ou porta não-padrão → /public_html/api
+        // Produção: domínio real → /api
+        if (
+            strpos($apiUrl, 'localhost') !== false ||
+            strpos($apiUrl, '127.0.0.1') !== false ||
+            preg_match('/:\d{4,5}$/', $apiUrl) // Porta customizada (ex: :8080)
+        ) {
+            // Ambiente de desenvolvimento
+            return $apiUrl . '/public_html/api';
+        } else {
+            // Ambiente de produção
+            return $apiUrl . '/api';
+        }
     }
 }
