@@ -127,14 +127,10 @@ class ModelWhatsappBaileys
 
     /**
      * Cria nova instância
+     * Usa endpoint especial com admintoken
      */
-    public function cria_instancia()
+    public function cria_instancia(): string
     {
-        $retorno = false;
-
-        // URL da API com o admintoken como parâmetro
-        $url = "https://whatsapp.ecletech.com.br/instance/init?admintoken={$this->secureToken}";
-
         // Dados a serem enviados na requisição
         $data = [
             "key" => $this->instanceToken,
@@ -147,33 +143,8 @@ class ModelWhatsappBaileys
             "messagesRead" => false
         ];
 
-        // Inicializa o cURL
-        $ch = curl_init($url);
-
-        // Configurações da requisição cURL
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->secureToken,
-            'Content-Type: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-
-        // Executa a requisição e captura a resposta
-        $response = curl_exec($ch);
-
-        // Verifica se houve erro na execução
-        if (curl_errno($ch)) {
-            $retorno = curl_error($ch);
-            // echo 'Erro: ' . curl_error($ch);
-        } else {
-            $retorno = $response;
-        }
-
-        // Fecha a conexão cURL
-        curl_close($ch);
-
-        return $retorno;
+        // Usa endpoint especial com admintoken
+        return $this->request("instance/init?admintoken={$this->secureToken}", 'POST', $data);
     }
 
     /**
@@ -197,38 +168,9 @@ class ModelWhatsappBaileys
      * Obtém QR Code em base64 da instância
      * Usado quando a instância está aguardando conexão
      */
-    public function status_instancia()
+    public function status_instancia(): string
     {
-        $retorno = false;
-
-        // URL da API para obter QR Code em base64
-        $url = "https://whatsapp.ecletech.com.br/instance/qrbase64?key=" . urlencode($this->instanceToken);
-
-        // Inicializa o cURL
-        $ch = curl_init($url);
-
-        // Configurações da requisição cURL
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->secureToken,
-            'Content-Type: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_HTTPGET, true); // Define que é uma requisição GET
-
-        // Executa a requisição e captura a resposta
-        $response = curl_exec($ch);
-
-        // Verifica se houve erro na execução
-        if (curl_errno($ch)) {
-            $retorno = curl_error($ch);
-        } else {
-            $retorno = $response;
-        }
-
-        // Fecha a conexão cURL
-        curl_close($ch);
-
-        return $retorno;
+        return $this->request("instance/qrbase64?key={$this->instanceToken}");
     }
 
     /**
