@@ -47,9 +47,9 @@ $resultado = $whatsapp->enviarMensagem([
 
 ## Arquivos afetados
 
-### ❌ NÃO USAR MAIS:
-- `App/Models/FrotaAbastecimento/ModelFrotaAbastecimentoNotificacao.php` - DEPRECATED
-- Tabela `frotas_abastecimentos_notificacoes` - DEPRECATED
+### ❌ REMOVIDOS / DEPRECATED:
+- `App/Models/FrotaAbastecimento/ModelFrotaAbastecimentoNotificacao.php` - **DELETADO** ✅
+- Tabela `frotas_abastecimentos_notificacoes` - DEPRECATED (pode ser dropada)
 
 ### ✅ USAR:
 - `App/Services/Whatsapp/ServiceWhatsapp.php` - Sistema unificado
