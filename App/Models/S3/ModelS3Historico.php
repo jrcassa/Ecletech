@@ -44,8 +44,10 @@ class ModelS3Historico
             $dados['user_agent'] ?? null
         ];
 
-        if ($this->db->executar($sql, $parametros)) {
-            return (int) $this->db->obterUltimoId();
+        $stmt = $this->db->executar($sql, $parametros);
+
+        if ($stmt->rowCount() > 0) {
+            return (int) $this->db->obterConexao()->lastInsertId();
         }
 
         return null;
@@ -298,13 +300,13 @@ class ModelS3Historico
      */
     public function limparHistoricoAntigo(int $diasManter = 90): int
     {
-        $resultado = $this->db->executar(
+        $stmt = $this->db->executar(
             "DELETE FROM s3_historico
              WHERE criado_em < DATE_SUB(NOW(), INTERVAL ? DAY)",
             [$diasManter]
         );
 
-        return $this->db->obterLinhasAfetadas();
+        return $stmt->rowCount();
     }
 
     /**

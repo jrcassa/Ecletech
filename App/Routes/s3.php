@@ -63,7 +63,7 @@ return function($router) {
             ->middleware(MiddlewareAcl::requer('s3.configurar'));
 
         // GET /s3/config/validar - Valida configurações obrigatórias
-        $router->get('/config/validar', [ControllerS3Configuracao::class, 'validar'])
+        $router->get('/config/validar', [ControllerS3Configuracao::class, 'validarConfiguracao'])
             ->middleware(MiddlewareAcl::requer('s3.configurar'));
 
         // POST /s3/config/limpar-cache - Limpa cache de configurações

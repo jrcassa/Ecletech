@@ -31,18 +31,18 @@ class ControllerS3Upload extends BaseController
 
             // Validações básicas
             if (empty($dados['nome_original'])) {
-                $this->badRequest('Nome do arquivo é obrigatório');
+                $this->erro('Nome do arquivo é obrigatório', 400);
                 return;
             }
 
             if (empty($dados['conteudo']) && empty($dados['base64'])) {
-                $this->badRequest('Conteúdo do arquivo é obrigatório');
+                $this->erro('Conteúdo do arquivo é obrigatório', 400);
                 return;
             }
 
-            // Obtém colaborador autenticado
-            $colaborador = $this->obterColaboradorAutenticado();
-            $dados['criado_por'] = $colaborador['id'] ?? null;
+            // Obtém usuário autenticado
+            $usuario = $this->obterUsuarioAutenticado();
+            $dados['criado_por'] = $usuario['id'] ?? null;
 
             // Upload via base64 ou conteúdo normal
             if (!empty($dados['base64'])) {
@@ -67,17 +67,17 @@ class ControllerS3Upload extends BaseController
             $dados = $this->obterDados();
 
             if (empty($dados['nome_original'])) {
-                $this->badRequest('Nome do arquivo é obrigatório');
+                $this->erro('Nome do arquivo é obrigatório', 400);
                 return;
             }
 
             if (empty($dados['base64'])) {
-                $this->badRequest('Conteúdo base64 é obrigatório');
+                $this->erro('Conteúdo base64 é obrigatório', 400);
                 return;
             }
 
-            $colaborador = $this->obterColaboradorAutenticado();
-            $dados['criado_por'] = $colaborador['id'] ?? null;
+            $usuario = $this->obterUsuarioAutenticado();
+            $dados['criado_por'] = $usuario['id'] ?? null;
 
             $resultado = $this->service->uploadBase64($dados);
 
@@ -172,7 +172,7 @@ class ControllerS3Upload extends BaseController
             $dados = $this->obterDados();
 
             if (empty($dados['caminho_local'])) {
-                $this->badRequest('Caminho local da pasta é obrigatório');
+                $this->erro('Caminho local da pasta é obrigatório', 400);
                 return;
             }
 

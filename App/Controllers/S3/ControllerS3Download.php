@@ -131,7 +131,7 @@ class ControllerS3Download extends BaseController
             $dados = $this->obterDados();
 
             if (empty($dados['ids']) || !is_array($dados['ids'])) {
-                $this->badRequest('IDs de arquivos são obrigatórios');
+                $this->erro('IDs de arquivos são obrigatórios', 400);
                 return;
             }
 

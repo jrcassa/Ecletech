@@ -69,7 +69,7 @@ class ControllerS3Status extends BaseController
         try {
             // Verifica se está configurado primeiro
             if (!$this->modelConfig->estaConfigurado()) {
-                $this->badRequest('S3 não está configurado');
+                $this->erro('S3 não está configurado', 400);
                 return;
             }
 
@@ -84,9 +84,11 @@ class ControllerS3Status extends BaseController
                     'bucket_padrao' => $this->cliente->obterBucketPadrao()
                 ]);
             } else {
-                $this->erro($resultado['mensagem'], 500, [
-                    'codigo_erro' => $resultado['codigo_erro'] ?? null
-                ]);
+                $mensagem = $resultado['mensagem'];
+                if (isset($resultado['codigo_erro'])) {
+                    $mensagem .= ' (Código: ' . $resultado['codigo_erro'] . ')';
+                }
+                $this->erro($mensagem, 500);
             }
         } catch (\Exception $e) {
             $this->tratarErro($e, 500, 'Erro ao testar conexão');
