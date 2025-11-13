@@ -269,7 +269,8 @@ class ModelWhatsappBaileys
         if ($url !== null) {
             $data['url'] = $url;
         } elseif ($base64 !== null) {
-            $data['base64'] = $base64;
+            $data['base64string'] = $base64;
+            $data['filename'] = $filename;
         } else {
             throw new \Exception('URL ou base64 é obrigatório');
         }
@@ -279,65 +280,14 @@ class ModelWhatsappBaileys
             $data['options']['filename'] = $filename;
         }
 
+        if ($url !== null) {
+            return $this->request("message/sendurlfile?key={$this->instanceToken}", 'POST', $data);
+        } elseif ($base64 !== null) {
+            return $this->request("message/sendbase64file?key={$this->instanceToken}", 'POST', $data);
+        }
+
+        return false;
         // Usa endpoint unificado /message/sendurlfile
-        return $this->request("message/sendurlfile?key={$this->instanceToken}", 'POST', $data);
-    }
 
-    /**
-     * Envia arquivo via base64
-     *
-     * @param array $params Array associativo com os seguintes campos:
-     *   - id: string (obrigatório) - ID do usuário ou grupo
-     *   - typeId: string (opcional, default 'user') - Tipo: 'user' ou 'group'
-     *   - type: string (obrigatório) - Tipo do arquivo: 'image', 'document', 'audio', 'video'
-     *   - base64string: string (obrigatório) - String base64 do arquivo
-     *   - filename: string (obrigatório) - Nome do arquivo
-     *   - options: array (opcional) - Opções adicionais:
-     *     - caption: string - Legenda do arquivo
-     *     - replyFrom: string - ID da mensagem para responder
-     *     - delay: int - Delay em segundos
-     *   - groupOptions: array (opcional) - Opções para grupos:
-     *     - markUser: bool|array - false, 'ghostMention' ou array de IDs
-     *
-     * @return string Resposta da API
-     * @throws \Exception Se campos obrigatórios não forem fornecidos
-     */
-    public function sendBase64File(array $params): string
-    {
-        // Validações de campos obrigatórios
-        if (empty($params['id'])) {
-            throw new \Exception('Campo "id" é obrigatório');
-        }
-
-        if (empty($params['type'])) {
-            throw new \Exception('Campo "type" é obrigatório');
-        }
-
-        if (empty($params['base64string'])) {
-            throw new \Exception('Campo "base64string" é obrigatório');
-        }
-
-        if (empty($params['filename'])) {
-            throw new \Exception('Campo "filename" é obrigatório');
-        }
-
-        // Monta payload conforme especificação da API
-        $data = [
-            'id' => $params['id'],
-            'typeId' => $params['typeId'] ?? 'user',
-            'type' => $params['type'],
-            'base64string' => $params['base64string'],
-            'filename' => $params['filename'],
-            'options' => [
-                'caption' => $params['options']['caption'] ?? '',
-                'replyFrom' => $params['options']['replyFrom'] ?? '',
-                'delay' => $params['options']['delay'] ?? 0
-            ],
-            'groupOptions' => [
-                'markUser' => $params['groupOptions']['markUser'] ?? false
-            ]
-        ];
-
-        return $this->request("message/sendbase64file?key={$this->instanceToken}", 'POST', $data);
     }
 }
