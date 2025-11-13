@@ -79,7 +79,7 @@ class ControllerS3Configuracao extends BaseController
     public function salvar(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             if (empty($dados['chave'])) {
                 $this->badRequest('Chave da configuração é obrigatória');
@@ -113,7 +113,7 @@ class ControllerS3Configuracao extends BaseController
     public function salvarLote(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             if (empty($dados['configuracoes']) || !is_array($dados['configuracoes'])) {
                 $this->badRequest('Configurações inválidas');

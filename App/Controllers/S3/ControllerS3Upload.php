@@ -27,7 +27,7 @@ class ControllerS3Upload extends BaseController
     public function upload(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             // Validações básicas
             if (empty($dados['nome_original'])) {
@@ -64,7 +64,7 @@ class ControllerS3Upload extends BaseController
     public function uploadBase64(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             if (empty($dados['nome_original'])) {
                 $this->badRequest('Nome do arquivo é obrigatório');
@@ -94,7 +94,7 @@ class ControllerS3Upload extends BaseController
     public function deletar(int $id): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
             $deletarS3 = $dados['deletar_s3'] ?? true;
 
             $resultado = $this->service->deletar($id, $deletarS3);
@@ -136,7 +136,7 @@ class ControllerS3Upload extends BaseController
     public function atualizar(int $id): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             $arquivo = $this->modelArquivo->buscarPorId($id);
 
@@ -169,7 +169,7 @@ class ControllerS3Upload extends BaseController
     public function uploadPasta(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             if (empty($dados['caminho_local'])) {
                 $this->badRequest('Caminho local da pasta é obrigatório');

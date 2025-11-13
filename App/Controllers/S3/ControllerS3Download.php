@@ -128,7 +128,7 @@ class ControllerS3Download extends BaseController
     public function downloadLote(): void
     {
         try {
-            $dados = $this->obterCorpo();
+            $dados = $this->obterDados();
 
             if (empty($dados['ids']) || !is_array($dados['ids'])) {
                 $this->badRequest('IDs de arquivos são obrigatórios');
