@@ -971,10 +971,14 @@ const WhatsAppManager = {
                 }
             }
 
+            // Obtém modo de envio selecionado
+            const modoEnvio = document.querySelector('input[name="modo-envio"]:checked')?.value || 'fila';
+
             // Monta payload baseado no tipo de mensagem
             const dados = {
-                numero: numero,
-                tipo: tipoMensagem
+                destinatario: numero,
+                tipo: tipoMensagem,
+                modo_envio: modoEnvio
             };
 
             if (tipoMensagem === 'text') {
@@ -985,25 +989,33 @@ const WhatsAppManager = {
                 }
                 dados.mensagem = texto;
             } else {
-                const url = document.getElementById('input-url')?.value;
+                const url = document.getElementById('arquivo-url')?.value;
                 if (!url) {
                     this.mostrarErro('Digite a URL do arquivo');
                     return;
                 }
-                dados.url = url;
-                dados.caption = document.getElementById('input-caption')?.value || '';
+                dados.arquivo_url = url;
+                dados.caption = document.getElementById('arquivo-caption')?.value || '';
             }
 
             // Envia para API
-            const response = await API.post('/whatsapp/mensagem/enviar', dados);
+            const response = await API.post('/whatsapp/enviar', dados);
 
             if (response.sucesso) {
-                this.mostrarSucesso('Mensagem enviada para a fila com sucesso!');
+                // Mensagem de sucesso dinâmica conforme o modo
+                let mensagemSucesso = '';
+                if (response.dados.modo === 'fila') {
+                    mensagemSucesso = `Mensagem adicionada à fila! ID: ${response.dados.queue_id}`;
+                } else {
+                    mensagemSucesso = `Mensagem enviada diretamente! ID: ${response.dados.message_id}`;
+                }
+
+                this.mostrarSucesso(mensagemSucesso);
 
                 // Limpa formulário
                 this.limparFormularioTeste();
 
-                // Atualiza fila
+                // Atualiza fila se estiver na aba de fila
                 if (this.state.tabAtual === 'fila') {
                     await this.carregarFila();
                 }

@@ -45,7 +45,10 @@ class ServiceWhatsapp
     }
 
     /**
-     * Envia mensagem (adiciona à fila)
+     * Envia mensagem (via fila ou direto)
+     *
+     * @param array $dados Dados da mensagem
+     * @return array Resultado do envio
      */
     public function enviarMensagem(array $dados): array
     {
@@ -58,8 +61,13 @@ class ServiceWhatsapp
                 throw new \Exception('Número de WhatsApp inválido');
             }
 
-            // Prepara dados da fila
-            $dadosFila = [
+            // Determina modo de envio
+            // Prioridade: 1) Parâmetro explícito, 2) Configuração do sistema, 3) Padrão (fila)
+            $modoEnvio = $dados['modo_envio'] ??
+                         $this->configModel->obter('modo_envio_padrao', 'fila');
+
+            // Prepara dados completos
+            $dadosCompletos = [
                 'tipo_entidade' => $destino['tipo_entidade'],
                 'entidade_id' => $destino['entidade_id'],
                 'entidade_nome' => $destino['nome'],
@@ -72,35 +80,152 @@ class ServiceWhatsapp
                 'arquivo_nome' => $dados['arquivo_nome'] ?? null,
                 'prioridade' => $dados['prioridade'] ?? 5,
                 'agendado_para' => $dados['agendado_para'] ?? null,
-                'metadata' => isset($dados['metadata']) ? json_encode($dados['metadata']) : null,
-                'status_code' => 1,
-                'tentativas' => 0
+                'metadata' => isset($dados['metadata']) ? json_encode($dados['metadata']) : null
             ];
 
-            // Adiciona à fila
-            $queueId = $this->queueModel->adicionar($dadosFila);
-
-            // Registra no histórico
-            $this->historicoModel->adicionar([
-                'queue_id' => $queueId,
-                'tipo_evento' => 'adicionado_fila',
-                'dados' => json_encode([
-                    'destinatario' => $destino['numero'],
-                    'tipo' => $dados['tipo']
-                ])
-            ]);
-
-            return [
-                'sucesso' => true,
-                'mensagem' => 'Mensagem adicionada à fila',
-                'queue_id' => $queueId
-            ];
+            // Executa envio conforme modo
+            if ($modoEnvio === 'direto') {
+                return $this->enviarDireto($dadosCompletos);
+            } else {
+                return $this->enviarViaFila($dadosCompletos);
+            }
 
         } catch (\Exception $e) {
             return [
                 'sucesso' => false,
                 'erro' => $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Envia mensagem via fila (assíncrono)
+     *
+     * @param array $dados Dados da mensagem
+     * @return array Resultado do envio
+     */
+    private function enviarViaFila(array $dados): array
+    {
+        // Prepara dados da fila
+        $dadosFila = array_merge($dados, [
+            'status_code' => 1,
+            'tentativas' => 0
+        ]);
+
+        // Adiciona à fila
+        $queueId = $this->queueModel->adicionar($dadosFila);
+
+        // Registra no histórico
+        $this->historicoModel->adicionar([
+            'queue_id' => $queueId,
+            'tipo_evento' => 'adicionado_fila',
+            'dados' => json_encode([
+                'destinatario' => $dados['destinatario'],
+                'tipo' => $dados['tipo_mensagem']
+            ])
+        ]);
+
+        return [
+            'sucesso' => true,
+            'mensagem' => 'Mensagem adicionada à fila',
+            'modo' => 'fila',
+            'queue_id' => $queueId
+        ];
+    }
+
+    /**
+     * Envia mensagem diretamente (síncrono)
+     *
+     * @param array $dados Dados da mensagem
+     * @return array Resultado do envio
+     */
+    private function enviarDireto(array $dados): array
+    {
+        $response = null;
+
+        // Envia conforme tipo
+        switch ($dados['tipo_mensagem']) {
+            case 'text':
+                $response = $this->getBaileys()->sendText(
+                    $dados['destinatario'],
+                    $dados['conteudo']
+                );
+                break;
+
+            case 'image':
+            case 'pdf':
+            case 'audio':
+            case 'video':
+            case 'document':
+                $response = $this->getBaileys()->sendFile(
+                    $dados['destinatario'],
+                    $dados['tipo_mensagem'],
+                    $dados['arquivo_url'] ?? null,
+                    $dados['arquivo_base64'] ?? null,
+                    $dados['conteudo'] ?? null,
+                    $dados['arquivo_nome'] ?? null
+                );
+                break;
+
+            default:
+                throw new \Exception('Tipo de mensagem não suportado');
+        }
+
+        $responseData = json_decode($response, true);
+
+        // Verifica sucesso
+        if (isset($responseData['error']) && $responseData['error'] === false) {
+            $messageId = $responseData['data']['key']['id'] ?? null;
+
+            // Registra envio direto na entidade
+            $this->entidadeService->registrarEnvio(
+                $dados['tipo_entidade'],
+                $dados['entidade_id']
+            );
+
+            // Registra no histórico (sem queue_id)
+            $this->historicoModel->adicionar([
+                'queue_id' => null,
+                'message_id' => $messageId,
+                'tipo_evento' => 'enviado_direto',
+                'tipo_entidade' => $dados['tipo_entidade'],
+                'entidade_id' => $dados['entidade_id'],
+                'destinatario' => $dados['destinatario'],
+                'destinatario_nome' => $dados['destinatario_nome'],
+                'tipo_mensagem' => $dados['tipo_mensagem'],
+                'dados' => json_encode([
+                    'response' => $responseData,
+                    'conteudo' => $dados['conteudo']
+                ])
+            ]);
+
+            return [
+                'sucesso' => true,
+                'mensagem' => 'Mensagem enviada diretamente',
+                'modo' => 'direto',
+                'message_id' => $messageId,
+                'dados' => $responseData['data'] ?? null
+            ];
+        } else {
+            $erro = $responseData['message'] ?? 'Erro desconhecido ao enviar mensagem';
+
+            // Registra erro no histórico
+            $this->historicoModel->adicionar([
+                'queue_id' => null,
+                'message_id' => null,
+                'tipo_evento' => 'erro_envio_direto',
+                'tipo_entidade' => $dados['tipo_entidade'],
+                'entidade_id' => $dados['entidade_id'],
+                'destinatario' => $dados['destinatario'],
+                'destinatario_nome' => $dados['destinatario_nome'],
+                'tipo_mensagem' => $dados['tipo_mensagem'],
+                'dados' => json_encode([
+                    'erro' => $erro,
+                    'response' => $responseData
+                ])
+            ]);
+
+            throw new \Exception($erro);
         }
     }
 

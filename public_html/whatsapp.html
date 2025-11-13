@@ -334,6 +334,25 @@
                                 </select>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label">Modo de Envio</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="modo-envio" id="modo-fila" value="fila" checked>
+                                    <label class="btn btn-outline-primary" for="modo-fila">
+                                        <i class="fas fa-list"></i> Via Fila (Assíncrono)
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="modo-envio" id="modo-direto" value="direto">
+                                    <label class="btn btn-outline-success" for="modo-direto">
+                                        <i class="fas fa-bolt"></i> Envio Direto (Síncrono)
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <strong>Fila:</strong> Mensagem é processada em segundo plano pelo cron.
+                                    <strong>Direto:</strong> Mensagem é enviada imediatamente.
+                                </small>
+                            </div>
+
                             <div id="campo-texto" class="mb-3">
                                 <label class="form-label">Mensagem</label>
                                 <textarea class="form-control" id="mensagem-texto" rows="4"
