@@ -77,7 +77,7 @@ class ServiceWhatsapp
                 'arquivo_url' => $dados['arquivo_url'] ?? null,
                 'arquivo_base64' => $dados['arquivo_base64'] ?? null,
                 'arquivo_nome' => $dados['arquivo_nome'] ?? null,
-                'prioridade' => $dados['prioridade'] ?? 5,
+                'prioridade' => $dados['prioridade'] ?? 'normal',
                 'agendado_para' => $dados['agendado_para'] ?? null,
                 'metadata' => isset($dados['metadata']) ? json_encode($dados['metadata']) : null
             ];
@@ -105,11 +105,24 @@ class ServiceWhatsapp
      */
     private function enviarViaFila(array $dados): array
     {
-        // Prepara dados da fila
+        // Prepara dados da fila - mapeia 'conteudo' para 'mensagem' (nome da coluna no DB)
         $dadosFila = array_merge($dados, [
+            'status' => 'pendente',
             'status_code' => 1,
             'tentativas' => 0
         ]);
+
+        // Mapeia conteudo -> mensagem para o schema do banco
+        if (isset($dadosFila['conteudo'])) {
+            $dadosFila['mensagem'] = $dadosFila['conteudo'];
+            unset($dadosFila['conteudo']);
+        }
+
+        // Mapeia metadata -> dados_extras para o schema do banco
+        if (isset($dadosFila['metadata'])) {
+            $dadosFila['dados_extras'] = $dadosFila['metadata'];
+            unset($dadosFila['metadata']);
+        }
 
         // Adiciona à fila
         $queueId = $this->queueModel->adicionar($dadosFila);
