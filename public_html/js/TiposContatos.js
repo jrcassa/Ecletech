@@ -120,10 +120,10 @@ const TiposContatosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('tipos_contatos.visualizar'),
-                    criar: permissoes.includes('tipos_contatos.criar'),
-                    editar: permissoes.includes('tipos_contatos.editar'),
-                    deletar: permissoes.includes('tipos_contatos.deletar')
+                    visualizar: permissoes.includes('tipo_contato.visualizar'),
+                    criar: permissoes.includes('tipo_contato.criar'),
+                    editar: permissoes.includes('tipo_contato.editar'),
+                    deletar: permissoes.includes('tipo_contato.deletar')
                 };
             }
 

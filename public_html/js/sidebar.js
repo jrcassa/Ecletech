@@ -11,7 +11,7 @@
  * 3. O script inicializa automaticamente após o carregamento do DOM
  *
  * Exemplo:
- * <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+ * <a href="./colaborador.html" data-permission="colaborador.visualizar">
  *     Colaboradores
  * </a>
  */
@@ -164,7 +164,7 @@ const SidebarManager = {
         }
 
         // Suporta múltiplas permissões com lógica OR
-        // Exemplo: "colaboradores.visualizar,colaboradores.editar"
+        // Exemplo: "colaborador.visualizar,colaborador.editar"
         const permissoes = permissaoRequerida.split(',').map(p => p.trim());
 
         // Verifica se usuário tem PELO MENOS UMA das permissões

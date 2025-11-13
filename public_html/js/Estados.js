@@ -128,10 +128,10 @@ const EstadosManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('estados.visualizar'),
-                    criar: permissoes.includes('estados.criar'),
-                    editar: permissoes.includes('estados.editar'),
-                    deletar: permissoes.includes('estados.deletar')
+                    visualizar: permissoes.includes('estado.visualizar'),
+                    criar: permissoes.includes('estado.criar'),
+                    editar: permissoes.includes('estado.editar'),
+                    deletar: permissoes.includes('estado.deletar')
                 };
             }
 
@@ -193,7 +193,7 @@ const EstadosManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.estados.length === 0) {
+        if (this.state.estado.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -205,7 +205,7 @@ const EstadosManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.estados.forEach(estado => {
+        this.state.estado.forEach(estado => {
             const tr = document.createElement('tr');
 
             tr.innerHTML = `

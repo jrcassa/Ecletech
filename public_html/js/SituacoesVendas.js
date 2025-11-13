@@ -120,10 +120,10 @@ const SituacoesVendasManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('situacoes_vendas.visualizar'),
-                    criar: permissoes.includes('situacoes_vendas.criar'),
-                    editar: permissoes.includes('situacoes_vendas.editar'),
-                    deletar: permissoes.includes('situacoes_vendas.deletar')
+                    visualizar: permissoes.includes('situacao_venda.visualizar'),
+                    criar: permissoes.includes('situacao_venda.criar'),
+                    editar: permissoes.includes('situacao_venda.editar'),
+                    deletar: permissoes.includes('situacao_venda.deletar')
                 };
             }
 

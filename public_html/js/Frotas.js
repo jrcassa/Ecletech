@@ -122,10 +122,10 @@ const FrotasManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('frotas.visualizar'),
-                    criar: permissoes.includes('frotas.criar'),
-                    editar: permissoes.includes('frotas.editar'),
-                    deletar: permissoes.includes('frotas.deletar')
+                    visualizar: permissoes.includes('frota.visualizar'),
+                    criar: permissoes.includes('frota.criar'),
+                    editar: permissoes.includes('frota.editar'),
+                    deletar: permissoes.includes('frota.deletar')
                 };
             }
 

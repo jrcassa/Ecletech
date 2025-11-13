@@ -120,10 +120,10 @@ const CidadesManager = {
 
             if (permissoes) {
                 this.state.permissoes = {
-                    visualizar: permissoes.includes('cidades.visualizar'),
-                    criar: permissoes.includes('cidades.criar'),
-                    editar: permissoes.includes('cidades.editar'),
-                    deletar: permissoes.includes('cidades.deletar')
+                    visualizar: permissoes.includes('cidade.visualizar'),
+                    criar: permissoes.includes('cidade.criar'),
+                    editar: permissoes.includes('cidade.editar'),
+                    deletar: permissoes.includes('cidade.deletar')
                 };
             }
 
@@ -185,7 +185,7 @@ const CidadesManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.cidades.length === 0) {
+        if (this.state.cidade.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -197,7 +197,7 @@ const CidadesManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.cidades.forEach(cidade => {
+        this.state.cidade.forEach(cidade => {
             const tr = document.createElement('tr');
 
             tr.innerHTML = `

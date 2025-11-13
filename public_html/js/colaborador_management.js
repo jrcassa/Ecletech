@@ -82,10 +82,10 @@ const ManagementApp = {
             if (permissoes) {
                 // Usa as permissões de colaboradores como base
                 const perms = {
-                    visualizar: permissoes.includes('colaboradores.visualizar'),
-                    criar: permissoes.includes('colaboradores.criar'),
-                    editar: permissoes.includes('colaboradores.editar'),
-                    deletar: permissoes.includes('colaboradores.deletar')
+                    visualizar: permissoes.includes('colaborador.visualizar'),
+                    criar: permissoes.includes('colaborador.criar'),
+                    editar: permissoes.includes('colaborador.editar'),
+                    deletar: permissoes.includes('colaborador.deletar')
                 };
 
                 this.state.permissoes.niveis = perms;
