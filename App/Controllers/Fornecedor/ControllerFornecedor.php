@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Fornecedor;
 
+use App\Controllers\BaseController;
+
 use App\Services\Fornecedor\ServiceFornecedor;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar fornecedores
  */
-class ControllerFornecedor
+class ControllerFornecedor extends BaseController
 {
     private ServiceFornecedor $service;
 
@@ -48,7 +50,7 @@ class ControllerFornecedor
             $fornecedores = $this->service->listar($filtros);
             $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $fornecedores,
                 $total,
                 $paginaAtual,
@@ -56,7 +58,7 @@ class ControllerFornecedor
                 'Fornecedores listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -66,21 +68,18 @@ class ControllerFornecedor
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $fornecedor = $this->service->buscarComRelacionamentos((int) $id);
 
             if (!$fornecedor) {
-                AuxiliarResposta::naoEncontrado('Fornecedor não encontrado');
+                $this->naoEncontrado('Fornecedor não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($fornecedor, 'Fornecedor encontrado');
+            $this->sucesso($fornecedor, 'Fornecedor encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -90,7 +89,7 @@ class ControllerFornecedor
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -127,16 +126,16 @@ class ControllerFornecedor
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + criação + transação)
             $fornecedor = $this->service->criarCompleto($dados);
 
-            AuxiliarResposta::criado($fornecedor, 'Fornecedor cadastrado com sucesso');
+            $this->criado($fornecedor, 'Fornecedor cadastrado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -146,12 +145,9 @@ class ControllerFornecedor
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP (campos opcionais)
             $regras = [];
@@ -183,16 +179,16 @@ class ControllerFornecedor
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + atualização + transação)
             $fornecedor = $this->service->atualizarCompleto((int) $id, $dados);
 
-            AuxiliarResposta::sucesso($fornecedor, 'Fornecedor atualizado com sucesso');
+            $this->sucesso($fornecedor, 'Fornecedor atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -202,17 +198,14 @@ class ControllerFornecedor
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Delega para o Service
             $this->service->deletar((int) $id);
 
-            AuxiliarResposta::sucesso(null, 'Fornecedor removido com sucesso');
+            $this->sucesso(null, 'Fornecedor removido com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -224,9 +217,9 @@ class ControllerFornecedor
         try {
             $estatisticas = $this->service->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas dos fornecedores obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas dos fornecedores obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

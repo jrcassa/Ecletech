@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Whatsapp;
 
+use App\Controllers\BaseController;
+
 use App\Models\Whatsapp\ModelWhatsappConfiguracao;
 use App\Services\Whatsapp\ServiceWhatsappEntidade;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar configurações do WhatsApp
  */
-class ControllerWhatsappConfiguracao
+class ControllerWhatsappConfiguracao extends BaseController
 {
     private ModelWhatsappConfiguracao $model;
     private ServiceWhatsappEntidade $entidadeService;
@@ -42,10 +44,10 @@ class ControllerWhatsappConfiguracao
                 $organizadas[$categoria][] = $config;
             }
 
-            AuxiliarResposta::sucesso($organizadas, 'Configurações carregadas');
+            $this->sucesso($organizadas, 'Configurações carregadas');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -58,14 +60,14 @@ class ControllerWhatsappConfiguracao
             $config = $this->model->buscarPorChave($chave);
 
             if (!$config) {
-                AuxiliarResposta::naoEncontrado('Configuração não encontrada');
+                $this->naoEncontrado('Configuração não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($config, 'Configuração encontrada');
+            $this->sucesso($config, 'Configuração encontrada');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -75,7 +77,7 @@ class ControllerWhatsappConfiguracao
     public function salvar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             $erros = AuxiliarValidacao::validar($dados, [
                 'chave' => 'obrigatorio',
@@ -83,20 +85,20 @@ class ControllerWhatsappConfiguracao
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             $sucesso = $this->model->salvar($dados['chave'], $dados['valor']);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(null, 'Configuração salva com sucesso');
+                $this->sucesso(null, 'Configuração salva com sucesso');
             } else {
-                AuxiliarResposta::erro('Erro ao salvar configuração', 400);
+                $this->erro('Erro ao salvar configuração', 400);
             }
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -109,13 +111,13 @@ class ControllerWhatsappConfiguracao
             $sucesso = $this->model->resetar($chave);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso(null, 'Configuração resetada');
+                $this->sucesso(null, 'Configuração resetada');
             } else {
-                AuxiliarResposta::erro('Configuração não encontrada', 404);
+                $this->erro('Configuração não encontrada', 404);
             }
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -125,7 +127,7 @@ class ControllerWhatsappConfiguracao
     public function sincronizarEntidade(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             $erros = AuxiliarValidacao::validar($dados, [
                 'tipo' => 'obrigatorio',
@@ -133,16 +135,16 @@ class ControllerWhatsappConfiguracao
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             $resultado = $this->entidadeService->sincronizarEntidade($dados['tipo'], (int) $dados['id']);
 
-            AuxiliarResposta::sucesso($resultado, 'Entidade sincronizada');
+            $this->sucesso($resultado, 'Entidade sincronizada');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -152,14 +154,14 @@ class ControllerWhatsappConfiguracao
     public function sincronizarLote(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             $erros = AuxiliarValidacao::validar($dados, [
                 'tipo' => 'obrigatorio'
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -168,13 +170,13 @@ class ControllerWhatsappConfiguracao
 
             $resultado = $this->entidadeService->sincronizarLote($dados['tipo'], $limit, $offset);
 
-            AuxiliarResposta::sucesso(
+            $this->sucesso(
                 $resultado,
                 "Sincronizados: {$resultado['sincronizados']}, Erros: {$resultado['erros']}"
             );
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

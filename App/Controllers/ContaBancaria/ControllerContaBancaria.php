@@ -2,6 +2,8 @@
 
 namespace App\Controllers\ContaBancaria;
 
+use App\Controllers\BaseController;
+
 use App\Services\ContaBancaria\ServiceContaBancaria;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar contas bancárias
  */
-class ControllerContaBancaria
+class ControllerContaBancaria extends BaseController
 {
     private ServiceContaBancaria $service;
 
@@ -49,7 +51,7 @@ class ControllerContaBancaria
             $contasBancarias = $this->service->listar($filtros);
             $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $contasBancarias,
                 $total,
                 $paginaAtual,
@@ -57,7 +59,7 @@ class ControllerContaBancaria
                 'Contas bancárias listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -67,21 +69,18 @@ class ControllerContaBancaria
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $contaBancaria = $this->service->buscarPorId((int) $id);
 
             if (!$contaBancaria) {
-                AuxiliarResposta::naoEncontrado('Conta bancária não encontrada');
+                $this->naoEncontrado('Conta bancária não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($contaBancaria, 'Conta bancária encontrada');
+            $this->sucesso($contaBancaria, 'Conta bancária encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -91,7 +90,7 @@ class ControllerContaBancaria
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -113,16 +112,16 @@ class ControllerContaBancaria
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + criação)
             $contaBancaria = $this->service->criar($dados);
 
-            AuxiliarResposta::criado($contaBancaria, 'Conta bancária cadastrada com sucesso');
+            $this->criado($contaBancaria, 'Conta bancária cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -132,12 +131,9 @@ class ControllerContaBancaria
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP (campos opcionais)
             $regras = [];
@@ -159,16 +155,16 @@ class ControllerContaBancaria
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + atualização)
             $contaBancaria = $this->service->atualizar((int) $id, $dados);
 
-            AuxiliarResposta::sucesso($contaBancaria, 'Conta bancária atualizada com sucesso');
+            $this->sucesso($contaBancaria, 'Conta bancária atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -178,17 +174,14 @@ class ControllerContaBancaria
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Delega para o Service
             $this->service->deletar((int) $id);
 
-            AuxiliarResposta::sucesso(null, 'Conta bancária removida com sucesso');
+            $this->sucesso(null, 'Conta bancária removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -200,9 +193,9 @@ class ControllerContaBancaria
         try {
             $estatisticas = $this->service->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas das contas bancárias obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas das contas bancárias obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Autenticacao;
 
+use App\Controllers\BaseController;
+
 use App\Core\Autenticacao;
 use App\Core\GerenciadorUsuario;
 use App\Core\TokenCsrf;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controlador para autenticação
  */
-class ControllerAutenticacao
+class ControllerAutenticacao extends BaseController
 {
     private Autenticacao $auth;
     private GerenciadorUsuario $gerenciadorUsuario;
@@ -29,7 +31,7 @@ class ControllerAutenticacao
      */
     public function login(): void
     {
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
 
         // Validação
         $erros = AuxiliarValidacao::validar($dados, [
@@ -38,7 +40,7 @@ class ControllerAutenticacao
         ]);
 
         if (!empty($erros)) {
-            AuxiliarResposta::validacao($erros);
+            $this->validacao($erros);
             return;
         }
 
@@ -50,9 +52,9 @@ class ControllerAutenticacao
                 $this->configurarCookieJwt($resultado['access_token'], $resultado['expires_in'] ?? 3600);
             }
 
-            AuxiliarResposta::sucesso($resultado, 'Login realizado com sucesso');
+            $this->sucesso($resultado, 'Login realizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 401);
+            $this->erro($e->getMessage(), 401);
         }
     }
 
@@ -68,9 +70,9 @@ class ControllerAutenticacao
             // Limpa o cookie JWT
             $this->limparCookieJwt();
 
-            AuxiliarResposta::sucesso(null, 'Logout realizado com sucesso');
+            $this->sucesso(null, 'Logout realizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -79,40 +81,40 @@ class ControllerAutenticacao
      */
     public function refresh(): void
     {
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
 
         if (empty($dados['refresh_token'])) {
-            AuxiliarResposta::erro('Refresh token é obrigatório', 400);
+            $this->erro('Refresh token é obrigatório', 400);
             return;
         }
 
         try {
             $resultado = $this->auth->renovarToken($dados['refresh_token']);
-            AuxiliarResposta::sucesso($resultado, 'Token renovado com sucesso');
+            $this->sucesso($resultado, 'Token renovado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 401);
+            $this->erro($e->getMessage(), 401);
         }
     }
 
     /**
-     * Obtém o usuário autenticado
+     * Obtém o perfil do usuário autenticado (endpoint /me)
      */
-    public function obterUsuarioAutenticado(): void
+    public function me(): void
     {
         try {
-            $usuario = $this->auth->obterUsuarioAutenticado();
+            $usuario = $this->obterUsuarioAutenticado();
 
             if (!$usuario) {
-                AuxiliarResposta::naoAutorizado();
+                $this->naoAutorizado();
                 return;
             }
 
             // Remove a senha dos dados retornados
-            unset($usuario['senha']);
+            $usuario = $this->removerCamposSensiveis($usuario);
 
-            AuxiliarResposta::sucesso($usuario, 'Usuário autenticado');
+            $this->sucesso($usuario, 'Usuário autenticado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->tratarErro($e, 500);
         }
     }
 
@@ -121,7 +123,7 @@ class ControllerAutenticacao
      */
     public function alterarSenha(): void
     {
-        $dados = AuxiliarResposta::obterDados();
+        $dados = $this->obterDados();
 
         // Validação
         $erros = AuxiliarValidacao::validar($dados, [
@@ -131,13 +133,13 @@ class ControllerAutenticacao
         ]);
 
         if (!empty($erros)) {
-            AuxiliarResposta::validacao($erros);
+            $this->validacao($erros);
             return;
         }
 
         // Verifica se as senhas coincidem
         if ($dados['nova_senha'] !== $dados['confirmar_senha']) {
-            AuxiliarResposta::erro('As senhas não coincidem', 400);
+            $this->erro('As senhas não coincidem', 400);
             return;
         }
 
@@ -145,7 +147,7 @@ class ControllerAutenticacao
             $usuario = $this->auth->obterUsuarioAutenticado();
 
             if (!$usuario) {
-                AuxiliarResposta::naoAutorizado();
+                $this->naoAutorizado();
                 return;
             }
 
@@ -155,9 +157,9 @@ class ControllerAutenticacao
                 $dados['nova_senha']
             );
 
-            AuxiliarResposta::sucesso(null, 'Senha alterada com sucesso');
+            $this->sucesso(null, 'Senha alterada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -168,9 +170,9 @@ class ControllerAutenticacao
     {
         try {
             $token = $this->csrf->obter();
-            AuxiliarResposta::sucesso(['csrf_token' => $token], 'Token CSRF gerado');
+            $this->sucesso(['csrf_token' => $token], 'Token CSRF gerado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 

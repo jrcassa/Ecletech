@@ -2,6 +2,8 @@
 
 namespace App\Controllers\FormaDePagamento;
 
+use App\Controllers\BaseController;
+
 use App\Services\FormaDePagamento\ServiceFormaDePagamento;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar formas de pagamento
  */
-class ControllerFormaDePagamento
+class ControllerFormaDePagamento extends BaseController
 {
     private ServiceFormaDePagamento $service;
 
@@ -48,7 +50,7 @@ class ControllerFormaDePagamento
             $formas = $this->service->listar($filtros);
             $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $formas,
                 $total,
                 $paginaAtual,
@@ -56,7 +58,7 @@ class ControllerFormaDePagamento
                 'Formas de pagamento listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -66,21 +68,18 @@ class ControllerFormaDePagamento
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $forma = $this->service->buscarPorId((int) $id);
 
             if (!$forma) {
-                AuxiliarResposta::naoEncontrado('Forma de pagamento não encontrada');
+                $this->naoEncontrado('Forma de pagamento não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($forma, 'Forma de pagamento encontrada');
+            $this->sucesso($forma, 'Forma de pagamento encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -90,7 +89,7 @@ class ControllerFormaDePagamento
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP
             $erros = AuxiliarValidacao::validar($dados, [
@@ -102,16 +101,16 @@ class ControllerFormaDePagamento
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + criação)
             $forma = $this->service->criar($dados);
 
-            AuxiliarResposta::criado($forma, 'Forma de pagamento cadastrada com sucesso');
+            $this->criado($forma, 'Forma de pagamento cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -121,12 +120,9 @@ class ControllerFormaDePagamento
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP (campos opcionais)
             $regras = [];
@@ -154,16 +150,16 @@ class ControllerFormaDePagamento
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + atualização)
             $forma = $this->service->atualizar((int) $id, $dados);
 
-            AuxiliarResposta::sucesso($forma, 'Forma de pagamento atualizada com sucesso');
+            $this->sucesso($forma, 'Forma de pagamento atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -173,17 +169,14 @@ class ControllerFormaDePagamento
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Delega para o Service
             $this->service->deletar((int) $id);
 
-            AuxiliarResposta::sucesso(null, 'Forma de pagamento removida com sucesso');
+            $this->sucesso(null, 'Forma de pagamento removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -194,9 +187,9 @@ class ControllerFormaDePagamento
     {
         try {
             $estatisticas = $this->service->obterEstatisticas();
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

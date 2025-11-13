@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Auditoria;
 
+use App\Controllers\BaseController;
+
 use App\Core\Autenticacao;
 use App\Core\RegistroAuditoria;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Middleware\MiddlewareAcl;
 /**
  * Controlador para gerenciar auditoria
  */
-class ControllerAuditoria
+class ControllerAuditoria extends BaseController
 {
     private RegistroAuditoria $auditoria;
     private Autenticacao $auth;
@@ -31,7 +33,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -86,9 +88,9 @@ class ControllerAuditoria
                 }
             }
 
-            AuxiliarResposta::paginado($registros, $total, $pagina, $porPagina);
+            $this->paginado($registros, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -100,14 +102,14 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
             $registros = $this->auditoria->buscarHistorico(['registro_id' => (int) $id]);
 
             if (empty($registros)) {
-                AuxiliarResposta::naoEncontrado('Registro de auditoria não encontrado');
+                $this->naoEncontrado('Registro de auditoria não encontrado');
                 return;
             }
 
@@ -121,9 +123,9 @@ class ControllerAuditoria
                 $registro['dados_novos'] = json_decode($registro['dados_novos'], true);
             }
 
-            AuxiliarResposta::sucesso($registro, 'Registro de auditoria encontrado');
+            $this->sucesso($registro, 'Registro de auditoria encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -135,7 +137,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -164,9 +166,9 @@ class ControllerAuditoria
                 }
             }
 
-            AuxiliarResposta::paginado($registros, $total, $pagina, $porPagina);
+            $this->paginado($registros, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -178,7 +180,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -207,9 +209,9 @@ class ControllerAuditoria
                 }
             }
 
-            AuxiliarResposta::paginado($registros, $total, $pagina, $porPagina);
+            $this->paginado($registros, $total, $pagina, $porPagina);
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -221,7 +223,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -235,9 +237,9 @@ class ControllerAuditoria
                 $registros = [];
             }
 
-            AuxiliarResposta::sucesso($registros, 'Histórico de login encontrado');
+            $this->sucesso($registros, 'Histórico de login encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -249,7 +251,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -298,9 +300,9 @@ class ControllerAuditoria
                 }
             }
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de auditoria');
+            $this->sucesso($estatisticas, 'Estatísticas de auditoria');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -312,20 +314,20 @@ class ControllerAuditoria
         try {
             // Verifica permissão (apenas admin)
             if (!$this->acl->verificarPermissao('auditoria.gerenciar')) {
-                AuxiliarResposta::erro('Sem permissão para gerenciar auditoria', 403);
+                $this->erro('Sem permissão para gerenciar auditoria', 403);
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
             $dias = isset($dados['dias']) ? (int) $dados['dias'] : 90;
 
             $registrosDeletados = $this->auditoria->limparAntigos($dias);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'registros_deletados' => $registrosDeletados
             ], "Registros de auditoria com mais de {$dias} dias foram removidos");
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -337,7 +339,7 @@ class ControllerAuditoria
         try {
             // Verifica permissão
             if (!$this->acl->verificarPermissao('auditoria.visualizar')) {
-                AuxiliarResposta::erro('Sem permissão para visualizar auditoria', 403);
+                $this->erro('Sem permissão para visualizar auditoria', 403);
                 return;
             }
 
@@ -358,9 +360,9 @@ class ControllerAuditoria
                 }
             }
 
-            AuxiliarResposta::sucesso($registros, 'Histórico do registro encontrado');
+            $this->sucesso($registros, 'Histórico do registro encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

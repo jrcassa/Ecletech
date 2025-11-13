@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Whatsapp;
 
+use App\Controllers\BaseController;
+
 use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Models\Whatsapp\ModelWhatsappHistorico;
 use App\Helpers\AuxiliarResposta;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarResposta;
 /**
  * Controller para painel de gerenciamento WhatsApp
  */
-class ControllerWhatsappPainel
+class ControllerWhatsappPainel extends BaseController
 {
     private ServiceWhatsapp $service;
     private ModelWhatsappHistorico $historicoModel;
@@ -27,10 +29,10 @@ class ControllerWhatsappPainel
     {
         try {
             $stats = $this->service->obterEstatisticas();
-            AuxiliarResposta::sucesso($stats, 'Dashboard carregado');
+            $this->sucesso($stats, 'Dashboard carregado');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -54,10 +56,10 @@ class ControllerWhatsappPainel
             $historico = $this->historicoModel->buscar($filtros, $limit, $offset);
             $total = $this->historicoModel->contar($filtros);
 
-            AuxiliarResposta::paginado($historico, $total, 1, $limit, 'Histórico carregado');
+            $this->paginado($historico, $total, 1, $limit, 'Histórico carregado');
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 
@@ -70,13 +72,13 @@ class ControllerWhatsappPainel
             $limit = (int) ($_POST['limit'] ?? 10);
             $resultado = $this->service->processarFila($limit);
 
-            AuxiliarResposta::sucesso(
+            $this->sucesso(
                 $resultado,
                 "Processadas: {$resultado['processadas']}, Sucesso: {$resultado['sucesso']}, Erro: {$resultado['erro']}"
             );
 
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 500);
+            $this->erro($e->getMessage(), 500);
         }
     }
 }

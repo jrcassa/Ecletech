@@ -13,16 +13,17 @@ class MiddlewareCsrf
     private TokenCsrf $csrf;
 
     /**
-     * Rotas excluídas da validação CSRF
+     * Rotas excluídas da validação CSRF (regex exato)
      * Estas rotas não requerem token CSRF pois são acessadas antes da autenticação
+     * Cada padrão deve fazer match exato com a rota (use ^ para início e $ para fim)
      */
     private array $rotasExcluidas = [
-        '/auth/login',
-        '/auth/csrf-token',
-        '/register',
-        '/verify-email',
-        '/forgot-password',
-        '/reset-password'
+        '^/auth/login$',
+        '^/auth/csrf-token$',
+        '^/register$',
+        '^/verify-email$',
+        '^/forgot-password$',
+        '^/reset-password$'
     ];
 
     public function __construct()
@@ -32,19 +33,26 @@ class MiddlewareCsrf
 
     /**
      * Verifica se a rota atual está excluída da validação CSRF
+     * Usa regex para match exato, prevenindo bypass de segurança
      */
     private function rotaExcluida(): bool
     {
         $requestUri = $_SERVER['REQUEST_URI'] ?? '';
 
-        // Remove query string
+        // Remove query string para obter apenas o path
         $path = parse_url($requestUri, PHP_URL_PATH);
 
         // Remove o prefixo /public_html/api se existir
         $path = preg_replace('#^/public_html/api#', '', $path);
 
-        foreach ($this->rotasExcluidas as $rotaExcluida) {
-            if (str_contains($path, $rotaExcluida)) {
+        // Normaliza path removendo trailing slash (exceto para root)
+        if ($path !== '/' && str_ends_with($path, '/')) {
+            $path = rtrim($path, '/');
+        }
+
+        // Verifica cada padrão de rota excluída usando regex exato
+        foreach ($this->rotasExcluidas as $padraoExcluido) {
+            if (preg_match('#' . $padraoExcluido . '#', $path)) {
                 return true;
             }
         }

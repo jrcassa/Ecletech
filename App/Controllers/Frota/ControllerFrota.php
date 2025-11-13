@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Frota;
 
+use App\Controllers\BaseController;
+
 use App\Models\Frota\ModelFrota;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar a frota de veículos
  */
-class ControllerFrota
+class ControllerFrota extends BaseController
 {
     private ModelFrota $model;
     private Autenticacao $auth;
@@ -54,7 +56,7 @@ class ControllerFrota
             $veiculos = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $veiculos,
                 $total,
                 $paginaAtual,
@@ -62,7 +64,7 @@ class ControllerFrota
                 'Veículos da frota listados com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -72,21 +74,18 @@ class ControllerFrota
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $veiculo = $this->model->buscarPorId((int) $id);
 
             if (!$veiculo) {
-                AuxiliarResposta::naoEncontrado('Veículo não encontrado');
+                $this->naoEncontrado('Veículo não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($veiculo, 'Veículo encontrado');
+            $this->sucesso($veiculo, 'Veículo encontrado');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -96,7 +95,7 @@ class ControllerFrota
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação dos dados
             $erros = AuxiliarValidacao::validar($dados, [
@@ -138,7 +137,7 @@ class ControllerFrota
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -178,9 +177,9 @@ class ControllerFrota
 
             $veiculo = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($veiculo, 'Veículo cadastrado na frota com sucesso');
+            $this->criado($veiculo, 'Veículo cadastrado na frota com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -190,19 +189,16 @@ class ControllerFrota
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o veículo existe
             $veiculoExistente = $this->model->buscarPorId((int) $id);
             if (!$veiculoExistente) {
-                AuxiliarResposta::naoEncontrado('Veículo não encontrado');
+                $this->naoEncontrado('Veículo não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação dos dados (campos opcionais)
             $regras = [];
@@ -250,7 +246,7 @@ class ControllerFrota
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -289,15 +285,15 @@ class ControllerFrota
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar veículo', 400);
+                $this->erro('Erro ao atualizar veículo', 400);
                 return;
             }
 
             $veiculo = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($veiculo, 'Veículo atualizado com sucesso');
+            $this->sucesso($veiculo, 'Veículo atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -307,15 +303,12 @@ class ControllerFrota
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se o veículo existe
             $veiculo = $this->model->buscarPorId((int) $id);
             if (!$veiculo) {
-                AuxiliarResposta::naoEncontrado('Veículo não encontrado');
+                $this->naoEncontrado('Veículo não encontrado');
                 return;
             }
 
@@ -327,13 +320,13 @@ class ControllerFrota
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar veículo', 400);
+                $this->erro('Erro ao deletar veículo', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Veículo removido da frota com sucesso');
+            $this->sucesso(null, 'Veículo removido da frota com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -343,25 +336,22 @@ class ControllerFrota
     public function atualizarQuilometragem(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $veiculo = $this->model->buscarPorId((int) $id);
             if (!$veiculo) {
-                AuxiliarResposta::naoEncontrado('Veículo não encontrado');
+                $this->naoEncontrado('Veículo não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             $erros = AuxiliarValidacao::validar($dados, [
                 'quilometragem' => 'obrigatorio|inteiro'
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -376,15 +366,15 @@ class ControllerFrota
             );
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar quilometragem', 400);
+                $this->erro('Erro ao atualizar quilometragem', 400);
                 return;
             }
 
             $veiculo = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($veiculo, 'Quilometragem atualizada com sucesso');
+            $this->sucesso($veiculo, 'Quilometragem atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -394,25 +384,22 @@ class ControllerFrota
     public function atualizarStatus(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $veiculo = $this->model->buscarPorId((int) $id);
             if (!$veiculo) {
-                AuxiliarResposta::naoEncontrado('Veículo não encontrado');
+                $this->naoEncontrado('Veículo não encontrado');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             $erros = AuxiliarValidacao::validar($dados, [
                 'status' => 'obrigatorio|em:ativo,inativo,manutencao,reservado,vendido'
             ]);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -423,15 +410,15 @@ class ControllerFrota
             $resultado = $this->model->atualizarStatus((int) $id, $dados['status'], $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar status', 400);
+                $this->erro('Erro ao atualizar status', 400);
                 return;
             }
 
             $veiculo = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($veiculo, 'Status do veículo atualizado com sucesso');
+            $this->sucesso($veiculo, 'Status do veículo atualizado com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -443,9 +430,9 @@ class ControllerFrota
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas da frota obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas da frota obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

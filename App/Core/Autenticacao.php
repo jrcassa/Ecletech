@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Models\Login\ModelLoginAttempt;
+use App\Helpers\AuxiliarRede;
 
 /**
  * Classe para gerenciar autenticação de usuários
@@ -30,8 +31,8 @@ class Autenticacao
     public function login(string $email, string $senha): ?array
     {
         // Obtém IP do cliente
-        $ipAddress = $this->obterIpCliente();
-        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $ipAddress = AuxiliarRede::obterIp();
+        $userAgent = AuxiliarRede::obterUserAgent();
 
         // Verifica se o IP está bloqueado
         if ($this->loginAttempt->ipEstaBloqueado($ipAddress)) {
@@ -275,24 +276,6 @@ class Autenticacao
                 "Bloqueio automático: {$tentativasIp} tentativas falhadas do IP"
             );
         }
-    }
-
-    /**
-     * Obtém o IP real do cliente (considera proxies)
-     */
-    private function obterIpCliente(): string
-    {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ??
-              $_SERVER['HTTP_X_REAL_IP'] ??
-              $_SERVER['REMOTE_ADDR'] ??
-              'unknown';
-
-        // Se múltiplos IPs (proxy chain), pega o primeiro
-        if (strpos($ip, ',') !== false) {
-            $ip = trim(explode(',', $ip)[0]);
-        }
-
-        return $ip;
     }
 
     /**

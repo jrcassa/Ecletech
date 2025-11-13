@@ -2,6 +2,8 @@
 
 namespace App\Controllers\SituacaoVenda;
 
+use App\Controllers\BaseController;
+
 use App\Models\SituacaoVenda\ModelSituacaoVenda;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -11,7 +13,7 @@ use App\Helpers\AuxiliarSanitizacao;
 /**
  * Controller para gerenciar situações de vendas
  */
-class ControllerSituacaoVenda
+class ControllerSituacaoVenda extends BaseController
 {
     private ModelSituacaoVenda $model;
     private Autenticacao $auth;
@@ -51,7 +53,7 @@ class ControllerSituacaoVenda
             $situacoes = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $situacoes,
                 $total,
                 $paginaAtual,
@@ -59,7 +61,7 @@ class ControllerSituacaoVenda
                 'Situações de vendas listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -69,21 +71,18 @@ class ControllerSituacaoVenda
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $situacao = $this->model->buscarPorId((int) $id);
 
             if (!$situacao) {
-                AuxiliarResposta::naoEncontrado('Situação de venda não encontrada');
+                $this->naoEncontrado('Situação de venda não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($situacao, 'Situação de venda encontrada');
+            $this->sucesso($situacao, 'Situação de venda encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -93,16 +92,16 @@ class ControllerSituacaoVenda
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosSituacaoVenda($dados);
 
             // Validação dos dados
             $erros = $this->validarDados($dados);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -129,9 +128,9 @@ class ControllerSituacaoVenda
 
             $situacao = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($situacao, 'Situação de venda cadastrada com sucesso');
+            $this->criado($situacao, 'Situação de venda cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -141,28 +140,25 @@ class ControllerSituacaoVenda
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a situação de venda existe
             $situacaoExistente = $this->model->buscarPorId((int) $id);
             if (!$situacaoExistente) {
-                AuxiliarResposta::naoEncontrado('Situação de venda não encontrada');
+                $this->naoEncontrado('Situação de venda não encontrada');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Sanitização dos dados
-            $dados = $this->sanitizarDados($dados);
+            $dados = $this->sanitizarDadosSituacaoVenda($dados);
 
             // Validação dos dados (campos opcionais)
             $erros = $this->validarDados($dados, (int) $id);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -190,15 +186,15 @@ class ControllerSituacaoVenda
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar situação de venda', 400);
+                $this->erro('Erro ao atualizar situação de venda', 400);
                 return;
             }
 
             $situacao = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($situacao, 'Situação de venda atualizada com sucesso');
+            $this->sucesso($situacao, 'Situação de venda atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -208,15 +204,12 @@ class ControllerSituacaoVenda
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a situação de venda existe
             $situacao = $this->model->buscarPorId((int) $id);
             if (!$situacao) {
-                AuxiliarResposta::naoEncontrado('Situação de venda não encontrada');
+                $this->naoEncontrado('Situação de venda não encontrada');
                 return;
             }
 
@@ -228,13 +221,13 @@ class ControllerSituacaoVenda
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar situação de venda', 400);
+                $this->erro('Erro ao deletar situação de venda', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Situação de venda removida com sucesso');
+            $this->sucesso(null, 'Situação de venda removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -246,16 +239,16 @@ class ControllerSituacaoVenda
         try {
             $estatisticas = $this->model->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas de situações de vendas obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas de situações de vendas obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
     /**
      * Sanitiza os dados de entrada
      */
-    private function sanitizarDados(array $dados): array
+    private function sanitizarDadosSituacaoVenda(array $dados): array
     {
         $dadosSanitizados = [];
 

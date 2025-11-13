@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Role;
 
+use App\Controllers\BaseController;
+
 use App\Models\Colaborador\ModelColaboradorRole;
 use App\Models\Colaborador\ModelColaboradorPermission;
 use App\Helpers\AuxiliarResposta;
@@ -12,7 +14,7 @@ use App\Core\Autenticacao;
 /**
  * Controlador para gerenciar roles (funções)
  */
-class ControllerRole
+class ControllerRole extends BaseController
 {
     private ModelColaboradorRole $model;
     private ModelColaboradorPermission $modelPermission;
@@ -49,7 +51,7 @@ class ControllerRole
 
             $roles = $this->model->listar($filtros);
 
-            AuxiliarResposta::sucesso($roles);
+            $this->sucesso($roles);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -64,14 +66,14 @@ class ControllerRole
             $role = $this->model->buscarPorId($id);
 
             if (!$role) {
-                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                $this->naoEncontrado('Role não encontrada');
                 return;
             }
 
             // Inclui as permissões da role
             $role['permissoes'] = $this->obterPermissoesRole($id);
 
-            AuxiliarResposta::sucesso($role);
+            $this->sucesso($role);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -86,13 +88,13 @@ class ControllerRole
             $role = $this->model->buscarPorId($id);
 
             if (!$role) {
-                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                $this->naoEncontrado('Role não encontrada');
                 return;
             }
 
             $permissoes = $this->obterPermissoesRole($id);
 
-            AuxiliarResposta::sucesso($permissoes);
+            $this->sucesso($permissoes);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -146,7 +148,7 @@ class ControllerRole
             $usuarioId = $usuario['id'] ?? null;
             $id = $this->model->criar($dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'id' => $id,
                 'mensagem' => 'Role criada com sucesso'
             ], 201);
@@ -164,7 +166,7 @@ class ControllerRole
             $role = $this->model->buscarPorId($id);
 
             if (!$role) {
-                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                $this->naoEncontrado('Role não encontrada');
                 return;
             }
 
@@ -196,7 +198,7 @@ class ControllerRole
             $usuarioId = $usuario['id'] ?? null;
             $this->model->atualizar($id, $dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'mensagem' => 'Role atualizada com sucesso'
             ]);
         } catch (\Exception $e) {
@@ -213,7 +215,7 @@ class ControllerRole
             $role = $this->model->buscarPorId($id);
 
             if (!$role) {
-                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                $this->naoEncontrado('Role não encontrada');
                 return;
             }
 
@@ -222,11 +224,11 @@ class ControllerRole
             $sucesso = $this->model->deletar($id, $usuarioId);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso([
+                $this->sucesso([
                     'mensagem' => 'Role deletada com sucesso'
                 ]);
             } else {
-                AuxiliarResposta::erro('Não foi possível deletar a role', 500);
+                $this->erro('Não foi possível deletar a role', 500);
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
@@ -242,14 +244,14 @@ class ControllerRole
             $role = $this->model->buscarPorId($id);
 
             if (!$role) {
-                AuxiliarResposta::naoEncontrado('Role não encontrada');
+                $this->naoEncontrado('Role não encontrada');
                 return;
             }
 
             $dados = json_decode(file_get_contents('php://input'), true);
 
             if (!isset($dados['permissoes']) || !is_array($dados['permissoes'])) {
-                AuxiliarResposta::erro('Permissões inválidas', 400);
+                $this->erro('Permissões inválidas', 400);
                 return;
             }
 
@@ -268,7 +270,7 @@ class ControllerRole
                 ]);
             }
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'mensagem' => 'Permissões atualizadas com sucesso',
                 'role_id' => $id,
                 'total_permissoes' => count($dados['permissoes'])

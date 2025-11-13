@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Nivel;
 
+use App\Controllers\BaseController;
+
 use App\Models\Colaborador\ModelColaboradorNivel;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -10,7 +12,7 @@ use App\Core\Autenticacao;
 /**
  * Controlador para gerenciar níveis de colaboradores
  */
-class ControllerNivel
+class ControllerNivel extends BaseController
 {
     private ModelColaboradorNivel $model;
     private Autenticacao $auth;
@@ -30,7 +32,7 @@ class ControllerNivel
             $apenasAtivos = isset($_GET['ativo']) ? (bool) $_GET['ativo'] : false;
             $niveis = $this->model->listar($apenasAtivos);
 
-            AuxiliarResposta::sucesso($niveis);
+            $this->sucesso($niveis);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -45,11 +47,11 @@ class ControllerNivel
             $nivel = $this->model->buscarPorId($id);
 
             if (!$nivel) {
-                AuxiliarResposta::naoEncontrado('Nível não encontrado');
+                $this->naoEncontrado('Nível não encontrado');
                 return;
             }
 
-            AuxiliarResposta::sucesso($nivel);
+            $this->sucesso($nivel);
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());
         }
@@ -89,7 +91,7 @@ class ControllerNivel
             $usuarioId = $usuario['id'] ?? null;
             $id = $this->model->criar($dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'id' => $id,
                 'mensagem' => 'Nível criado com sucesso'
             ], 201);
@@ -107,7 +109,7 @@ class ControllerNivel
             $nivel = $this->model->buscarPorId($id);
 
             if (!$nivel) {
-                AuxiliarResposta::naoEncontrado('Nível não encontrado');
+                $this->naoEncontrado('Nível não encontrado');
                 return;
             }
 
@@ -139,7 +141,7 @@ class ControllerNivel
             $usuarioId = $usuario['id'] ?? null;
             $this->model->atualizar($id, $dados, $usuarioId);
 
-            AuxiliarResposta::sucesso([
+            $this->sucesso([
                 'mensagem' => 'Nível atualizado com sucesso'
             ]);
         } catch (\Exception $e) {
@@ -156,7 +158,7 @@ class ControllerNivel
             $nivel = $this->model->buscarPorId($id);
 
             if (!$nivel) {
-                AuxiliarResposta::naoEncontrado('Nível não encontrado');
+                $this->naoEncontrado('Nível não encontrado');
                 return;
             }
 
@@ -165,11 +167,11 @@ class ControllerNivel
             $sucesso = $this->model->deletar($id, $usuarioId);
 
             if ($sucesso) {
-                AuxiliarResposta::sucesso([
+                $this->sucesso([
                     'mensagem' => 'Nível deletado com sucesso'
                 ]);
             } else {
-                AuxiliarResposta::erro('Não foi possível deletar o nível', 500);
+                $this->erro('Não foi possível deletar o nível', 500);
             }
         } catch (\Exception $e) {
             AuxiliarResposta::erroInterno($e->getMessage());

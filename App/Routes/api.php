@@ -125,7 +125,7 @@ $router->grupo([
 
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
-        $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'obterUsuarioAutenticado']);
+        $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'me']);
     });
 
     // Rota de health check

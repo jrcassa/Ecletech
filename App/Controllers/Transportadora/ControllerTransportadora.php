@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Transportadora;
 
+use App\Controllers\BaseController;
+
 use App\Services\Transportadora\ServiceTransportadora;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
@@ -9,7 +11,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar transportadoras
  */
-class ControllerTransportadora
+class ControllerTransportadora extends BaseController
 {
     private ServiceTransportadora $service;
 
@@ -48,7 +50,7 @@ class ControllerTransportadora
             $transportadoras = $this->service->listar($filtros);
             $total = $this->service->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $transportadoras,
                 $total,
                 $paginaAtual,
@@ -56,7 +58,7 @@ class ControllerTransportadora
                 'Transportadoras listadas com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -66,21 +68,18 @@ class ControllerTransportadora
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $transportadora = $this->service->buscarComRelacionamentos((int) $id);
 
             if (!$transportadora) {
-                AuxiliarResposta::naoEncontrado('Transportadora não encontrada');
+                $this->naoEncontrado('Transportadora não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($transportadora, 'Transportadora encontrada');
+            $this->sucesso($transportadora, 'Transportadora encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -90,7 +89,7 @@ class ControllerTransportadora
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -127,16 +126,16 @@ class ControllerTransportadora
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + criação + transação)
             $transportadora = $this->service->criarCompleto($dados);
 
-            AuxiliarResposta::criado($transportadora, 'Transportadora cadastrada com sucesso');
+            $this->criado($transportadora, 'Transportadora cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -146,12 +145,9 @@ class ControllerTransportadora
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação de formato HTTP (campos opcionais)
             $regras = [];
@@ -183,16 +179,16 @@ class ControllerTransportadora
             $erros = AuxiliarValidacao::validar($dados, $regras);
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
             // Delega para o Service (validações de negócio + atualização + transação)
             $transportadora = $this->service->atualizarCompleto((int) $id, $dados);
 
-            AuxiliarResposta::sucesso($transportadora, 'Transportadora atualizada com sucesso');
+            $this->sucesso($transportadora, 'Transportadora atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -202,17 +198,14 @@ class ControllerTransportadora
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Delega para o Service
             $this->service->deletar((int) $id);
 
-            AuxiliarResposta::sucesso(null, 'Transportadora removida com sucesso');
+            $this->sucesso(null, 'Transportadora removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -224,9 +217,9 @@ class ControllerTransportadora
         try {
             $estatisticas = $this->service->obterEstatisticas();
 
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas das transportadoras obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas das transportadoras obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

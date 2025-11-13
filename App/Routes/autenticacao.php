@@ -20,7 +20,7 @@ return function($router) {
         'middleware' => ['auth']
     ], function($router) {
         $router->post('/logout', [ControllerAutenticacao::class, 'logout']);
-        $router->get('/me', [ControllerAutenticacao::class, 'obterUsuarioAutenticado']);
+        $router->get('/me', [ControllerAutenticacao::class, 'me']);
         $router->post('/alterar-senha', [ControllerAutenticacao::class, 'alterarSenha']);
     });
 };

@@ -2,6 +2,8 @@
 
 namespace App\Controllers\PlanoDeContas;
 
+use App\Controllers\BaseController;
+
 use App\Models\PlanoDeContas\ModelPlanoDeContas;
 use App\Core\Autenticacao;
 use App\Helpers\AuxiliarResposta;
@@ -10,7 +12,7 @@ use App\Helpers\AuxiliarValidacao;
 /**
  * Controller para gerenciar plano de contas
  */
-class ControllerPlanoDeContas
+class ControllerPlanoDeContas extends BaseController
 {
     private ModelPlanoDeContas $model;
     private Autenticacao $auth;
@@ -53,7 +55,7 @@ class ControllerPlanoDeContas
             $contas = $this->model->listar($filtros);
             $total = $this->model->contar(array_diff_key($filtros, array_flip(['limite', 'offset', 'ordenacao', 'direcao'])));
 
-            AuxiliarResposta::paginado(
+            $this->paginado(
                 $contas,
                 $total,
                 $paginaAtual,
@@ -61,7 +63,7 @@ class ControllerPlanoDeContas
                 'Plano de contas listado com sucesso'
             );
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -71,21 +73,18 @@ class ControllerPlanoDeContas
     public function buscar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             $conta = $this->model->buscarPorId((int) $id);
 
             if (!$conta) {
-                AuxiliarResposta::naoEncontrado('Conta não encontrada');
+                $this->naoEncontrado('Conta não encontrada');
                 return;
             }
 
-            AuxiliarResposta::sucesso($conta, 'Conta encontrada');
+            $this->sucesso($conta, 'Conta encontrada');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -95,7 +94,7 @@ class ControllerPlanoDeContas
     public function criar(): void
     {
         try {
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação básica
             $erros = AuxiliarValidacao::validar($dados, [
@@ -112,7 +111,7 @@ class ControllerPlanoDeContas
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -135,7 +134,7 @@ class ControllerPlanoDeContas
             if (isset($dados['conta_mae_id']) && !empty($dados['conta_mae_id'])) {
                 $contaMae = $this->model->buscarPorId((int) $dados['conta_mae_id']);
                 if (!$contaMae) {
-                    AuxiliarResposta::erro('Conta mãe não encontrada', 400);
+                    $this->erro('Conta mãe não encontrada', 400);
                     return;
                 }
             }
@@ -149,9 +148,9 @@ class ControllerPlanoDeContas
 
             $conta = $this->model->buscarPorId($id);
 
-            AuxiliarResposta::criado($conta, 'Conta cadastrada com sucesso');
+            $this->criado($conta, 'Conta cadastrada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -161,19 +160,16 @@ class ControllerPlanoDeContas
     public function atualizar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a conta existe
             $contaExistente = $this->model->buscarPorId((int) $id);
             if (!$contaExistente) {
-                AuxiliarResposta::naoEncontrado('Conta não encontrada');
+                $this->naoEncontrado('Conta não encontrada');
                 return;
             }
 
-            $dados = AuxiliarResposta::obterDados();
+            $dados = $this->obterDados();
 
             // Validação dos dados (campos opcionais)
             $regras = [];
@@ -196,7 +192,7 @@ class ControllerPlanoDeContas
             }
 
             if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
@@ -219,13 +215,13 @@ class ControllerPlanoDeContas
             if (isset($dados['conta_mae_id']) && !empty($dados['conta_mae_id'])) {
                 // Não pode ser conta mãe de si mesma
                 if ((int) $dados['conta_mae_id'] === (int) $id) {
-                    AuxiliarResposta::erro('Uma conta não pode ser conta mãe de si mesma', 400);
+                    $this->erro('Uma conta não pode ser conta mãe de si mesma', 400);
                     return;
                 }
 
                 $contaMae = $this->model->buscarPorId((int) $dados['conta_mae_id']);
                 if (!$contaMae) {
-                    AuxiliarResposta::erro('Conta mãe não encontrada', 400);
+                    $this->erro('Conta mãe não encontrada', 400);
                     return;
                 }
             }
@@ -238,15 +234,15 @@ class ControllerPlanoDeContas
             $resultado = $this->model->atualizar((int) $id, $dados, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao atualizar conta', 400);
+                $this->erro('Erro ao atualizar conta', 400);
                 return;
             }
 
             $conta = $this->model->buscarPorId((int) $id);
 
-            AuxiliarResposta::sucesso($conta, 'Conta atualizada com sucesso');
+            $this->sucesso($conta, 'Conta atualizada com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -256,15 +252,12 @@ class ControllerPlanoDeContas
     public function deletar(string $id): void
     {
         try {
-            if (!AuxiliarValidacao::inteiro($id)) {
-                AuxiliarResposta::erro('ID inválido', 400);
-                return;
-            }
+            if (!$this->validarId($id)) { return; }
 
             // Verifica se a conta existe
             $conta = $this->model->buscarPorId((int) $id);
             if (!$conta) {
-                AuxiliarResposta::naoEncontrado('Conta não encontrada');
+                $this->naoEncontrado('Conta não encontrada');
                 return;
             }
 
@@ -276,13 +269,13 @@ class ControllerPlanoDeContas
             $resultado = $this->model->deletar((int) $id, $usuarioId);
 
             if (!$resultado) {
-                AuxiliarResposta::erro('Erro ao deletar conta', 400);
+                $this->erro('Erro ao deletar conta', 400);
                 return;
             }
 
-            AuxiliarResposta::sucesso(null, 'Conta removida com sucesso');
+            $this->sucesso(null, 'Conta removida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -293,9 +286,9 @@ class ControllerPlanoDeContas
     {
         try {
             $contas = $this->model->listarContasPrincipais();
-            AuxiliarResposta::sucesso($contas, 'Contas principais listadas com sucesso');
+            $this->sucesso($contas, 'Contas principais listadas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -306,14 +299,14 @@ class ControllerPlanoDeContas
     {
         try {
             if (!AuxiliarValidacao::inteiro($contaMaeId)) {
-                AuxiliarResposta::erro('ID da conta mãe inválido', 400);
+                $this->erro('ID da conta mãe inválido', 400);
                 return;
             }
 
             $contas = $this->model->listarContasFilhas((int) $contaMaeId);
-            AuxiliarResposta::sucesso($contas, 'Contas filhas listadas com sucesso');
+            $this->sucesso($contas, 'Contas filhas listadas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -324,9 +317,9 @@ class ControllerPlanoDeContas
     {
         try {
             $estatisticas = $this->model->obterEstatisticas();
-            AuxiliarResposta::sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
+            $this->sucesso($estatisticas, 'Estatísticas obtidas com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 
@@ -337,9 +330,9 @@ class ControllerPlanoDeContas
     {
         try {
             $arvore = $this->model->obterArvore();
-            AuxiliarResposta::sucesso($arvore, 'Árvore de contas obtida com sucesso');
+            $this->sucesso($arvore, 'Árvore de contas obtida com sucesso');
         } catch (\Exception $e) {
-            AuxiliarResposta::erro($e->getMessage(), 400);
+            $this->erro($e->getMessage(), 400);
         }
     }
 }

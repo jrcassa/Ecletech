@@ -2,13 +2,15 @@
 
 namespace App\Controllers\Whatsapp;
 
+use App\Controllers\BaseController;
+
 use App\Services\Whatsapp\ServiceWhatsapp;
 use App\Helpers\AuxiliarResposta;
 
 /**
  * Controller para receber webhooks da API WhatsApp
  */
-class ControllerWhatsappWebhook
+class ControllerWhatsappWebhook extends BaseController
 {
     private ServiceWhatsapp $service;
 
@@ -53,9 +55,9 @@ class ControllerWhatsappWebhook
     }
 
     /**
-     * GET para validação de webhook
+     * GET para validação de webhook (challenge do WhatsApp)
      */
-    public function validar(): void
+    public function validarWebhook(): void
     {
         $challenge = $_GET['challenge'] ?? null;
 
