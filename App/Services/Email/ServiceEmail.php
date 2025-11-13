@@ -480,23 +480,15 @@ class ServiceEmail
 
     /**
      * Obtém URL base da API para tracking
-     * Suporta configuração via .env ou fallback inteligente
+     * Usa API_URL e detecta automaticamente o ambiente
      */
     private function obterUrlBaseApi(): string
     {
-        // Tenta pegar a URL completa da API (melhor opção)
-        $apiBaseUrl = $_ENV['API_BASE_URL'] ?? null;
-
-        if ($apiBaseUrl) {
-            return rtrim($apiBaseUrl, '/');
-        }
-
-        // Constrói a partir da API_URL
         $apiUrl = $_ENV['API_URL'] ?? 'http://localhost';
         $apiUrl = rtrim($apiUrl, '/');
 
         // Detecta ambiente
-        // Desenvolvimento: tem 'localhost' ou porta não-padrão → /public_html/api
+        // Desenvolvimento: localhost/127.0.0.1/porta customizada → /public_html/api
         // Produção: domínio real → /api
         if (
             strpos($apiUrl, 'localhost') !== false ||
