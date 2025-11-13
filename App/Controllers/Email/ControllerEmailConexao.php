@@ -2,73 +2,83 @@
 
 namespace App\Controllers\Email;
 
-use App\Core\Controller;
-use App\Core\Request;
-use App\Core\Response;
+use App\Controllers\BaseController;
 use App\Models\Email\ModelEmailSMTP;
 use App\Models\Email\ModelEmailConfiguracao;
+use App\Services\ACL\ServiceACL;
 
 /**
  * Controller para gerenciar conexão SMTP
  */
-class ControllerEmailConexao extends Controller
+class ControllerEmailConexao extends BaseController
 {
     private ModelEmailSMTP $smtp;
     private ModelEmailConfiguracao $config;
+    private ServiceACL $acl;
 
     public function __construct()
     {
-        parent::__construct();
         $this->smtp = new ModelEmailSMTP();
         $this->config = new ModelEmailConfiguracao();
+        $this->acl = new ServiceACL();
     }
 
     /**
      * GET /email/conexao/status
      * Retorna status da conexão SMTP
      */
-    public function status(Request $request): Response
+    public function status(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
-            return $this->erro('Sem permissão para acessar status', 403);
+        try {
+            // Valida permissão
+            if (!$this->acl->temPermissao('email.acessar')) {
+                $this->proibido('Sem permissão para acessar status');
+                return;
+            }
+
+            // Valida configurações
+            $validacao = $this->smtp->validarConfiguracoes();
+
+            $info = $this->smtp->obterInformacoes();
+
+            $this->sucesso([
+                'configurado' => $validacao['valido'],
+                'erros' => $validacao['erros'],
+                'info' => [
+                    'host' => $info['host'],
+                    'port' => $info['port'],
+                    'secure' => $info['secure'],
+                    'from_email' => $info['from_email'],
+                    'from_name' => $info['from_name']
+                ]
+            ]);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao verificar status');
         }
-
-        // Valida configurações
-        $validacao = $this->smtp->validarConfiguracoes();
-
-        $info = $this->smtp->obterInformacoes();
-
-        return $this->sucesso([
-            'configurado' => $validacao['valido'],
-            'erros' => $validacao['erros'],
-            'info' => [
-                'host' => $info['host'],
-                'port' => $info['port'],
-                'secure' => $info['secure'],
-                'from_email' => $info['from_email'],
-                'from_name' => $info['from_name']
-            ]
-        ]);
     }
 
     /**
      * POST /email/conexao/testar
      * Testa conexão SMTP
      */
-    public function testar(Request $request): Response
+    public function testar(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.alterar')) {
-            return $this->erro('Sem permissão para testar conexão', 403);
-        }
+        try {
+            // Valida permissão
+            if (!$this->acl->temPermissao('email.alterar')) {
+                $this->proibido('Sem permissão para testar conexão');
+                return;
+            }
 
-        $resultado = $this->smtp->testarConexao();
+            $resultado = $this->smtp->testarConexao();
 
-        if ($resultado['sucesso']) {
-            return $this->sucesso($resultado);
-        } else {
-            return $this->erro($resultado['mensagem'], 500, $resultado);
+            if ($resultado['sucesso']) {
+                $this->sucesso($resultado, 'Conexão testada com sucesso');
+            } else {
+                $this->erro($resultado['mensagem'], 500);
+            }
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao testar conexão');
         }
     }
 
@@ -76,18 +86,23 @@ class ControllerEmailConexao extends Controller
      * GET /email/conexao/info
      * Retorna informações da configuração SMTP
      */
-    public function info(Request $request): Response
+    public function info(): void
     {
-        // Valida permissão
-        if (!$this->acl->temPermissao('email.acessar')) {
-            return $this->erro('Sem permissão para acessar informações', 403);
+        try {
+            // Valida permissão
+            if (!$this->acl->temPermissao('email.acessar')) {
+                $this->proibido('Sem permissão para acessar informações');
+                return;
+            }
+
+            $info = $this->smtp->obterInformacoes();
+
+            // Remove senha da resposta
+            unset($info['senha']);
+
+            $this->sucesso($info);
+        } catch (\Exception $e) {
+            $this->tratarErro($e, 500, 'Erro ao obter informações');
         }
-
-        $info = $this->smtp->obterInformacoes();
-
-        // Remove senha da resposta
-        unset($info['senha']);
-
-        return $this->sucesso($info);
     }
 }
