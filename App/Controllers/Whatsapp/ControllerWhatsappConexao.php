@@ -73,8 +73,22 @@ class ControllerWhatsappConexao
                 } else {
                     // Aguardando QR code
                     $resultado['status'] = 'qrcode';
-                    $qrData = json_decode($this->baileys->statusInstancia(), true);
-                    $resultado['qr_code'] = $qrData['qrcode'] ?? null;
+
+                    // Tenta obter QR code em base64
+                    $qrResponse = $this->baileys->status_instancia();
+                    $qrData = json_decode($qrResponse, true);
+
+                    // Verifica se conseguiu obter o QR code
+                    if (isset($qrData['qrcode']) && !empty($qrData['qrcode'])) {
+                        $resultado['qr_code'] = $qrData['qrcode'];
+                    } else if (isset($qrData['base64'])) {
+                        // Formato alternativo: base64
+                        $resultado['qr_code'] = $qrData['base64'];
+                    } else {
+                        // Se não conseguiu via qrbase64, tenta endpoint antigo
+                        $qrDataAntigo = json_decode($this->baileys->statusInstancia(), true);
+                        $resultado['qr_code'] = $qrDataAntigo['qrcode'] ?? null;
+                    }
 
                     $this->config->salvar('instancia_status', 'qrcode');
                 }
@@ -136,10 +150,25 @@ class ControllerWhatsappConexao
     public function qrcode(): void
     {
         try {
-            $data = json_decode($this->baileys->statusInstancia(), true);
+            // Tenta obter QR code em base64
+            $response = $this->baileys->status_instancia();
+            $data = json_decode($response, true);
 
-            if (isset($data['qrcode'])) {
-                AuxiliarResposta::sucesso(['qr_code' => $data['qrcode']], 'QR Code obtido');
+            $qrCode = null;
+
+            // Verifica diferentes formatos de resposta
+            if (isset($data['qrcode']) && !empty($data['qrcode'])) {
+                $qrCode = $data['qrcode'];
+            } else if (isset($data['base64'])) {
+                $qrCode = $data['base64'];
+            } else {
+                // Tenta endpoint antigo como fallback
+                $dataAntigo = json_decode($this->baileys->statusInstancia(), true);
+                $qrCode = $dataAntigo['qrcode'] ?? null;
+            }
+
+            if ($qrCode) {
+                AuxiliarResposta::sucesso(['qr_code' => $qrCode], 'QR Code obtido');
             } else {
                 AuxiliarResposta::erro('QR Code não disponível', 400);
             }
