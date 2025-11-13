@@ -83,6 +83,47 @@ class ModelFrotaAbastecimentoRelatorioLog
     }
 
     /**
+     * Conta logs com filtros
+     */
+    public function contar(array $filtros = []): int
+    {
+        $sql = "
+            SELECT COUNT(*) as total
+            FROM frotas_abastecimentos_relatorios_logs l
+            WHERE 1=1
+        ";
+        $parametros = [];
+
+        if (isset($filtros['tipo_relatorio'])) {
+            $sql .= " AND l.tipo_relatorio = ?";
+            $parametros[] = $filtros['tipo_relatorio'];
+        }
+
+        if (isset($filtros['status_envio'])) {
+            $sql .= " AND l.status_envio = ?";
+            $parametros[] = $filtros['status_envio'];
+        }
+
+        if (isset($filtros['destinatario_id'])) {
+            $sql .= " AND l.destinatario_id = ?";
+            $parametros[] = $filtros['destinatario_id'];
+        }
+
+        if (isset($filtros['data_inicio'])) {
+            $sql .= " AND l.criado_em >= ?";
+            $parametros[] = $filtros['data_inicio'];
+        }
+
+        if (isset($filtros['data_fim'])) {
+            $sql .= " AND l.criado_em <= ?";
+            $parametros[] = $filtros['data_fim'];
+        }
+
+        $resultado = $this->db->buscarUm($sql, $parametros);
+        return (int) $resultado['total'];
+    }
+
+    /**
      * Busca logs com erro para retentar
      */
     public function buscarParaRetentar(): array

@@ -63,14 +63,10 @@ class ServiceFrotaAbastecimentoNotificacao
 
         // Enviar WhatsApp
         try {
-            $resultado = $this->serviceWhatsapp->enviar($motorista['telefone'], $mensagem);
+            $this->serviceWhatsapp->enviarMensagem($motorista['telefone'], $mensagem);
 
-            if ($resultado['sucesso'] ?? false) {
-                $this->modelNotificacao->marcarEnviado($notificacaoId);
-                $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
-            } else {
-                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
-            }
+            $this->modelNotificacao->marcarEnviado($notificacaoId);
+            $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
         } catch (\Exception $e) {
             $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
         }
@@ -108,13 +104,8 @@ class ServiceFrotaAbastecimentoNotificacao
 
             // Enviar WhatsApp
             try {
-                $resultado = $this->serviceWhatsapp->enviar($destinatario['telefone'], $mensagem);
-
-                if ($resultado['sucesso'] ?? false) {
-                    $this->modelNotificacao->marcarEnviado($notificacaoId);
-                } else {
-                    $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
-                }
+                $this->serviceWhatsapp->enviarMensagem($destinatario['telefone'], $mensagem);
+                $this->modelNotificacao->marcarEnviado($notificacaoId);
             } catch (\Exception $e) {
                 $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
             }
@@ -152,13 +143,8 @@ class ServiceFrotaAbastecimentoNotificacao
 
         // Enviar WhatsApp
         try {
-            $resultado = $this->serviceWhatsapp->enviar($motorista['telefone'], $mensagem);
-
-            if ($resultado['sucesso'] ?? false) {
-                $this->modelNotificacao->marcarEnviado($notificacaoId);
-            } else {
-                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
-            }
+            $this->serviceWhatsapp->enviarMensagem($motorista['telefone'], $mensagem);
+            $this->modelNotificacao->marcarEnviado($notificacaoId);
         } catch (\Exception $e) {
             $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
         }

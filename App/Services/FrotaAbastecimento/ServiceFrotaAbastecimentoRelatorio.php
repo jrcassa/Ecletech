@@ -9,7 +9,7 @@ use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoRelatorioSnapshot;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoMetrica;
 use App\Models\FrotaAbastecimento\ModelFrotaAbastecimentoAlerta;
 use App\Models\Colaborador\ModelColaborador;
-use App\Services\ServiceWhatsapp;
+use App\Services\Whatsapp\ServiceWhatsapp;
 
 /**
  * Service para gerenciar geração e envio de relatórios automáticos

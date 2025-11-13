@@ -42,6 +42,28 @@ class ModelFrotaAbastecimentoAlerta
     }
 
     /**
+     * Busca alertas de uma frota
+     */
+    public function buscarPorFrota(int $frota_id, int $limite = 20): array
+    {
+        $sql = "
+            SELECT
+                a.*,
+                fa.data_abastecimento,
+                fa.km,
+                c.nome as motorista_nome
+            FROM frotas_abastecimentos_alertas a
+            INNER JOIN frotas_abastecimentos fa ON fa.id = a.abastecimento_id
+            INNER JOIN colaboradores c ON c.id = fa.colaborador_id
+            WHERE fa.frota_id = ?
+            ORDER BY a.severidade DESC, a.criado_em DESC
+            LIMIT ?
+        ";
+
+        return $this->db->buscarTodos($sql, [$frota_id, $limite]);
+    }
+
+    /**
      * Lista alertas com filtros
      */
     public function listar(array $filtros = []): array
@@ -219,6 +241,35 @@ class ModelFrotaAbastecimentoAlerta
         ";
 
         return $this->db->buscarTodos($sql);
+    }
+
+    /**
+     * Obtém estatísticas de alertas por tipo
+     */
+    public function obterEstatisticasPorTipo(array $filtros = []): array
+    {
+        $sql = "
+            SELECT
+                a.tipo_alerta,
+                COUNT(*) as total,
+                SUM(CASE WHEN a.visualizado = FALSE THEN 1 ELSE 0 END) as nao_visualizado,
+                SUM(CASE WHEN a.severidade = 'critica' THEN 1 ELSE 0 END) as criticos,
+                SUM(CASE WHEN a.severidade = 'alta' THEN 1 ELSE 0 END) as altos
+            FROM frotas_abastecimentos_alertas a
+            INNER JOIN frotas_abastecimentos fa ON fa.id = a.abastecimento_id
+            WHERE 1=1
+        ";
+        $parametros = [];
+
+        if (isset($filtros['data_inicio']) && isset($filtros['data_fim'])) {
+            $sql .= " AND fa.data_abastecimento BETWEEN ? AND ?";
+            $parametros[] = $filtros['data_inicio'];
+            $parametros[] = $filtros['data_fim'];
+        }
+
+        $sql .= " GROUP BY a.tipo_alerta ORDER BY total DESC";
+
+        return $this->db->buscarTodos($sql, $parametros);
     }
 
     /**
