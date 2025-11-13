@@ -46,6 +46,7 @@ class ModelFrotaAbastecimento
                 f.quilometragem as frota_quilometragem_atual,
                 c.nome as motorista_nome,
                 c.email as motorista_email,
+                c.celular as motorista_celular,
                 fp.nome as forma_pagamento_nome,
                 criador.nome as criado_por_nome,
                 finalizador.nome as finalizado_por_nome
