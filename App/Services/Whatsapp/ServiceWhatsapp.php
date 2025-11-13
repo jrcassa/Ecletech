@@ -105,24 +105,33 @@ class ServiceWhatsapp
      */
     private function enviarViaFila(array $dados): array
     {
-        // Prepara dados da fila - mapeia 'conteudo' para 'mensagem' (nome da coluna no DB)
-        $dadosFila = array_merge($dados, [
+        // Prepara dados da fila com mapeamento explícito para o schema do banco
+        $dadosFila = [
+            // Entidade
+            'tipo_entidade' => $dados['tipo_entidade'] ?? null,
+            'entidade_id' => $dados['entidade_id'] ?? null,
+            'entidade_nome' => $dados['entidade_nome'] ?? null,
+
+            // Tipo e destino
+            'tipo_mensagem' => $dados['tipo_mensagem'],
+            'destinatario' => $dados['destinatario'],
+
+            // Conteúdo (mapeia 'conteudo' -> 'mensagem')
+            'mensagem' => $dados['conteudo'] ?? null,
+            'arquivo_url' => $dados['arquivo_url'] ?? null,
+            'arquivo_base64' => $dados['arquivo_base64'] ?? null,
+            'arquivo_nome' => $dados['arquivo_nome'] ?? null,
+            'dados_extras' => $dados['metadata'] ?? null, // mapeia 'metadata' -> 'dados_extras'
+
+            // Controle
+            'prioridade' => $dados['prioridade'] ?? 'normal',
             'status' => 'pendente',
+            'tentativas' => 0,
             'status_code' => 1,
-            'tentativas' => 0
-        ]);
 
-        // Mapeia conteudo -> mensagem para o schema do banco
-        if (isset($dadosFila['conteudo'])) {
-            $dadosFila['mensagem'] = $dadosFila['conteudo'];
-            unset($dadosFila['conteudo']);
-        }
-
-        // Mapeia metadata -> dados_extras para o schema do banco
-        if (isset($dadosFila['metadata'])) {
-            $dadosFila['dados_extras'] = $dadosFila['metadata'];
-            unset($dadosFila['metadata']);
-        }
+            // Agendamento
+            'agendado_para' => $dados['agendado_para'] ?? null
+        ];
 
         // Adiciona à fila
         $queueId = $this->queueModel->adicionar($dadosFila);
