@@ -26,19 +26,6 @@ class ModelWhatsappHistorico
     }
 
     /**
-     * Busca histórico por queue_id
-     */
-    public function buscarPorQueueId(int $queueId): array
-    {
-        return $this->db->buscarTodos(
-            "SELECT * FROM whatsapp_historico
-             WHERE queue_id = ?
-             ORDER BY criado_em DESC",
-            [$queueId]
-        );
-    }
-
-    /**
      * Busca histórico por message_id
      */
     public function buscarPorMessageId(string $messageId): array
@@ -70,9 +57,8 @@ class ModelWhatsappHistorico
      */
     public function buscar(array $filtros = [], int $limit = 50, int $offset = 0): array
     {
-        $sql = "SELECT h.*, q.destinatario, q.tipo_mensagem
+        $sql = "SELECT h.*
                 FROM whatsapp_historico h
-                LEFT JOIN whatsapp_queue q ON h.queue_id = q.id
                 WHERE 1=1";
 
         $params = [];
@@ -90,11 +76,6 @@ class ModelWhatsappHistorico
         if (isset($filtros['tipo_evento'])) {
             $sql .= " AND h.tipo_evento = ?";
             $params[] = $filtros['tipo_evento'];
-        }
-
-        if (isset($filtros['queue_id'])) {
-            $sql .= " AND h.queue_id = ?";
-            $params[] = $filtros['queue_id'];
         }
 
         $sql .= " ORDER BY h.criado_em DESC LIMIT ? OFFSET ?";
