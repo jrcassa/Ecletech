@@ -13,6 +13,7 @@ class ModelWhatsappBaileys
     private ?string $apiBaseUrl;
     private ?string $instanceToken;
     private ?string $secureToken;
+    private ?string $webhookUrl;
 
     public function __construct()
     {
@@ -20,6 +21,7 @@ class ModelWhatsappBaileys
         $this->apiBaseUrl = $this->config->obter('api_base_url', null);
         $this->instanceToken = $this->config->obter('instancia_token', null);
         $this->secureToken = $this->config->obter('api_secure_token', null);
+        $this->webhookUrl = $this->config->obter('webhook_url', null);
     }
 
     /**
@@ -126,9 +128,61 @@ class ModelWhatsappBaileys
     /**
      * Cria nova instância
      */
-    public function criarInstancia(): string
+    public function cria_instancia()
     {
-        return $this->request("instance/create?key={$this->instanceToken}", 'POST');
+        $retorno = false;
+
+        // URL da API com o admintoken como parâmetro
+        $url = "https://whatsapp.ecletech.com.br/instance/init?admintoken={$this->secureToken}";
+
+        // Dados a serem enviados na requisição
+        $data = [
+            "key" => $this->instanceToken,
+            "browser" => "Ubuntu",
+            "webhook" => true,
+            "base64" => true,
+            "webhookUrl" => $this->webhookUrl,
+            "webhookEvents" => ["messages.upsert"],
+            "ignoreGroups" => false,
+            "messagesRead" => false
+        ];
+
+        // Inicializa o cURL
+        $ch = curl_init($url);
+
+        // Configurações da requisição cURL
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->secureToken,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        // Executa a requisição e captura a resposta
+        $response = curl_exec($ch);
+
+        // Verifica se houve erro na execução
+        if (curl_errno($ch)) {
+            $retorno = curl_error($ch);
+            // echo 'Erro: ' . curl_error($ch);
+        } else {
+            $retorno = $response;
+        }
+
+        // Fecha a conexão cURL
+        curl_close($ch);
+
+        return $retorno;
+    }
+
+    /**
+     * Método alias para compatibilidade
+     * @deprecated Use cria_instancia() ao invés
+     */
+    public function criarInstancia()
+    {
+        return $this->cria_instancia();
     }
 
     /**
