@@ -172,4 +172,44 @@ class ModelWhatsappHistorico
         $resultado = $this->db->buscarUm($sql);
         return $resultado['total'] ?? 0;
     }
+
+    /**
+     * Busca registro único por message_id
+     */
+    public function buscarUnicoPorMessageId(string $messageId): ?array
+    {
+        return $this->db->buscarUm(
+            "SELECT * FROM whatsapp_historico WHERE message_id = ? LIMIT 1",
+            [$messageId]
+        );
+    }
+
+    /**
+     * Atualiza registro por message_id
+     */
+    public function atualizarPorMessageId(string $messageId, array $dados): void
+    {
+        $this->db->atualizar('whatsapp_historico', $dados, 'message_id = ?', [$messageId]);
+    }
+
+    /**
+     * Adiciona ou atualiza registro (upsert por message_id)
+     */
+    public function adicionarOuAtualizar(array $dados): int
+    {
+        // Se tem message_id, tenta buscar existente
+        if (!empty($dados['message_id'])) {
+            $existente = $this->buscarUnicoPorMessageId($dados['message_id']);
+
+            if ($existente) {
+                // Atualiza apenas campos não nulos
+                $dadosUpdate = array_filter($dados, fn($v) => $v !== null);
+                $this->atualizarPorMessageId($dados['message_id'], $dadosUpdate);
+                return $existente['id'];
+            }
+        }
+
+        // Se não existe, cria novo
+        return $this->adicionar($dados);
+    }
 }

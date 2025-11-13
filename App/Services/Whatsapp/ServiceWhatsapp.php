@@ -133,25 +133,8 @@ class ServiceWhatsapp
             'agendado_para' => $dados['agendado_para'] ?? null
         ];
 
-        // Adiciona à fila
+        // Adiciona à fila (não registra no histórico ainda - só quando enviar)
         $queueId = $this->queueModel->adicionar($dadosFila);
-
-        // Registra no histórico
-        $this->historicoModel->adicionar([
-            'queue_id' => $queueId,
-            'tipo_evento' => 'adicionado_fila',
-            'tipo_entidade' => $dados['tipo_entidade'] ?? null,
-            'entidade_id' => $dados['entidade_id'] ?? null,
-            'entidade_nome' => $dados['entidade_nome'] ?? null,
-            'destinatario' => $dados['destinatario'],
-            'tipo_mensagem' => $dados['tipo_mensagem'],
-            'status' => 'pendente',
-            'status_code' => 1,
-            'mensagem' => json_encode([
-                'destinatario' => $dados['destinatario'],
-                'tipo' => $dados['tipo_mensagem']
-            ])
-        ]);
 
         return [
             'sucesso' => true,
@@ -211,7 +194,7 @@ class ServiceWhatsapp
                 $dados['entidade_id']
             );
 
-            // Registra no histórico (sem queue_id)
+            // Registra no histórico (sem queue_id) com data_enviado
             $this->historicoModel->adicionar([
                 'queue_id' => null,
                 'message_id' => $messageId,
@@ -223,6 +206,7 @@ class ServiceWhatsapp
                 'tipo_mensagem' => $dados['tipo_mensagem'],
                 'status' => 'enviado',
                 'status_code' => 2,
+                'data_enviado' => date('Y-m-d H:i:s'),
                 'mensagem' => json_encode([
                     'response' => $responseData,
                     'conteudo' => $dados['conteudo']
@@ -343,7 +327,7 @@ class ServiceWhatsapp
                     $mensagem['entidade_id']
                 );
 
-                // Registra no histórico ANTES de deletar (para manter referência do queue_id)
+                // Registra no histórico ANTES de deletar (para manter referência do queue_id) com data_enviado
                 $this->historicoModel->adicionar([
                     'queue_id' => $mensagem['id'],
                     'message_id' => $messageId,
@@ -355,6 +339,7 @@ class ServiceWhatsapp
                     'tipo_mensagem' => $mensagem['tipo_mensagem'],
                     'status' => 'enviado',
                     'status_code' => 2,
+                    'data_enviado' => date('Y-m-d H:i:s'),
                     'mensagem' => json_encode(['response' => $responseData])
                 ]);
 
@@ -473,28 +458,29 @@ class ServiceWhatsapp
                 return ['sucesso' => true, 'processado' => false];
             }
 
-            // Atualiza status no histórico (não mais na fila, pois mensagens enviadas são deletadas)
+            // Atualiza status no histórico (ATUALIZA registro existente em vez de criar novo)
             $statusCode = AuxiliarWhatsapp::webhookParaStatusCode($info['status']);
 
-            // Registra atualização de status no histórico
+            // Atualiza registro existente com data_entregue ou data_leitura
             if ($statusCode === 3 || $statusCode === 4) {
-                // Busca evento original de envio para copiar informações
-                $eventoOriginal = $this->historicoModel->buscarPorMessageId($info['message_id']);
-                $dadosOriginais = !empty($eventoOriginal) ? $eventoOriginal[0] : null;
+                $registro = $this->historicoModel->buscarUnicoPorMessageId($info['message_id']);
 
-                $this->historicoModel->adicionar([
-                    'queue_id' => null,
-                    'message_id' => $info['message_id'],
-                    'tipo_evento' => $statusCode === 3 ? 'entregue' : 'lido',
-                    'tipo_entidade' => $dadosOriginais['tipo_entidade'] ?? null,
-                    'entidade_id' => $dadosOriginais['entidade_id'] ?? null,
-                    'entidade_nome' => $dadosOriginais['entidade_nome'] ?? null,
-                    'destinatario' => $dadosOriginais['destinatario'] ?? null,
-                    'tipo_mensagem' => $dadosOriginais['tipo_mensagem'] ?? null,
-                    'status' => $statusCode === 3 ? 'entregue' : 'lido',
-                    'status_code' => $statusCode,
-                    'mensagem' => json_encode(['webhook_data' => $payload['data'] ?? null])
-                ]);
+                if ($registro) {
+                    // Atualiza apenas se o status é maior que o atual
+                    $dadosUpdate = [
+                        'status_code' => max($statusCode, $registro['status_code'] ?? 0)
+                    ];
+
+                    if ($statusCode === 3) {
+                        $dadosUpdate['data_entregue'] = date('Y-m-d H:i:s');
+                        $dadosUpdate['status'] = 'entregue';
+                    } elseif ($statusCode === 4) {
+                        $dadosUpdate['data_leitura'] = date('Y-m-d H:i:s');
+                        $dadosUpdate['status'] = 'lido';
+                    }
+
+                    $this->historicoModel->atualizarPorMessageId($info['message_id'], $dadosUpdate);
+                }
             }
 
             $webhookModel->marcarProcessado($webhookId, true);
