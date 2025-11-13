@@ -212,8 +212,8 @@ class ServiceFrotaAbastecimentoRelatorio
     {
         // Busca colaborador
         $colaborador = $this->modelColaborador->buscarPorId($destinatario_id);
-        if (!$colaborador || !$colaborador['telefone']) {
-            throw new \Exception('Colaborador não encontrado ou sem telefone cadastrado');
+        if (!$colaborador || !$colaborador['celular']) {
+            throw new \Exception('Colaborador não encontrado ou sem celular cadastrado');
         }
 
         // Gera relatório
@@ -225,7 +225,7 @@ class ServiceFrotaAbastecimentoRelatorio
             'periodo_inicio' => $periodo_inicio,
             'periodo_fim' => $periodo_fim,
             'destinatario_id' => $destinatario_id,
-            'telefone' => $colaborador['telefone'],
+            'telefone' => $colaborador['celular'],
             'formato' => $formato,
             'mensagem' => $relatorio['mensagem'],
             'dados_relatorio' => $relatorio['dados'],
@@ -234,11 +234,32 @@ class ServiceFrotaAbastecimentoRelatorio
             'tempo_processamento' => $relatorio['dados']['tempo_calculo']
         ]);
 
-        // Tenta enviar
+        // Tenta enviar via fila WhatsApp
         try {
-            $this->serviceWhatsapp->enviarMensagem($colaborador['telefone'], $relatorio['mensagem']);
+            $resultado = $this->serviceWhatsapp->enviarMensagem([
+                'destinatario' => [
+                    'tipo_entidade' => 'colaborador',
+                    'entidade_id' => $destinatario_id,
+                    'numero' => $colaborador['celular'],
+                    'nome' => $colaborador['nome']
+                ],
+                'tipo' => 'text',
+                'mensagem' => $relatorio['mensagem'],
+                'prioridade' => 'normal',
+                'metadata' => [
+                    'modulo' => 'frota_abastecimento_relatorio',
+                    'tipo_relatorio' => $tipo_relatorio,
+                    'periodo_inicio' => $periodo_inicio,
+                    'periodo_fim' => $periodo_fim,
+                    'formato' => $formato
+                ]
+            ]);
 
-            $this->modelLog->marcarEnviado($logId);
+            if ($resultado['sucesso']) {
+                $this->modelLog->marcarEnviado($logId);
+            } else {
+                $this->modelLog->marcarErro($logId, $resultado['erro'] ?? 'Erro desconhecido');
+            }
         } catch (\Exception $e) {
             $this->modelLog->marcarErro($logId, $e->getMessage());
             throw $e;

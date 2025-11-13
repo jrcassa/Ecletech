@@ -45,7 +45,7 @@ class ServiceFrotaAbastecimentoNotificacao
         }
 
         $motorista = $this->modelColaborador->buscarPorId($abastecimento['colaborador_id']);
-        if (!$motorista || !$motorista['telefone']) {
+        if (!$motorista || !$motorista['celular']) {
             return;
         }
 
@@ -57,16 +57,35 @@ class ServiceFrotaAbastecimentoNotificacao
             'abastecimento_id' => $abastecimento_id,
             'tipo_notificacao' => 'ordem_criada',
             'destinatario_id' => $abastecimento['colaborador_id'],
-            'telefone' => $motorista['telefone'],
+            'telefone' => $motorista['celular'],
             'mensagem' => $mensagem
         ]);
 
-        // Enviar WhatsApp
+        // Enviar WhatsApp via fila
         try {
-            $this->serviceWhatsapp->enviarMensagem($motorista['telefone'], $mensagem);
+            $resultado = $this->serviceWhatsapp->enviarMensagem([
+                'destinatario' => [
+                    'tipo_entidade' => 'colaborador',
+                    'entidade_id' => $abastecimento['colaborador_id'],
+                    'numero' => $motorista['celular'],
+                    'nome' => $motorista['nome']
+                ],
+                'tipo' => 'text',
+                'mensagem' => $mensagem,
+                'prioridade' => 'alta',
+                'metadata' => [
+                    'modulo' => 'frota_abastecimento',
+                    'tipo_notificacao' => 'ordem_criada',
+                    'abastecimento_id' => $abastecimento_id
+                ]
+            ]);
 
-            $this->modelNotificacao->marcarEnviado($notificacaoId);
-            $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
+            if ($resultado['sucesso']) {
+                $this->modelNotificacao->marcarEnviado($notificacaoId);
+                $this->model->marcarNotificacaoMotoristaEnviada($abastecimento_id);
+            } else {
+                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+            }
         } catch (\Exception $e) {
             $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
         }
@@ -98,14 +117,34 @@ class ServiceFrotaAbastecimentoNotificacao
                 'abastecimento_id' => $abastecimento_id,
                 'tipo_notificacao' => 'abastecimento_finalizado',
                 'destinatario_id' => $destinatario['id'],
-                'telefone' => $destinatario['telefone'],
+                'telefone' => $destinatario['celular'],
                 'mensagem' => $mensagem
             ]);
 
-            // Enviar WhatsApp
+            // Enviar WhatsApp via fila
             try {
-                $this->serviceWhatsapp->enviarMensagem($destinatario['telefone'], $mensagem);
-                $this->modelNotificacao->marcarEnviado($notificacaoId);
+                $resultado = $this->serviceWhatsapp->enviarMensagem([
+                    'destinatario' => [
+                        'tipo_entidade' => 'colaborador',
+                        'entidade_id' => $destinatario['id'],
+                        'numero' => $destinatario['celular'],
+                        'nome' => $destinatario['nome']
+                    ],
+                    'tipo' => 'text',
+                    'mensagem' => $mensagem,
+                    'prioridade' => 'normal',
+                    'metadata' => [
+                        'modulo' => 'frota_abastecimento',
+                        'tipo_notificacao' => 'abastecimento_finalizado',
+                        'abastecimento_id' => $abastecimento_id
+                    ]
+                ]);
+
+                if ($resultado['sucesso']) {
+                    $this->modelNotificacao->marcarEnviado($notificacaoId);
+                } else {
+                    $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+                }
             } catch (\Exception $e) {
                 $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
             }
@@ -125,7 +164,7 @@ class ServiceFrotaAbastecimentoNotificacao
         }
 
         $motorista = $this->modelColaborador->buscarPorId($abastecimento['colaborador_id']);
-        if (!$motorista || !$motorista['telefone']) {
+        if (!$motorista || !$motorista['celular']) {
             return;
         }
 
@@ -137,14 +176,34 @@ class ServiceFrotaAbastecimentoNotificacao
             'abastecimento_id' => $abastecimento_id,
             'tipo_notificacao' => 'ordem_cancelada',
             'destinatario_id' => $abastecimento['colaborador_id'],
-            'telefone' => $motorista['telefone'],
+            'telefone' => $motorista['celular'],
             'mensagem' => $mensagem
         ]);
 
-        // Enviar WhatsApp
+        // Enviar WhatsApp via fila
         try {
-            $this->serviceWhatsapp->enviarMensagem($motorista['telefone'], $mensagem);
-            $this->modelNotificacao->marcarEnviado($notificacaoId);
+            $resultado = $this->serviceWhatsapp->enviarMensagem([
+                'destinatario' => [
+                    'tipo_entidade' => 'colaborador',
+                    'entidade_id' => $abastecimento['colaborador_id'],
+                    'numero' => $motorista['celular'],
+                    'nome' => $motorista['nome']
+                ],
+                'tipo' => 'text',
+                'mensagem' => $mensagem,
+                'prioridade' => 'alta',
+                'metadata' => [
+                    'modulo' => 'frota_abastecimento',
+                    'tipo_notificacao' => 'ordem_cancelada',
+                    'abastecimento_id' => $abastecimento_id
+                ]
+            ]);
+
+            if ($resultado['sucesso']) {
+                $this->modelNotificacao->marcarEnviado($notificacaoId);
+            } else {
+                $this->modelNotificacao->marcarErro($notificacaoId, $resultado['erro'] ?? 'Erro desconhecido');
+            }
         } catch (\Exception $e) {
             $this->modelNotificacao->marcarErro($notificacaoId, $e->getMessage());
         }
@@ -156,7 +215,7 @@ class ServiceFrotaAbastecimentoNotificacao
     private function obterDestinatariosNotificacao(): array
     {
         $sql = "
-            SELECT DISTINCT c.id, c.nome, c.telefone
+            SELECT DISTINCT c.id, c.nome, c.celular
             FROM colaboradores c
             INNER JOIN colaborador_roles r ON c.nivel_id = r.id
             INNER JOIN colaborador_role_permissions crp ON r.id = crp.role_id
@@ -164,7 +223,7 @@ class ServiceFrotaAbastecimentoNotificacao
             WHERE p.codigo = 'frota_abastecimento.receber_notificacao'
             AND c.ativo = 1
             AND c.deletado_em IS NULL
-            AND c.telefone IS NOT NULL
+            AND c.celular IS NOT NULL
         ";
 
         return $this->db->buscarTodos($sql);
