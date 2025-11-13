@@ -382,14 +382,17 @@ const S3Manager = {
             const queryString = new URLSearchParams(params).toString();
             const response = await API.get(`/s3/arquivos?${queryString}`);
 
-            this.totalFiles = response.total;
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
+            this.totalFiles = dados.total || 0;
 
             const filesListDiv = document.getElementById('filesList');
 
-            if (response.arquivos && response.arquivos.length > 0) {
+            if (dados.arquivos && dados.arquivos.length > 0) {
                 let html = '';
 
-                response.arquivos.forEach(file => {
+                dados.arquivos.forEach(file => {
                     const icon = this.getFileIcon(file.tipo_mime);
                     const sizeStr = this.formatBytes(file.tamanho_bytes);
                     const date = new Date(file.criado_em).toLocaleString('pt-BR');
@@ -425,7 +428,7 @@ const S3Manager = {
                 filesListDiv.innerHTML = html;
 
                 // Atualiza paginação
-                this.updatePagination(response.total_paginas);
+                this.updatePagination(dados.total_paginas || 1);
 
             } else {
                 filesListDiv.innerHTML = `
@@ -510,9 +513,12 @@ const S3Manager = {
         try {
             const response = await API.get(`/s3/download/${id}?expiracao=3600`);
 
-            if (response.sucesso && response.url) {
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
+            if (response.sucesso && dados.url) {
                 // Abre URL em nova aba
-                window.open(response.url, '_blank');
+                window.open(dados.url, '_blank');
 
                 Swal.fire({
                     icon: 'success',
@@ -538,7 +544,8 @@ const S3Manager = {
             const modal = new bootstrap.Modal(document.getElementById('fileDetailsModal'));
             const bodyDiv = document.getElementById('fileDetailsBody');
 
-            const file = response;
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const file = response.dados || {};
             const sizeStr = this.formatBytes(file.tamanho_bytes);
             const date = new Date(file.criado_em).toLocaleString('pt-BR');
 
@@ -633,21 +640,25 @@ const S3Manager = {
         try {
             const response = await API.get('/s3/estatisticas');
 
-            document.getElementById('statTotalFiles').textContent = response.total_arquivos.toLocaleString('pt-BR');
-            document.getElementById('statTotalSize').textContent = this.formatBytes(response.tamanho_total_bytes);
-            document.getElementById('statAvgSize').textContent = this.formatBytes(response.tamanho_medio_bytes);
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
+            document.getElementById('statTotalFiles').textContent = (dados.total_arquivos || 0).toLocaleString('pt-BR');
+            document.getElementById('statTotalSize').textContent = this.formatBytes(dados.tamanho_total_bytes || 0);
+            document.getElementById('statAvgSize').textContent = this.formatBytes(dados.tamanho_medio_bytes || 0);
 
             // Carrega uploads de hoje
             const historyResponse = await API.get('/s3/historico/uploads-recentes?limite=100');
+            const historyDados = historyResponse.dados || {};
             const today = new Date().toDateString();
-            const uploadsToday = historyResponse.uploads.filter(u => {
+            const uploadsToday = (historyDados.uploads || []).filter(u => {
                 return new Date(u.criado_em).toDateString() === today;
             }).length;
             document.getElementById('statUploadsToday').textContent = uploadsToday;
 
             // Arquivos por tipo
             let html = '<table class="table table-hover"><thead><tr><th>Tipo MIME</th><th>Quantidade</th><th>Tamanho</th></tr></thead><tbody>';
-            response.por_tipo.forEach(tipo => {
+            (dados.por_tipo || []).forEach(tipo => {
                 html += `<tr>
                             <td><code>${tipo.tipo_mime}</code></td>
                             <td>${tipo.quantidade}</td>
@@ -672,9 +683,12 @@ const S3Manager = {
         try {
             const response = await API.get('/s3/historico/atividade?periodo=day&limite=7');
 
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
             let html = '<table class="table table-sm"><thead><tr><th>Período</th><th>Total</th><th>Sucessos</th><th>Falhas</th></tr></thead><tbody>';
 
-            response.atividade.forEach(item => {
+            (dados.atividade || []).forEach(item => {
                 html += `<tr>
                             <td>${item.periodo}</td>
                             <td>${item.total}</td>
@@ -698,12 +712,15 @@ const S3Manager = {
         try {
             const response = await API.get('/s3/historico?limite=50');
 
+            // A API retorna { sucesso, mensagem, codigo, dados }
+            const dados = response.dados || {};
+
             const tbody = document.getElementById('historyBody');
 
-            if (response.historico && response.historico.length > 0) {
+            if (dados.historico && dados.historico.length > 0) {
                 let html = '';
 
-                response.historico.forEach(item => {
+                dados.historico.forEach(item => {
                     const date = new Date(item.criado_em).toLocaleString('pt-BR');
                     const statusBadge = item.status === 'sucesso' ?
                         '<span class="badge bg-success">Sucesso</span>' :
