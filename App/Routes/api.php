@@ -119,6 +119,10 @@ $router->grupo([
     $rotasAuditoria = require __DIR__ . '/auditoria.php';
     $rotasAuditoria($router);
 
+    // Inclui rotas de whatsapp
+    $rotasWhatsapp = require __DIR__ . '/whatsapp.php';
+    $rotasWhatsapp($router);
+
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'obterUsuarioAutenticado']);
