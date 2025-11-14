@@ -4,10 +4,6 @@ namespace App\Services\Dashboard;
 
 use App\Core\BancoDados;
 
-/**
- * Service para obter dados dos widgets
- * Integra com as tabelas existentes do sistema
- */
 class ServiceWidgetDados
 {
     private BancoDados $db;
@@ -18,22 +14,16 @@ class ServiceWidgetDados
         $this->db = BancoDados::obterInstancia();
     }
 
-    /**
-     * Método principal que roteia para o widget correto
-     */
     public function obterDados(string $widgetCodigo, int $colaboradorId, array $config, array $filtros = []): array
     {
-        // Verifica cache
         $cacheKey = $this->gerarChaveCache($widgetCodigo, $colaboradorId, $config, $filtros);
         if ($this->temCache($cacheKey)) {
             return $this->obterCache($cacheKey);
         }
 
-        // Extrai categoria do código
         $partes = explode('_', $widgetCodigo);
         $categoria = $partes[0];
 
-        // Roteia para categoria
         $dados = match ($categoria) {
             'vendas' => $this->obterDadosVendas($widgetCodigo, $colaboradorId, $config, $filtros),
             'financeiro' => $this->obterDadosFinanceiro($widgetCodigo, $colaboradorId, $config, $filtros),
@@ -44,15 +34,10 @@ class ServiceWidgetDados
             default => throw new \Exception("Categoria de widget não suportada: {$categoria}")
         };
 
-        // Salva no cache (5 minutos)
         $this->salvarCache($cacheKey, $dados, 300);
-
         return $dados;
     }
 
-    /**
-     * VENDAS - Dados de vendas
-     */
     private function obterDadosVendas(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -74,11 +59,11 @@ class ServiceWidgetDados
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
         $vendas = $this->db->buscarTodos(
-            "SELECT DATE(criado_em) as data, SUM(valor_total) as total
+            "SELECT DATE(cadastrado_em) as data, SUM(valor_total) as total
              FROM vendas
-             WHERE criado_em BETWEEN ? AND ?
+             WHERE cadastrado_em BETWEEN ? AND ?
                AND deletado_em IS NULL
-             GROUP BY DATE(criado_em)
+             GROUP BY DATE(cadastrado_em)
              ORDER BY data ASC",
             [$dataInicio, $dataFim . ' 23:59:59']
         );
@@ -112,7 +97,7 @@ class ServiceWidgetDados
                 COUNT(*) as quantidade,
                 COALESCE(SUM(valor_total), 0) as total
              FROM vendas
-             WHERE criado_em BETWEEN ? AND ?
+             WHERE cadastrado_em BETWEEN ? AND ?
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim . ' 23:59:59']
         );
@@ -134,7 +119,7 @@ class ServiceWidgetDados
                 COUNT(*) as quantidade,
                 COALESCE(SUM(valor_total), 0) as total
              FROM vendas
-             WHERE DATE(criado_em) = ?
+             WHERE DATE(cadastrado_em) = ?
                AND deletado_em IS NULL",
             [$hoje]
         );
@@ -158,7 +143,7 @@ class ServiceWidgetDados
                 COUNT(*) as quantidade,
                 COALESCE(SUM(valor_total), 0) as total
              FROM vendas
-             WHERE criado_em BETWEEN ? AND ?
+             WHERE cadastrado_em BETWEEN ? AND ?
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim . ' 23:59:59']
         );
@@ -175,45 +160,6 @@ class ServiceWidgetDados
         ];
     }
 
-    private function vendas_top_produtos(int $colaboradorId, array $config): array
-    {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        $limite = $config['limite'] ?? 10;
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        $produtos = $this->db->buscarTodos(
-            "SELECT
-                p.nome as produto,
-                COUNT(vi.id) as quantidade,
-                SUM(vi.valor_total) as total
-             FROM vendas_itens vi
-             INNER JOIN vendas v ON vi.venda_id = v.id
-             INNER JOIN produtos p ON vi.produto_id = p.id
-             WHERE v.criado_em BETWEEN ? AND ?
-               AND v.deletado_em IS NULL
-               AND p.deletado_em IS NULL
-             GROUP BY p.id, p.nome
-             ORDER BY total DESC
-             LIMIT ?",
-            [$dataInicio, $dataFim . ' 23:59:59', $limite]
-        );
-
-        $linhas = [];
-        foreach ($produtos as $index => $item) {
-            $linhas[] = [
-                $index + 1,
-                $item['produto'],
-                $item['quantidade'],
-                'R$ ' . number_format($item['total'], 2, ',', '.')
-            ];
-        }
-
-        return [
-            'colunas' => ['#', 'Produto', 'Qtd', 'Valor Total'],
-            'linhas' => $linhas
-        ];
-    }
-
     private function vendas_ultimas(int $colaboradorId, array $config): array
     {
         $limite = $config['limite'] ?? 10;
@@ -221,14 +167,13 @@ class ServiceWidgetDados
         $vendas = $this->db->buscarTodos(
             "SELECT
                 v.id,
-                v.numero_venda,
+                v.codigo,
                 v.valor_total,
-                v.criado_em,
-                c.nome as cliente_nome
+                v.cadastrado_em,
+                v.nome_cliente
              FROM vendas v
-             LEFT JOIN clientes c ON v.cliente_id = c.id
              WHERE v.deletado_em IS NULL
-             ORDER BY v.criado_em DESC
+             ORDER BY v.cadastrado_em DESC
              LIMIT ?",
             [$limite]
         );
@@ -237,116 +182,14 @@ class ServiceWidgetDados
         foreach ($vendas as $venda) {
             $items[] = [
                 'id' => $venda['id'],
-                'titulo' => 'Venda #' . $venda['numero_venda'],
-                'subtitulo' => $venda['cliente_nome'] ?? 'Cliente não informado',
+                'titulo' => 'Venda #' . $venda['codigo'],
+                'subtitulo' => $venda['nome_cliente'] ?? 'Cliente não informado',
                 'valor' => 'R$ ' . number_format($venda['valor_total'], 2, ',', '.'),
-                'data' => date('d/m/Y H:i', strtotime($venda['criado_em']))
+                'data' => date('d/m/Y H:i', strtotime($venda['cadastrado_em']))
             ];
         }
 
         return ['items' => $items];
-    }
-
-    private function vendas_comparativo_ano(int $colaboradorId, array $config): array
-    {
-        $anoAtual = date('Y');
-        $anoAnterior = $anoAtual - 1;
-
-        // Vendas ano atual
-        $vendasAtual = $this->db->buscarTodos(
-            "SELECT MONTH(criado_em) as mes, SUM(valor_total) as total
-             FROM vendas
-             WHERE YEAR(criado_em) = ?
-               AND deletado_em IS NULL
-             GROUP BY MONTH(criado_em)
-             ORDER BY mes ASC",
-            [$anoAtual]
-        );
-
-        // Vendas ano anterior
-        $vendasAnterior = $this->db->buscarTodos(
-            "SELECT MONTH(criado_em) as mes, SUM(valor_total) as total
-             FROM vendas
-             WHERE YEAR(criado_em) = ?
-               AND deletado_em IS NULL
-             GROUP BY MONTH(criado_em)
-             ORDER BY mes ASC",
-            [$anoAnterior]
-        );
-
-        $meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        $labels = [];
-        $datasetsAtual = [];
-        $datasetsAnterior = [];
-
-        // Organiza dados por mês
-        $vendasAtualPorMes = [];
-        foreach ($vendasAtual as $v) {
-            $vendasAtualPorMes[$v['mes']] = (float) $v['total'];
-        }
-
-        $vendasAnteriorPorMes = [];
-        foreach ($vendasAnterior as $v) {
-            $vendasAnteriorPorMes[$v['mes']] = (float) $v['total'];
-        }
-
-        for ($mes = 1; $mes <= 12; $mes++) {
-            $labels[] = $meses[$mes - 1];
-            $datasetsAtual[] = $vendasAtualPorMes[$mes] ?? 0;
-            $datasetsAnterior[] = $vendasAnteriorPorMes[$mes] ?? 0;
-        }
-
-        return [
-            'labels' => $labels,
-            'datasets' => [
-                [
-                    'label' => $anoAtual,
-                    'data' => $datasetsAtual,
-                    'borderColor' => '#3498db',
-                    'backgroundColor' => 'rgba(52, 152, 219, 0.1)'
-                ],
-                [
-                    'label' => $anoAnterior,
-                    'data' => $datasetsAnterior,
-                    'borderColor' => '#95a5a6',
-                    'backgroundColor' => 'rgba(149, 165, 166, 0.1)'
-                ]
-            ]
-        ];
-    }
-
-    private function vendas_por_cliente_pizza(int $colaboradorId, array $config): array
-    {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        $limite = $config['limite'] ?? 5;
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        $clientes = $this->db->buscarTodos(
-            "SELECT
-                c.nome as cliente,
-                SUM(v.valor_total) as total
-             FROM vendas v
-             INNER JOIN clientes c ON v.cliente_id = c.id
-             WHERE v.criado_em BETWEEN ? AND ?
-               AND v.deletado_em IS NULL
-             GROUP BY c.id, c.nome
-             ORDER BY total DESC
-             LIMIT ?",
-            [$dataInicio, $dataFim . ' 23:59:59', $limite]
-        );
-
-        $labels = [];
-        $values = [];
-
-        foreach ($clientes as $cliente) {
-            $labels[] = $cliente['cliente'];
-            $values[] = (float) $cliente['total'];
-        }
-
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
     }
 
     private function vendas_por_produto_donut(int $colaboradorId, array $config): array
@@ -357,15 +200,14 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                p.nome as produto,
+                vi.nome_produto as produto,
                 SUM(vi.valor_total) as total
              FROM vendas_itens vi
              INNER JOIN vendas v ON vi.venda_id = v.id
-             INNER JOIN produtos p ON vi.produto_id = p.id
-             WHERE v.criado_em BETWEEN ? AND ?
+             WHERE v.cadastrado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
-               AND p.deletado_em IS NULL
-             GROUP BY p.id, p.nome
+               AND vi.tipo = 'produto'
+             GROUP BY vi.nome_produto
              ORDER BY total DESC
              LIMIT ?",
             [$dataInicio, $dataFim . ' 23:59:59', $limite]
@@ -390,22 +232,37 @@ class ServiceWidgetDados
         $periodo = $config['periodo'] ?? 'mes_atual';
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
-        // Por enquanto retorna vazio - TODO: Implementar quando houver campo vendedor_id na tabela vendas
-        return ['labels' => [], 'values' => []];
+        $vendedores = $this->db->buscarTodos(
+            "SELECT
+                v.nome_vendedor as vendedor,
+                COUNT(v.id) as quantidade,
+                SUM(v.valor_total) as total
+             FROM vendas v
+             WHERE v.cadastrado_em BETWEEN ? AND ?
+               AND v.deletado_em IS NULL
+               AND v.vendedor_id IS NOT NULL
+             GROUP BY v.vendedor_id, v.nome_vendedor
+             ORDER BY total DESC
+             LIMIT 10",
+            [$dataInicio, $dataFim . ' 23:59:59']
+        );
+
+        $labels = [];
+        $values = [];
+
+        foreach ($vendedores as $vendedor) {
+            $labels[] = $vendedor['vendedor'] ?? 'Vendedor #' . $vendedor['vendedor_id'];
+            $values[] = (float) $vendedor['total'];
+        }
+
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function vendas_metas(int $colaboradorId, array $config): array
     {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela de metas
         return ['labels' => ['Realizado', 'Meta'], 'values' => [0, 0]];
     }
 
-    /**
-     * FINANCEIRO - Dados financeiros
-     */
     private function obterDadosFinanceiro(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -424,15 +281,15 @@ class ServiceWidgetDados
     private function financeiro_saldo(int $colaboradorId, array $config): array
     {
         $recebimentos = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM recebimentos
-             WHERE deletado_em IS NULL"
+             WHERE liquidado = 1 AND deletado_em IS NULL"
         );
 
         $pagamentos = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM pagamentos
-             WHERE deletado_em IS NULL"
+             WHERE liquidado = 1 AND deletado_em IS NULL"
         );
 
         $saldo = $recebimentos['total'] - $pagamentos['total'];
@@ -450,27 +307,24 @@ class ServiceWidgetDados
         $periodo = $config['periodo'] ?? 'mes_atual';
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
-        // Busca recebimentos
         $recebimentos = $this->db->buscarTodos(
-            "SELECT DATE(data_recebimento) as data, SUM(valor) as total
+            "SELECT DATE(data_liquidacao) as data, SUM(valor_total) as total
              FROM recebimentos
-             WHERE data_recebimento BETWEEN ? AND ?
+             WHERE data_liquidacao BETWEEN ? AND ?
                AND deletado_em IS NULL
-             GROUP BY DATE(data_recebimento)",
+             GROUP BY DATE(data_liquidacao)",
             [$dataInicio, $dataFim]
         );
 
-        // Busca pagamentos
         $pagamentos = $this->db->buscarTodos(
-            "SELECT DATE(data_pagamento) as data, SUM(valor) as total
+            "SELECT DATE(data_liquidacao) as data, SUM(valor_total) as total
              FROM pagamentos
-             WHERE data_pagamento BETWEEN ? AND ?
+             WHERE data_liquidacao BETWEEN ? AND ?
                AND deletado_em IS NULL
-             GROUP BY DATE(data_pagamento)",
+             GROUP BY DATE(data_liquidacao)",
             [$dataInicio, $dataFim]
         );
 
-        // Organiza por data
         $recebimentosPorDia = [];
         foreach ($recebimentos as $r) {
             $recebimentosPorDia[$r['data']] = (float) $r['total'];
@@ -481,7 +335,6 @@ class ServiceWidgetDados
             $pagamentosPorDia[$p['data']] = (float) $p['total'];
         }
 
-        // Unifica datas
         $todasDatas = array_unique(array_merge(
             array_keys($recebimentosPorDia),
             array_keys($pagamentosPorDia)
@@ -517,197 +370,16 @@ class ServiceWidgetDados
         ];
     }
 
-    private function financeiro_pagar_tabela(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-        $apenasPendentes = $config['apenas_pendentes'] ?? true;
-
-        $where = "deletado_em IS NULL";
-        if ($apenasPendentes) {
-            $where .= " AND data_pagamento IS NULL";
-        }
-
-        $pagamentos = $this->db->buscarTodos(
-            "SELECT
-                id,
-                descricao,
-                valor,
-                data_vencimento,
-                data_pagamento
-             FROM pagamentos
-             WHERE {$where}
-             ORDER BY data_vencimento ASC
-             LIMIT ?",
-            [$limite]
-        );
-
-        $linhas = [];
-        foreach ($pagamentos as $item) {
-            $status = $item['data_pagamento'] ? 'Pago' : 'Pendente';
-            $vencimento = date('d/m/Y', strtotime($item['data_vencimento']));
-
-            $linhas[] = [
-                $item['descricao'],
-                'R$ ' . number_format($item['valor'], 2, ',', '.'),
-                $vencimento,
-                $status
-            ];
-        }
-
-        return [
-            'colunas' => ['Descrição', 'Valor', 'Vencimento', 'Status'],
-            'linhas' => $linhas
-        ];
-    }
-
-    private function financeiro_receber_tabela(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-        $apenasPendentes = $config['apenas_pendentes'] ?? true;
-
-        $where = "deletado_em IS NULL";
-        if ($apenasPendentes) {
-            $where .= " AND data_recebimento IS NULL";
-        }
-
-        $recebimentos = $this->db->buscarTodos(
-            "SELECT
-                id,
-                descricao,
-                valor,
-                data_vencimento,
-                data_recebimento
-             FROM recebimentos
-             WHERE {$where}
-             ORDER BY data_vencimento ASC
-             LIMIT ?",
-            [$limite]
-        );
-
-        $linhas = [];
-        foreach ($recebimentos as $item) {
-            $status = $item['data_recebimento'] ? 'Recebido' : 'Pendente';
-            $vencimento = date('d/m/Y', strtotime($item['data_vencimento']));
-
-            $linhas[] = [
-                $item['descricao'],
-                'R$ ' . number_format($item['valor'], 2, ',', '.'),
-                $vencimento,
-                $status
-            ];
-        }
-
-        return [
-            'colunas' => ['Descrição', 'Valor', 'Vencimento', 'Status'],
-            'linhas' => $linhas
-        ];
-    }
-
-    private function financeiro_pagamentos_hoje(int $colaboradorId, array $config): array
-    {
-        $hoje = date('Y-m-d');
-
-        $pagamentos = $this->db->buscarTodos(
-            "SELECT
-                id,
-                descricao,
-                valor,
-                data_pagamento
-             FROM pagamentos
-             WHERE DATE(data_pagamento) = ?
-               AND deletado_em IS NULL
-             ORDER BY data_pagamento DESC
-             LIMIT 10",
-            [$hoje]
-        );
-
-        $items = [];
-        foreach ($pagamentos as $pag) {
-            $items[] = [
-                'id' => $pag['id'],
-                'titulo' => $pag['descricao'],
-                'subtitulo' => date('H:i', strtotime($pag['data_pagamento'])),
-                'valor' => 'R$ ' . number_format($pag['valor'], 2, ',', '.'),
-                'cor' => '#e74c3c'
-            ];
-        }
-
-        return ['items' => $items];
-    }
-
-    private function financeiro_recebimentos_hoje(int $colaboradorId, array $config): array
-    {
-        $hoje = date('Y-m-d');
-
-        $recebimentos = $this->db->buscarTodos(
-            "SELECT
-                id,
-                descricao,
-                valor,
-                data_recebimento
-             FROM recebimentos
-             WHERE DATE(data_recebimento) = ?
-               AND deletado_em IS NULL
-             ORDER BY data_recebimento DESC
-             LIMIT 10",
-            [$hoje]
-        );
-
-        $items = [];
-        foreach ($recebimentos as $rec) {
-            $items[] = [
-                'id' => $rec['id'],
-                'titulo' => $rec['descricao'],
-                'subtitulo' => date('H:i', strtotime($rec['data_recebimento'])),
-                'valor' => 'R$ ' . number_format($rec['valor'], 2, ',', '.'),
-                'cor' => '#27ae60'
-            ];
-        }
-
-        return ['items' => $items];
-    }
-
-    private function financeiro_resultado_barra(int $colaboradorId, array $config): array
-    {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        $recebimentos = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
-             FROM recebimentos
-             WHERE data_recebimento BETWEEN ? AND ?
-               AND deletado_em IS NULL",
-            [$dataInicio, $dataFim]
-        );
-
-        $pagamentos = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
-             FROM pagamentos
-             WHERE data_pagamento BETWEEN ? AND ?
-               AND deletado_em IS NULL",
-            [$dataInicio, $dataFim]
-        );
-
-        return [
-            'labels' => ['Receitas', 'Despesas', 'Resultado'],
-            'values' => [
-                (float) $recebimentos['total'],
-                (float) $pagamentos['total'],
-                (float) ($recebimentos['total'] - $pagamentos['total'])
-            ]
-        ];
-    }
-
     private function financeiro_receber_periodo(int $colaboradorId, array $config): array
     {
         $periodo = $config['periodo'] ?? 'mes_atual';
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM recebimentos
              WHERE data_vencimento BETWEEN ? AND ?
-               AND data_recebimento IS NULL
+               AND liquidado = 0
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim]
         );
@@ -725,10 +397,10 @@ class ServiceWidgetDados
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM pagamentos
              WHERE data_vencimento BETWEEN ? AND ?
-               AND data_pagamento IS NULL
+               AND liquidado = 0
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim]
         );
@@ -745,10 +417,10 @@ class ServiceWidgetDados
         $hoje = date('Y-m-d');
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM recebimentos
              WHERE data_vencimento < ?
-               AND data_recebimento IS NULL
+               AND liquidado = 0
                AND deletado_em IS NULL",
             [$hoje]
         );
@@ -766,10 +438,10 @@ class ServiceWidgetDados
         $hoje = date('Y-m-d');
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor), 0) as total
+            "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM pagamentos
              WHERE data_vencimento < ?
-               AND data_pagamento IS NULL
+               AND liquidado = 0
                AND deletado_em IS NULL",
             [$hoje]
         );
@@ -784,19 +456,60 @@ class ServiceWidgetDados
 
     private function financeiro_contas_bancarias(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela contas_bancarias
-        return ['cards' => []];
+        $contas = $this->db->buscarTodos(
+            "SELECT
+                nome,
+                banco_nome,
+                saldo_inicial
+             FROM contas_bancarias
+             WHERE ativo = 1 AND deletado_em IS NULL
+             ORDER BY nome ASC
+             LIMIT 10"
+        );
+
+        $cards = [];
+        foreach ($contas as $conta) {
+            $cards[] = [
+                'titulo' => $conta['nome'],
+                'subtitulo' => $conta['banco_nome'] ?? 'Banco não informado',
+                'valor' => 'R$ ' . number_format($conta['saldo_inicial'], 2, ',', '.'),
+                'icone' => 'fa-university'
+            ];
+        }
+
+        return ['cards' => $cards];
     }
 
     private function financeiro_despesas_categoria(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna vazio - TODO: Implementar quando houver campo categoria em pagamentos
-        return ['labels' => [], 'values' => []];
+        $periodo = $config['periodo'] ?? 'mes_atual';
+        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
+
+        $despesas = $this->db->buscarTodos(
+            "SELECT
+                pc.nome as categoria,
+                SUM(p.valor_total) as total
+             FROM pagamentos p
+             INNER JOIN plano_de_contas pc ON p.plano_contas_id = pc.id
+             WHERE p.data_liquidacao BETWEEN ? AND ?
+               AND p.deletado_em IS NULL
+             GROUP BY pc.id, pc.nome
+             ORDER BY total DESC
+             LIMIT 10",
+            [$dataInicio, $dataFim]
+        );
+
+        $labels = [];
+        $values = [];
+
+        foreach ($despesas as $despesa) {
+            $labels[] = $despesa['categoria'];
+            $values[] = (float) $despesa['total'];
+        }
+
+        return ['labels' => $labels, 'values' => $values];
     }
 
-    /**
-     * FROTA - Dados da frota
-     */
     private function obterDadosFrota(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -833,16 +546,17 @@ class ServiceWidgetDados
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(km_percorrido), 0) as total
+            "SELECT COALESCE(SUM(km), 0) as total
              FROM frotas_abastecimentos
              WHERE data_abastecimento BETWEEN ? AND ?
-               AND deletado_em IS NULL",
+               AND deletado_em IS NULL
+               AND status = 'abastecido'",
             [$dataInicio, $dataFim]
         );
 
         return [
             'valor' => (float) $resultado['total'],
-            'label' => 'Km Rodados',
+            'label' => 'Km Registrados',
             'formato' => 'numero',
             'sufixo' => ' km'
         ];
@@ -858,6 +572,7 @@ class ServiceWidgetDados
              FROM frotas_abastecimentos
              WHERE data_abastecimento BETWEEN ? AND ?
                AND deletado_em IS NULL
+               AND status = 'abastecido'
              GROUP BY DATE(data_abastecimento)
              ORDER BY data ASC",
             [$dataInicio, $dataFim]
@@ -871,93 +586,7 @@ class ServiceWidgetDados
             $values[] = (float) $c['total_litros'];
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
-    }
-
-    private function frota_custo_veiculo_tabela(int $colaboradorId, array $config): array
-    {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        $custos = $this->db->buscarTodos(
-            "SELECT
-                f.placa,
-                f.modelo,
-                COUNT(a.id) as qtd_abastecimentos,
-                COALESCE(SUM(a.valor_total), 0) as custo_total
-             FROM frotas f
-             LEFT JOIN frotas_abastecimentos a ON f.id = a.frota_id
-                AND a.data_abastecimento BETWEEN ? AND ?
-                AND a.deletado_em IS NULL
-             WHERE f.deletado_em IS NULL
-             GROUP BY f.id, f.placa, f.modelo
-             ORDER BY custo_total DESC
-             LIMIT 10",
-            [$dataInicio, $dataFim]
-        );
-
-        $linhas = [];
-        foreach ($custos as $item) {
-            $linhas[] = [
-                $item['placa'],
-                $item['modelo'],
-                $item['qtd_abastecimentos'],
-                'R$ ' . number_format($item['custo_total'], 2, ',', '.')
-            ];
-        }
-
-        return [
-            'colunas' => ['Placa', 'Modelo', 'Abastecimentos', 'Custo Total'],
-            'linhas' => $linhas
-        ];
-    }
-
-    private function frota_alertas_lista(int $colaboradorId, array $config): array
-    {
-        $diasAntecedencia = $config['dias_antecedencia'] ?? 30;
-        $dataLimite = date('Y-m-d', strtotime("+{$diasAntecedencia} days"));
-
-        // Por enquanto retorna vazio, pois não temos campo de manutenção programada
-        // TODO: Implementar quando houver tabela de manutenções
-        return ['items' => []];
-    }
-
-    private function frota_abastecimentos_timeline(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-
-        $abastecimentos = $this->db->buscarTodos(
-            "SELECT
-                a.id,
-                a.data_abastecimento,
-                a.litros,
-                a.valor_total,
-                a.km_atual,
-                f.placa,
-                f.modelo
-             FROM frotas_abastecimentos a
-             INNER JOIN frotas f ON a.frota_id = f.id
-             WHERE a.deletado_em IS NULL
-             ORDER BY a.data_abastecimento DESC
-             LIMIT ?",
-            [$limite]
-        );
-
-        $items = [];
-        foreach ($abastecimentos as $a) {
-            $items[] = [
-                'id' => $a['id'],
-                'titulo' => $a['placa'] . ' - ' . $a['modelo'],
-                'subtitulo' => $a['litros'] . 'L • ' . number_format($a['km_atual'], 0, ',', '.') . ' km',
-                'valor' => 'R$ ' . number_format($a['valor_total'], 2, ',', '.'),
-                'data' => date('d/m/Y H:i', strtotime($a['data_abastecimento']))
-            ];
-        }
-
-        return ['items' => $items];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function frota_custo_total(int $colaboradorId, array $config): array
@@ -966,10 +595,11 @@ class ServiceWidgetDados
         [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
 
         $resultado = $this->db->buscarUm(
-            "SELECT COALESCE(SUM(valor_total), 0) as total
+            "SELECT COALESCE(SUM(valor), 0) as total
              FROM frotas_abastecimentos
              WHERE data_abastecimento BETWEEN ? AND ?
-               AND deletado_em IS NULL",
+               AND deletado_em IS NULL
+               AND status = 'abastecido'",
             [$dataInicio, $dataFim]
         );
 
@@ -980,36 +610,8 @@ class ServiceWidgetDados
         ];
     }
 
-    private function frota_media_consumo(int $colaboradorId, array $config): array
-    {
-        $periodo = $config['periodo'] ?? 'mes_atual';
-        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
-
-        $resultado = $this->db->buscarUm(
-            "SELECT
-                COALESCE(SUM(km_percorrido), 0) as total_km,
-                COALESCE(SUM(litros), 0) as total_litros
-             FROM frotas_abastecimentos
-             WHERE data_abastecimento BETWEEN ? AND ?
-               AND deletado_em IS NULL",
-            [$dataInicio, $dataFim]
-        );
-
-        $mediaKmL = $resultado['total_litros'] > 0
-            ? $resultado['total_km'] / $resultado['total_litros']
-            : 0;
-
-        return [
-            'valor' => number_format($mediaKmL, 2, '.', ''),
-            'label' => 'Média Km/L',
-            'formato' => 'numero',
-            'sufixo' => ' km/l'
-        ];
-    }
-
     private function frota_manutencoes_pendentes(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna 0 - TODO: Implementar quando houver tabela de manutenções
         return [
             'valor' => 0,
             'label' => 'Manutenções Pendentes',
@@ -1034,21 +636,14 @@ class ServiceWidgetDados
             $values[] = (int) $v['total'];
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function frota_ultimas_manutencoes(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela de manutenções
         return ['items' => []];
     }
 
-    /**
-     * CLIENTES - Dados de clientes
-     */
     private function obterDadosClientes(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -1105,14 +700,14 @@ class ServiceWidgetDados
 
         $clientes = $this->db->buscarTodos(
             "SELECT
-                c.nome,
+                v.nome_cliente as nome,
                 COUNT(v.id) as qtd_compras,
                 COALESCE(SUM(v.valor_total), 0) as total_gasto
-             FROM clientes c
-             INNER JOIN vendas v ON c.id = v.cliente_id
-             WHERE v.criado_em BETWEEN ? AND ?
+             FROM vendas v
+             WHERE v.cadastrado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
-             GROUP BY c.id, c.nome
+               AND v.cliente_id IS NOT NULL
+             GROUP BY v.cliente_id, v.nome_cliente
              ORDER BY total_gasto DESC
              LIMIT ?",
             [$dataInicio, $dataFim . ' 23:59:59', $limite]
@@ -1159,41 +754,7 @@ class ServiceWidgetDados
             $values[] = $acumulado;
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
-    }
-
-    private function clientes_ultimos_lista(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-
-        $clientes = $this->db->buscarTodos(
-            "SELECT
-                id,
-                nome,
-                email,
-                telefone,
-                cadastrado_em
-             FROM clientes
-             WHERE deletado_em IS NULL
-             ORDER BY cadastrado_em DESC
-             LIMIT ?",
-            [$limite]
-        );
-
-        $items = [];
-        foreach ($clientes as $cliente) {
-            $items[] = [
-                'id' => $cliente['id'],
-                'titulo' => $cliente['nome'],
-                'subtitulo' => $cliente['email'] ?? $cliente['telefone'] ?? 'Sem contato',
-                'data' => date('d/m/Y H:i', strtotime($cliente['cadastrado_em']))
-            ];
-        }
-
-        return ['items' => $items];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function clientes_por_cidade(int $colaboradorId, array $config): array
@@ -1203,11 +764,10 @@ class ServiceWidgetDados
         $cidades = $this->db->buscarTodos(
             "SELECT
                 ci.nome as cidade,
-                COUNT(DISTINCT c.id) as total
-             FROM clientes c
-             LEFT JOIN clientes_enderecos ce ON c.id = ce.cliente_id
+                COUNT(DISTINCT ce.cliente_id) as total
+             FROM clientes_enderecos ce
              LEFT JOIN cidades ci ON ce.cidade_id = ci.id
-             WHERE c.deletado_em IS NULL
+             INNER JOIN clientes c ON ce.cliente_id = c.id AND c.deletado_em IS NULL
              GROUP BY ci.id, ci.nome
              ORDER BY total DESC
              LIMIT ?",
@@ -1222,10 +782,7 @@ class ServiceWidgetDados
             $values[] = (int) $cidade['total'];
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function clientes_inativos(int $colaboradorId, array $config): array
@@ -1237,7 +794,7 @@ class ServiceWidgetDados
             "SELECT COUNT(DISTINCT c.id) as total
              FROM clientes c
              LEFT JOIN vendas v ON c.id = v.cliente_id
-                AND v.criado_em >= ?
+                AND v.cadastrado_em >= ?
                 AND v.deletado_em IS NULL
              WHERE c.deletado_em IS NULL
                AND v.id IS NULL",
@@ -1252,9 +809,6 @@ class ServiceWidgetDados
         ];
     }
 
-    /**
-     * PRODUTOS - Dados de produtos
-     */
     private function obterDadosProdutos(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -1271,7 +825,7 @@ class ServiceWidgetDados
     private function produtos_total(int $colaboradorId, array $config): array
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM produtos WHERE deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM produtos WHERE deletado_em IS NULL AND ativo = 1"
         );
 
         return [
@@ -1282,47 +836,39 @@ class ServiceWidgetDados
         ];
     }
 
-    private function produtos_estoque_tabela(int $colaboradorId, array $config): array
+    private function produtos_estoque_baixo_lista(int $colaboradorId, array $config): array
     {
-        $limite = $config['limite'] ?? 20;
+        $limite = $config['limite'] ?? 10;
+        $estoqueMinimo = $config['estoque_minimo'] ?? 10;
 
-        // Nota: Assumindo que a tabela produtos tem um campo 'estoque_atual'
-        // Se não houver, retorna lista simples de produtos
         $produtos = $this->db->buscarTodos(
             "SELECT
                 id,
                 nome,
-                codigo_sku,
-                preco_venda
+                codigo_interno,
+                estoque
              FROM produtos
              WHERE deletado_em IS NULL
-             ORDER BY nome ASC
+               AND ativo = 1
+               AND movimenta_estoque = 1
+               AND estoque < ?
+             ORDER BY estoque ASC
              LIMIT ?",
-            [$limite]
+            [$estoqueMinimo, $limite]
         );
 
-        $linhas = [];
+        $items = [];
         foreach ($produtos as $produto) {
-            $linhas[] = [
-                $produto['codigo_sku'] ?? '-',
-                $produto['nome'],
-                'R$ ' . number_format($produto['preco_venda'] ?? 0, 2, ',', '.')
+            $items[] = [
+                'id' => $produto['id'],
+                'titulo' => $produto['nome'],
+                'subtitulo' => 'Código: ' . ($produto['codigo_interno'] ?? '-'),
+                'valor' => number_format($produto['estoque'], 2, ',', '.') . ' un',
+                'cor' => '#e74c3c'
             ];
         }
 
-        return [
-            'colunas' => ['SKU', 'Produto', 'Preço'],
-            'linhas' => $linhas
-        ];
-    }
-
-    private function produtos_estoque_baixo_lista(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-
-        // Retorna lista vazia por enquanto
-        // TODO: Implementar quando houver controle de estoque
-        return ['items' => []];
+        return ['items' => $items];
     }
 
     private function produtos_mais_vendidos_barra(int $colaboradorId, array $config): array
@@ -1333,15 +879,14 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                p.nome,
+                vi.nome_produto as nome,
                 SUM(vi.quantidade) as total_vendido
              FROM vendas_itens vi
              INNER JOIN vendas v ON vi.venda_id = v.id
-             INNER JOIN produtos p ON vi.produto_id = p.id
-             WHERE v.criado_em BETWEEN ? AND ?
+             WHERE v.cadastrado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
-               AND p.deletado_em IS NULL
-             GROUP BY p.id, p.nome
+               AND vi.tipo = 'produto'
+             GROUP BY vi.produto_id, vi.nome_produto
              ORDER BY total_vendido DESC
              LIMIT ?",
             [$dataInicio, $dataFim . ' 23:59:59', $limite]
@@ -1352,21 +897,24 @@ class ServiceWidgetDados
 
         foreach ($produtos as $produto) {
             $labels[] = $produto['nome'];
-            $values[] = (int) $produto['total_vendido'];
+            $values[] = (float) $produto['total_vendido'];
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function produtos_valor_estoque(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna 0
-        // TODO: Implementar quando houver controle de estoque
+        $resultado = $this->db->buscarUm(
+            "SELECT COALESCE(SUM(estoque * valor_custo), 0) as total
+             FROM produtos
+             WHERE deletado_em IS NULL
+               AND ativo = 1
+               AND movimenta_estoque = 1"
+        );
+
         return [
-            'valor' => 0,
+            'valor' => (float) $resultado['total'],
             'label' => 'Valor em Estoque',
             'formato' => 'moeda'
         ];
@@ -1376,12 +924,13 @@ class ServiceWidgetDados
     {
         $grupos = $this->db->buscarTodos(
             "SELECT
-                g.nome as grupo,
+                gp.nome as grupo,
                 COUNT(p.id) as total
              FROM produtos p
-             INNER JOIN grupos_produtos g ON p.grupo_produto_id = g.id
+             INNER JOIN grupos_produtos gp ON p.grupo_id = gp.id
              WHERE p.deletado_em IS NULL
-             GROUP BY g.id, g.nome
+               AND gp.deletado_em IS NULL
+             GROUP BY gp.id, gp.nome
              ORDER BY total DESC
              LIMIT 10"
         );
@@ -1394,24 +943,48 @@ class ServiceWidgetDados
             $values[] = (int) $grupo['total'];
         }
 
-        return [
-            'labels' => $labels,
-            'values' => $values
-        ];
+        return ['labels' => $labels, 'values' => $values];
     }
 
     private function produtos_margem_lucro(int $colaboradorId, array $config): array
     {
-        // Por enquanto retorna vazio - TODO: Implementar quando houver campos de custo e margem
+        $limite = $config['limite'] ?? 10;
+
+        $produtos = $this->db->buscarTodos(
+            "SELECT
+                nome,
+                valor_custo,
+                valor_venda,
+                CASE
+                    WHEN valor_custo > 0 THEN ((valor_venda - valor_custo) / valor_custo * 100)
+                    ELSE 0
+                END as margem
+             FROM produtos
+             WHERE deletado_em IS NULL
+               AND ativo = 1
+               AND valor_custo > 0
+               AND valor_venda > 0
+             ORDER BY margem DESC
+             LIMIT ?",
+            [$limite]
+        );
+
+        $linhas = [];
+        foreach ($produtos as $produto) {
+            $linhas[] = [
+                $produto['nome'],
+                'R$ ' . number_format($produto['valor_custo'], 2, ',', '.'),
+                'R$ ' . number_format($produto['valor_venda'], 2, ',', '.'),
+                number_format($produto['margem'], 2, ',', '.') . '%'
+            ];
+        }
+
         return [
             'colunas' => ['Produto', 'Custo', 'Venda', 'Margem'],
-            'linhas' => []
+            'linhas' => $linhas
         ];
     }
 
-    /**
-     * GERAL - Dados gerais
-     */
     private function obterDadosGeral(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
@@ -1425,14 +998,12 @@ class ServiceWidgetDados
     {
         $hoje = date('Y-m-d');
 
-        // Vendas hoje
         $vendas = $this->db->buscarUm(
             "SELECT COUNT(*) as qtd, COALESCE(SUM(valor_total), 0) as total
-             FROM vendas WHERE DATE(criado_em) = ? AND deletado_em IS NULL",
+             FROM vendas WHERE DATE(cadastrado_em) = ? AND deletado_em IS NULL",
             [$hoje]
         );
 
-        // Clientes novos
         $clientes = $this->db->buscarUm(
             "SELECT COUNT(*) as total FROM clientes
              WHERE DATE(cadastrado_em) = ? AND deletado_em IS NULL",
@@ -1459,36 +1030,11 @@ class ServiceWidgetDados
         ];
     }
 
-    private function geral_atividade_feed(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 20;
-
-        // Retorna atividades recentes do sistema
-        // TODO: Implementar quando houver tabela de logs/auditoria
-        return ['items' => []];
-    }
-
-    private function geral_notificacoes_lista(int $colaboradorId, array $config): array
-    {
-        $limite = $config['limite'] ?? 10;
-
-        // Retorna notificações pendentes
-        // TODO: Implementar quando houver tabela de notificações
-        return ['items' => []];
-    }
-
     private function geral_avisos(int $colaboradorId, array $config): array
     {
-        $limite = $config['limite'] ?? 10;
-
-        // Retorna avisos e alertas
-        // TODO: Implementar quando houver tabela de avisos
         return ['items' => []];
     }
 
-    /**
-     * MÉTODOS AUXILIARES
-     */
     private function calcularPeriodo(string $periodo): array
     {
         return match ($periodo) {
