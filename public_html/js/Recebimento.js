@@ -900,3 +900,11 @@ const RecebimentoManager = {
         });
     }
 };
+
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    RecebimentoManager.init();
+});
+
+// Expõe globalmente para uso nos event handlers inline
+window.RecebimentoManager = RecebimentoManager;

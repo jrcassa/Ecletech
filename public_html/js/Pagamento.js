@@ -774,3 +774,11 @@ const PagamentoManager = {
         return div.innerHTML;
     }
 };
+
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    PagamentoManager.init();
+});
+
+// Expõe globalmente para uso nos event handlers inline
+window.PagamentoManager = PagamentoManager;

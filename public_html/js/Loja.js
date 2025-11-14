@@ -375,5 +375,10 @@ const LojaManager = {
     }
 };
 
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    LojaManager.init();
+});
+
 // Exporta para uso global
 window.LojaManager = LojaManager;
