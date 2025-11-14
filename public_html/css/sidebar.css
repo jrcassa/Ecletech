@@ -1921,3 +1921,285 @@ pre code {
 .visible {
     display: block !important;
 }
+
+/* ============================================================================
+   FORM SECTIONS E FORM GRID (para loja.html e formulários complexos)
+   ============================================================================ */
+
+.form-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form-section h3 {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ee670d;
+    display: inline-block;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.required {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* ============================================================================
+   ALERTS E NOTIFICAÇÕES
+   ============================================================================ */
+
+.alert {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-left: 4px solid;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert.show {
+    display: flex;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border-left-color: #10b981;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border-left-color: #ef4444;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border-left-color: #f59e0b;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border-left-color: #3b82f6;
+}
+
+/* ============================================================================
+   USER INFO (para header)
+   ============================================================================ */
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.user-info span {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ============================================================================
+   MELHORIAS PARA MODAL DE AUDITORIA
+   ============================================================================ */
+
+.modal-content #detalhesContent {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-content #detalhesContent h4 {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.modal-content #detalhesContent h4:first-child {
+    margin-top: 0;
+}
+
+.modal-content #detalhesContent .info-item {
+    display: flex;
+    padding: 12px 16px;
+    background: var(--info-item-bg);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.modal-content #detalhesContent .info-item strong {
+    min-width: 160px;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.modal-content #detalhesContent .info-item span {
+    color: var(--text-secondary);
+    flex: 1;
+    word-break: break-word;
+}
+
+/* Estilos para JSON em detalhes */
+.modal-content #detalhesContent pre {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.modal-content #detalhesContent code {
+    font-family: 'Courier New', Consolas, Monaco, monospace;
+    color: var(--text-primary);
+}
+
+/* ============================================================================
+   AJUSTES PARA INPUTS E SELECTS
+   ============================================================================ */
+
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #ee670d;
+    box-shadow: 0 0 0 3px rgba(238, 103, 13, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   ESTILOS PARA CONTAS BANCÁRIAS E PÁGINAS SIMILARES
+   ============================================================================ */
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.info-row span {
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   LOADING STATE MELHORADO
+   ============================================================================ */
+
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.loading::before {
+    content: '';
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-light);
+    border-top-color: #ee670d;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+    vertical-align: middle;
+}
+
+/* ============================================================================
+   RESPONSIVIDADE ADICIONAL
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-section h3 {
+        font-size: 15px;
+    }
+
+    .user-info {
+        padding: 6px 12px;
+    }
+
+    .user-info span {
+        font-size: 13px;
+    }
+}
