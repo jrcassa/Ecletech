@@ -3,7 +3,7 @@
 /**
  * Cron Job: Reprocessa relatórios com erro de envio
  * Execução: A cada 2 horas
- * Crontab: 0 */2 * * * /usr/bin/php /path/to/Ecletech/cron/reprocessar_relatorios.php
+ * Crontab: 0 *\/2 * * * /usr/bin/php /path/to/Ecletech/cron/reprocessar_relatorios.php
  */
 
 // Define o timezone
