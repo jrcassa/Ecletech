@@ -56,11 +56,11 @@
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="filtroBusca" placeholder="Banco, agência, conta...">
+                            <input type="text" id="inputBusca" placeholder="Banco, agência, conta...">
                         </div>
                         <div class="filter-group">
                             <label>Tipo de Conta</label>
-                            <select id="filtroTipoConta">
+                            <select id="selectTipoConta">
                                 <option value="">Todos</option>
                                 <option value="corrente">Conta Corrente</option>
                                 <option value="poupanca">Conta Poupança</option>
@@ -69,7 +69,7 @@
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
-                            <select id="filtroAtivo">
+                            <select id="selectAtivo">
                                 <option value="">Todos</option>
                                 <option value="1" selected>Ativos</option>
                                 <option value="0">Inativos</option>
@@ -127,97 +127,89 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Nova Conta Bancária</h3>
-                <button class="close" id="closeModal">&times;</button>
+                <button class="close" id="btnCloseModal">&times;</button>
             </div>
 
             <div id="modalError" style="display: none;">
                 <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <form id="formContaBancaria">
+            <form id="formConta">
                 <input type="hidden" id="contaId">
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="banco">Banco *</label>
-                        <input type="text" id="banco" required placeholder="Nome do banco">
+                        <label for="inputExternalId">ID Externo</label>
+                        <input type="text" id="inputExternalId" placeholder="ID externo (opcional)">
                     </div>
 
                     <div class="form-group">
-                        <label for="codigoBanco">Código do Banco</label>
-                        <input type="text" id="codigoBanco" placeholder="000" maxlength="3">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="agencia">Agência *</label>
-                        <input type="text" id="agencia" required placeholder="0000">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="agenciaDigito">Dígito da Agência</label>
-                        <input type="text" id="agenciaDigito" placeholder="0" maxlength="1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="conta">Conta *</label>
-                        <input type="text" id="conta" required placeholder="00000000">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="contaDigito">Dígito da Conta</label>
-                        <input type="text" id="contaDigito" placeholder="0" maxlength="2">
+                        <label for="inputNome">Nome da Conta *</label>
+                        <input type="text" id="inputNome" required placeholder="Nome da conta">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="tipoConta">Tipo de Conta *</label>
-                        <select id="tipoConta" required>
+                        <label for="inputBancoCodigo">Código do Banco</label>
+                        <input type="text" id="inputBancoCodigo" placeholder="000" maxlength="3">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputBancoNome">Nome do Banco</label>
+                        <input type="text" id="inputBancoNome" placeholder="Nome do banco">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="inputAgencia">Agência</label>
+                        <input type="text" id="inputAgencia" placeholder="0000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputAgenciaDv">Dígito da Agência</label>
+                        <input type="text" id="inputAgenciaDv" placeholder="0" maxlength="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputConta">Conta</label>
+                        <input type="text" id="inputConta" placeholder="00000000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputContaDv">Dígito da Conta</label>
+                        <input type="text" id="inputContaDv" placeholder="0" maxlength="2">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="selectTipoContaForm">Tipo de Conta *</label>
+                        <select id="selectTipoContaForm" required>
                             <option value="">Selecione...</option>
                             <option value="corrente">Conta Corrente</option>
                             <option value="poupanca">Conta Poupança</option>
-                            <option value="pagamento">Conta Pagamento</option>
+                            <option value="investimento">Investimento</option>
+                            <option value="outro">Outro</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="titular">Titular *</label>
-                        <input type="text" id="titular" required placeholder="Nome do titular">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="documento">CPF/CNPJ do Titular *</label>
-                        <input type="text" id="documento" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="saldo">Saldo Inicial</label>
-                        <input type="number" id="saldo" step="0.01" value="0.00" placeholder="0.00">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dataAbertura">Data de Abertura</label>
-                        <input type="date" id="dataAbertura">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ativo">Status *</label>
-                        <select id="ativo" required>
-                            <option value="1">Ativo</option>
-                            <option value="0">Inativo</option>
-                        </select>
+                        <label for="inputSaldoInicial">Saldo Inicial</label>
+                        <input type="text" id="inputSaldoInicial" placeholder="0,00">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="observacoes">Observações</label>
-                    <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre a conta..."></textarea>
+                    <label for="inputObservacoes">Observações</label>
+                    <textarea id="inputObservacoes" rows="3" placeholder="Informações adicionais sobre a conta..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="checkAtivo" checked> Ativo
+                    </label>
                 </div>
 
                 <div class="form-actions">
@@ -237,6 +229,12 @@
     <script src="js/sidebar.js"></script>
 
     <script src="js/ContasBancarias.js"></script>
+    <script>
+        // Inicializa o gerenciador quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            ContasBancariasManager.init();
+        });
+    </script>
 </body>
 
 </html>
