@@ -29,22 +29,22 @@ class ControllerDashboardWidget extends BaseController
     /**
      * Lista widgets de um dashboard
      */
-    public function listar(string $dashboardId): void
+    public function listar(string $id): void
     {
         try {
-            if (!$this->validarId($dashboardId, 'Dashboard')) {
+            if (!$this->validarId($id, 'Dashboard')) {
                 return;
             }
 
             $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Verifica propriedade do dashboard
-            if (!$this->modelDashboard->validarPropriedade((int) $dashboardId, $colaboradorId)) {
+            if (!$this->modelDashboard->validarPropriedade((int) $id, $colaboradorId)) {
                 $this->erro('Dashboard não encontrado', 404);
                 return;
             }
 
-            $widgets = $this->model->listarPorDashboard((int) $dashboardId);
+            $widgets = $this->model->listarPorDashboard((int) $id);
 
             $this->sucesso($widgets, 'Widgets listados com sucesso');
         } catch (\Exception $e) {
@@ -55,10 +55,10 @@ class ControllerDashboardWidget extends BaseController
     /**
      * Adiciona widget ao dashboard
      */
-    public function adicionar(string $dashboardId): void
+    public function adicionar(string $id): void
     {
         try {
-            if (!$this->validarId($dashboardId, 'Dashboard')) {
+            if (!$this->validarId($id, 'Dashboard')) {
                 return;
             }
 
@@ -66,7 +66,7 @@ class ControllerDashboardWidget extends BaseController
             $dados = $this->obterDados();
 
             // Verifica propriedade do dashboard
-            if (!$this->modelDashboard->validarPropriedade((int) $dashboardId, $colaboradorId)) {
+            if (!$this->modelDashboard->validarPropriedade((int) $id, $colaboradorId)) {
                 $this->erro('Dashboard não encontrado', 404);
                 return;
             }
@@ -83,7 +83,7 @@ class ControllerDashboardWidget extends BaseController
                 );
             }
 
-            $widgetId = $this->model->adicionar((int) $dashboardId, $dados, $colaboradorId);
+            $widgetId = $this->model->adicionar((int) $id, $dados, $colaboradorId);
 
             $widget = $this->model->buscarPorId($widgetId);
 
@@ -172,10 +172,10 @@ class ControllerDashboardWidget extends BaseController
     /**
      * Atualiza posições de múltiplos widgets
      */
-    public function atualizarPosicoes(string $dashboardId): void
+    public function atualizarPosicoes(string $id): void
     {
         try {
-            if (!$this->validarId($dashboardId, 'Dashboard')) {
+            if (!$this->validarId($id, 'Dashboard')) {
                 return;
             }
 
@@ -183,7 +183,7 @@ class ControllerDashboardWidget extends BaseController
             $dados = $this->obterDados();
 
             // Verifica propriedade do dashboard
-            if (!$this->modelDashboard->validarPropriedade((int) $dashboardId, $colaboradorId)) {
+            if (!$this->modelDashboard->validarPropriedade((int) $id, $colaboradorId)) {
                 $this->erro('Dashboard não encontrado', 404);
                 return;
             }
