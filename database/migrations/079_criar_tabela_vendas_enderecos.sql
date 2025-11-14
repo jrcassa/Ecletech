@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS vendas_enderecos (
     venda_id BIGINT UNSIGNED NOT NULL,
     venda_external_id VARCHAR(50) DEFAULT NULL,
 
-    -- Cidade
-    cidade_id BIGINT UNSIGNED DEFAULT NULL,
+    -- Cidade - INT UNSIGNED pois cidades usa INT
+    cidade_id INT UNSIGNED DEFAULT NULL,
     cidade_external_id VARCHAR(50) DEFAULT NULL,
 
     -- ========================================

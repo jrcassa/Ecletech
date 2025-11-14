@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS vendas_pagamentos (
     -- FOREIGN KEYS
     -- ========================================
     CONSTRAINT fk_vendas_pagamentos_venda FOREIGN KEY (venda_id) REFERENCES vendas(id) ON DELETE CASCADE,
-    CONSTRAINT fk_vendas_pagamentos_forma_pagamento FOREIGN KEY (forma_pagamento_id) REFERENCES formas_pagamento(id) ON DELETE SET NULL,
-    CONSTRAINT fk_vendas_pagamentos_plano_contas FOREIGN KEY (plano_contas_id) REFERENCES plano_contas(id) ON DELETE SET NULL
+    CONSTRAINT fk_vendas_pagamentos_forma_pagamento FOREIGN KEY (forma_pagamento_id) REFERENCES forma_de_pagamento(id) ON DELETE SET NULL,
+    CONSTRAINT fk_vendas_pagamentos_plano_contas FOREIGN KEY (plano_contas_id) REFERENCES plano_de_contas(id) ON DELETE SET NULL
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Parcelas de pagamento das vendas';
