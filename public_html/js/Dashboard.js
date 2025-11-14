@@ -236,10 +236,19 @@ const Dashboard = {
 
             const response = await API.get(`/dashboard/widgets/${widgetId}/dados`);
 
+            console.log(`Dados recebidos para widget ${widgetId}:`, response);
+
             if (response.sucesso) {
                 // Encontra widget
                 const widget = this.dashboardAtual.widgets.find(w => w.id == widgetId);
-                if (!widget) return;
+                if (!widget) {
+                    console.error('Widget não encontrado no dashboard atual:', widgetId);
+                    throw new Error('Widget não encontrado');
+                }
+
+                console.log('Widget encontrado:', widget);
+                console.log('Tipo visual:', widget.tipo_visual);
+                console.log('Dados para renderizar:', response.dados);
 
                 // Renderiza dados
                 this.renderizarWidget(widgetId, widget.tipo_visual, response.dados);
@@ -250,13 +259,18 @@ const Dashboard = {
                 if (loadingEl) loadingEl.classList.add('hidden');
                 if (contentEl) contentEl.classList.remove('hidden');
             } else {
-                throw new Error(response.mensagem);
+                throw new Error(response.mensagem || 'Erro desconhecido');
             }
 
         } catch (error) {
             console.error('Erro ao carregar dados do widget:', error);
             const loadingEl = document.querySelector(`[data-widget-id="${widgetId}"] .widget-loading`);
             const errorEl = document.getElementById(`widget-error-${widgetId}`);
+            const errorMsgEl = document.querySelector(`[data-widget-id="${widgetId}"] .widget-error span`);
+
+            if (errorMsgEl) {
+                errorMsgEl.textContent = error.message || 'Erro ao carregar dados';
+            }
 
             if (loadingEl) loadingEl.classList.add('hidden');
             if (errorEl) errorEl.classList.remove('hidden');
@@ -407,16 +421,42 @@ const Dashboard = {
      * Renderiza card simples
      */
     renderizarCard(dados, container) {
-        const valor = typeof dados.valor === 'number' && dados.formato === 'moeda' ?
-            'R$ ' + dados.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) :
-            dados.valor;
+        // Log para debug
+        console.log('Renderizando card com dados:', dados);
+
+        // Validação de dados
+        if (!dados || typeof dados !== 'object') {
+            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #999;">Dados indisponíveis</p>';
+            return;
+        }
+
+        // Formata valor baseado no formato
+        let valorFormatado = dados.valor ?? 0;
+
+        if (dados.formato === 'moeda') {
+            const numValor = typeof dados.valor === 'number' ? dados.valor : parseFloat(dados.valor) || 0;
+            valorFormatado = 'R$ ' + numValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else if (dados.formato === 'numero') {
+            const numValor = typeof dados.valor === 'number' ? dados.valor : parseFloat(dados.valor) || 0;
+            valorFormatado = numValor.toLocaleString('pt-BR');
+        } else if (dados.sufixo) {
+            valorFormatado = dados.valor + dados.sufixo;
+        }
+
+        const icone = dados.icone || 'fa-chart-bar';
+        const cor = dados.cor || '#3498db';
 
         container.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                ${dados.icone ? `<i class="fas ${dados.icone}" style="font-size: 3rem; color: ${dados.cor || '#3498db'}; margin-bottom: 1rem;"></i>` : ''}
-                <h2 style="margin: 0; font-size: 2.5rem; color: ${dados.cor || '#333'};">${valor}</h2>
-                ${dados.label ? `<p style="margin: 0.5rem 0 0 0; color: #666;">${dados.label}</p>` : ''}
-                ${dados.subtitulo ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: #999;">${dados.subtitulo}</p>` : ''}
+            <div class="widget-card-content">
+                <div class="widget-card-icon" style="color: ${cor};">
+                    <i class="fas ${icone}"></i>
+                </div>
+                <div class="widget-card-value" style="color: ${dados.cor || '#2c3e50'};">
+                    ${valorFormatado}
+                </div>
+                ${dados.label ? `<div class="widget-card-label">${dados.label}</div>` : ''}
+                ${dados.subtitulo ? `<div class="widget-card-subtitle">${dados.subtitulo}</div>` : ''}
+                ${dados.quantidade ? `<div class="widget-card-subtitle">${dados.quantidade} itens</div>` : ''}
             </div>
         `;
     },
@@ -498,20 +538,29 @@ const Dashboard = {
      * Renderiza múltiplos cards
      */
     renderizarCardsMultiplos(dados, container) {
-        if (!dados.cards || dados.cards.length === 0) {
-            container.innerHTML = '<p>Nenhum card disponível</p>';
+        console.log('Renderizando cards múltiplos com dados:', dados);
+
+        if (!dados || !dados.cards || dados.cards.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #999;">Nenhum card disponível</p>';
             return;
         }
 
-        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">';
+        let html = '<div class="widget-cards-grid">';
 
         dados.cards.forEach(card => {
+            const icone = card.icone || 'fa-chart-bar';
+            const cor = card.cor || '#3498db';
+            const valor = card.valor ?? '0';
+            const titulo = card.titulo || 'Sem título';
+
             html += `
-                <div style="text-align: center; padding: 1rem; background: #f5f5f5; border-radius: 8px;">
-                    <i class="fas ${card.icone}" style="font-size: 2rem; color: ${card.cor}; margin-bottom: 0.5rem;"></i>
-                    <h3 style="margin: 0.5rem 0; font-size: 1.5rem;">${card.valor}</h3>
-                    <p style="margin: 0; font-size: 0.9rem; color: #666;">${card.titulo}</p>
-                    ${card.subtitulo ? `<p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #999;">${card.subtitulo}</p>` : ''}
+                <div class="widget-mini-card">
+                    <div class="widget-mini-card-icon" style="color: ${cor};">
+                        <i class="fas ${icone}"></i>
+                    </div>
+                    <div class="widget-mini-card-value">${valor}</div>
+                    <div class="widget-mini-card-label">${titulo}</div>
+                    ${card.subtitulo ? `<div class="widget-mini-card-subtitle">${card.subtitulo}</div>` : ''}
                 </div>
             `;
         });
