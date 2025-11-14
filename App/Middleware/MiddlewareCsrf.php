@@ -23,7 +23,8 @@ class MiddlewareCsrf
         '^/register$',
         '^/verify-email$',
         '^/forgot-password$',
-        '^/reset-password$'
+        '^/reset-password$',
+        '^/diagnostico/.*$'  // Rotas de diagnóstico (remover em produção)
     ];
 
     public function __construct()
@@ -81,7 +82,25 @@ class MiddlewareCsrf
 
         $token = TokenCsrf::extrairDaRequisicao();
 
-        if (!$token || !$this->csrf->validar($token)) {
+        if (!$token) {
+            error_log("MiddlewareCsrf: Token não fornecido. URI: " . ($_SERVER['REQUEST_URI'] ?? 'desconhecido'));
+            error_log("MiddlewareCsrf: Session ID: " . session_id());
+            error_log("MiddlewareCsrf: Headers: " . json_encode(getallheaders()));
+            AuxiliarResposta::proibido('Token CSRF inválido ou expirado');
+            return false;
+        }
+
+        if (!$this->csrf->validar($token)) {
+            error_log("MiddlewareCsrf: Token inválido. URI: " . ($_SERVER['REQUEST_URI'] ?? 'desconhecido'));
+            error_log("MiddlewareCsrf: Token fornecido: " . substr($token, 0, 10) . '...' . substr($token, -10));
+            error_log("MiddlewareCsrf: Session ID: " . session_id());
+            error_log("MiddlewareCsrf: Session tem token?: " . (isset($_SESSION['csrf_token']) ? 'SIM' : 'NÃO'));
+            if (isset($_SESSION['csrf_token'])) {
+                error_log("MiddlewareCsrf: Token da sessão: " . substr($_SESSION['csrf_token'], 0, 10) . '...' . substr($_SESSION['csrf_token'], -10));
+                error_log("MiddlewareCsrf: Tempo do token: " . ($_SESSION['csrf_token_time'] ?? 'não definido'));
+                error_log("MiddlewareCsrf: Tempo atual: " . time());
+                error_log("MiddlewareCsrf: Diferença: " . (time() - ($_SESSION['csrf_token_time'] ?? 0)) . " segundos");
+            }
             AuxiliarResposta::proibido('Token CSRF inválido ou expirado');
             return false;
         }

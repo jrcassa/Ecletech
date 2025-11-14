@@ -163,6 +163,10 @@ $router->grupo([
     $rotasS3 = require __DIR__ . '/s3.php';
     $rotasS3($router);
 
+    // Inclui rotas de diagnóstico
+    $rotasDiagnostico = require __DIR__ . '/diagnostico.php';
+    $rotasDiagnostico($router);
+
     // Rota /me (requer autenticação)
     $router->grupo(['middleware' => ['auth']], function($router) {
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'me']);
