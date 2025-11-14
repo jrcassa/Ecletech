@@ -2177,6 +2177,144 @@
         </div>
     </div>
 
+    <!-- Modal para Adicionar Fornecedor -->
+    <div id="modalAdicionarFornecedor" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Fornecedor</h3>
+                <button class="close" id="closeFornecedorModal">&times;</button>
+            </div>
+            <form id="formAdicionarFornecedor">
+                <div class="form-group">
+                    <label for="selectFornecedor">Selecione o Fornecedor *</label>
+                    <select id="selectFornecedor" required>
+                        <option value="">Selecione um fornecedor...</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarFornecedor">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Valor/Preço -->
+    <div id="modalAdicionarValor" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Valor/Preço</h3>
+                <button class="close" id="closeValorModal">&times;</button>
+            </div>
+            <form id="formAdicionarValor">
+                <div class="form-group">
+                    <label for="valorTipoId">ID do Tipo de Preço *</label>
+                    <input type="text" id="valorTipoId" required placeholder="Ex: 90864">
+                </div>
+                <div class="form-group">
+                    <label for="valorNomeTipo">Nome do Tipo *</label>
+                    <input type="text" id="valorNomeTipo" required placeholder="Ex: Varejo, Atacado">
+                </div>
+                <div class="form-group">
+                    <label for="valorLucro">Percentual de Lucro (%)</label>
+                    <input type="number" step="0.01" id="valorLucro" placeholder="Ex: 15.00">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valorCustoInput">Valor Custo *</label>
+                        <input type="number" step="0.01" id="valorCustoInput" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="valorVendaInput">Valor Venda *</label>
+                        <input type="number" step="0.01" id="valorVendaInput" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarValor">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Variação -->
+    <div id="modalAdicionarVariacao" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Variação</h3>
+                <button class="close" id="closeVariacaoModal">&times;</button>
+            </div>
+            <form id="formAdicionarVariacao">
+                <div class="form-group">
+                    <label for="variacaoNome">Nome da Variação *</label>
+                    <input type="text" id="variacaoNome" required placeholder="Ex: Creme, Azul Escuro">
+                </div>
+                <div class="form-group">
+                    <label for="variacaoEstoque">Estoque</label>
+                    <input type="number" step="0.01" id="variacaoEstoque" value="0" placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarVariacao">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Valor em Variação -->
+    <div id="modalAdicionarValorVariacao" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Valor para Variação</h3>
+                <button class="close" id="closeValorVariacaoModal">&times;</button>
+            </div>
+            <form id="formAdicionarValorVariacao">
+                <div class="form-group">
+                    <label for="valorVariacaoTipoId">ID do Tipo de Preço *</label>
+                    <input type="text" id="valorVariacaoTipoId" required placeholder="Ex: 90864">
+                </div>
+                <div class="form-group">
+                    <label for="valorVariacaoNomeTipo">Nome do Tipo *</label>
+                    <input type="text" id="valorVariacaoNomeTipo" required placeholder="Ex: Varejo, Atacado">
+                </div>
+                <div class="form-group">
+                    <label for="valorVariacaoLucro">Percentual de Lucro (%)</label>
+                    <input type="number" step="0.01" id="valorVariacaoLucro" placeholder="Ex: 15.00">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valorVariacaoCusto">Valor Custo *</label>
+                        <input type="number" step="0.01" id="valorVariacaoCusto" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="valorVariacaoVenda">Valor Venda *</label>
+                        <input type="number" step="0.01" id="valorVariacaoVenda" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarValorVariacao">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>

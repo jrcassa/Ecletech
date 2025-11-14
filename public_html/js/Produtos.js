@@ -64,7 +64,25 @@ const ProdutosManager = {
         btnAdicionarValor: document.getElementById('btnAdicionarValor'),
         valoresList: document.getElementById('valoresList'),
         btnAdicionarVariacao: document.getElementById('btnAdicionarVariacao'),
-        variacoesList: document.getElementById('variacoesList')
+        variacoesList: document.getElementById('variacoesList'),
+        // Modais adicionais
+        modalAdicionarFornecedor: document.getElementById('modalAdicionarFornecedor'),
+        closeFornecedorModal: document.getElementById('closeFornecedorModal'),
+        btnCancelarFornecedor: document.getElementById('btnCancelarFornecedor'),
+        formAdicionarFornecedor: document.getElementById('formAdicionarFornecedor'),
+        selectFornecedor: document.getElementById('selectFornecedor'),
+        modalAdicionarValor: document.getElementById('modalAdicionarValor'),
+        closeValorModal: document.getElementById('closeValorModal'),
+        btnCancelarValor: document.getElementById('btnCancelarValor'),
+        formAdicionarValor: document.getElementById('formAdicionarValor'),
+        modalAdicionarVariacao: document.getElementById('modalAdicionarVariacao'),
+        closeVariacaoModal: document.getElementById('closeVariacaoModal'),
+        btnCancelarVariacao: document.getElementById('btnCancelarVariacao'),
+        formAdicionarVariacao: document.getElementById('formAdicionarVariacao'),
+        modalAdicionarValorVariacao: document.getElementById('modalAdicionarValorVariacao'),
+        closeValorVariacaoModal: document.getElementById('closeValorVariacaoModal'),
+        btnCancelarValorVariacao: document.getElementById('btnCancelarValorVariacao'),
+        formAdicionarValorVariacao: document.getElementById('formAdicionarValorVariacao')
     },
 
     /**
@@ -135,17 +153,49 @@ const ProdutosManager = {
         this.elements.btnAdicionarFornecedor?.addEventListener('click', () => this.abrirModalFornecedores());
 
         // Adicionar valor
-        this.elements.btnAdicionarValor?.addEventListener('click', () => this.adicionarValor());
+        this.elements.btnAdicionarValor?.addEventListener('click', () => this.abrirModalAdicionarValor());
 
         // Adicionar variação
-        this.elements.btnAdicionarVariacao?.addEventListener('click', () => this.adicionarVariacao());
+        this.elements.btnAdicionarVariacao?.addEventListener('click', () => this.abrirModalAdicionarVariacao());
 
-        // Fechar modal ao clicar fora
+        // Fechar modais ao clicar fora
         window.addEventListener('click', (e) => {
             if (e.target === this.elements.modalForm) {
                 this.fecharModal();
             }
+            if (e.target === this.elements.modalAdicionarFornecedor) {
+                this.fecharModalFornecedor();
+            }
+            if (e.target === this.elements.modalAdicionarValor) {
+                this.fecharModalValor();
+            }
+            if (e.target === this.elements.modalAdicionarVariacao) {
+                this.fecharModalVariacao();
+            }
+            if (e.target === this.elements.modalAdicionarValorVariacao) {
+                this.fecharModalValorVariacao();
+            }
         });
+
+        // Formulário adicionar fornecedor
+        this.elements.formAdicionarFornecedor?.addEventListener('submit', (e) => this.submeterFornecedor(e));
+        this.elements.closeFornecedorModal?.addEventListener('click', () => this.fecharModalFornecedor());
+        this.elements.btnCancelarFornecedor?.addEventListener('click', () => this.fecharModalFornecedor());
+
+        // Formulário adicionar valor
+        this.elements.formAdicionarValor?.addEventListener('submit', (e) => this.submeterValor(e));
+        this.elements.closeValorModal?.addEventListener('click', () => this.fecharModalValor());
+        this.elements.btnCancelarValor?.addEventListener('click', () => this.fecharModalValor());
+
+        // Formulário adicionar variação
+        this.elements.formAdicionarVariacao?.addEventListener('submit', (e) => this.submeterVariacao(e));
+        this.elements.closeVariacaoModal?.addEventListener('click', () => this.fecharModalVariacao());
+        this.elements.btnCancelarVariacao?.addEventListener('click', () => this.fecharModalVariacao());
+
+        // Formulário adicionar valor em variação
+        this.elements.formAdicionarValorVariacao?.addEventListener('submit', (e) => this.submeterValorVariacao(e));
+        this.elements.closeValorVariacaoModal?.addEventListener('click', () => this.fecharModalValorVariacao());
+        this.elements.btnCancelarValorVariacao?.addEventListener('click', () => this.fecharModalValorVariacao());
 
         // Sistema de abas
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -473,7 +523,7 @@ const ProdutosManager = {
             return;
         }
 
-        // Cria um modal simples com lista de fornecedores
+        // Filtra fornecedores disponíveis
         const fornecedoresDisponiveis = this.state.fornecedores.filter(f =>
             !this.state.fornecedoresSelecionados.find(fs => fs.fornecedor_id == f.id)
         );
@@ -483,21 +533,44 @@ const ProdutosManager = {
             return;
         }
 
-        const fornecedorId = prompt('Digite o ID do fornecedor ou selecione:\n\n' +
-            fornecedoresDisponiveis.map(f => `ID: ${f.id} - ${f.nome}`).join('\n')
-        );
+        // Popula o select
+        this.elements.selectFornecedor.innerHTML = '<option value="">Selecione um fornecedor...</option>';
+        fornecedoresDisponiveis.forEach(fornecedor => {
+            const option = document.createElement('option');
+            option.value = fornecedor.id;
+            option.textContent = `${fornecedor.nome} (ID: ${fornecedor.id})`;
+            option.dataset.nome = fornecedor.nome;
+            this.elements.selectFornecedor.appendChild(option);
+        });
+
+        // Abre o modal
+        this.elements.modalAdicionarFornecedor.style.display = 'flex';
+    },
+
+    /**
+     * Fecha modal de adicionar fornecedor
+     */
+    fecharModalFornecedor() {
+        this.elements.modalAdicionarFornecedor.style.display = 'none';
+        this.elements.formAdicionarFornecedor.reset();
+    },
+
+    /**
+     * Submete formulário de fornecedor
+     */
+    submeterFornecedor(e) {
+        e.preventDefault();
+        const select = this.elements.selectFornecedor;
+        const fornecedorId = select.value;
+        const fornecedorNome = select.options[select.selectedIndex].dataset.nome;
 
         if (fornecedorId) {
-            const fornecedor = this.state.fornecedores.find(f => f.id == fornecedorId);
-            if (fornecedor) {
-                this.state.fornecedoresSelecionados.push({
-                    fornecedor_id: fornecedor.id,
-                    fornecedor_nome: fornecedor.nome
-                });
-                this.renderizarFornecedores();
-            } else {
-                alert('Fornecedor não encontrado');
-            }
+            this.state.fornecedoresSelecionados.push({
+                fornecedor_id: parseInt(fornecedorId),
+                fornecedor_nome: fornecedorNome
+            });
+            this.renderizarFornecedores();
+            this.fecharModalFornecedor();
         }
     },
 
@@ -535,29 +608,42 @@ const ProdutosManager = {
     },
 
     /**
-     * Adiciona um novo valor/preço
+     * Abre modal para adicionar valor
      */
-    adicionarValor() {
-        const tipoId = prompt('Digite o ID do tipo de preço (ex: 90864):');
-        if (!tipoId) return;
+    abrirModalAdicionarValor() {
+        this.elements.modalAdicionarValor.style.display = 'flex';
+    },
 
-        const nomeTipo = prompt('Digite o nome do tipo (ex: Varejo, Atacado):');
-        if (!nomeTipo) return;
+    /**
+     * Fecha modal de adicionar valor
+     */
+    fecharModalValor() {
+        this.elements.modalAdicionarValor.style.display = 'none';
+        this.elements.formAdicionarValor.reset();
+    },
 
-        const lucro = prompt('Digite o percentual de lucro (ex: 15.00):');
-        const valorCusto = prompt('Digite o valor de custo:');
-        const valorVenda = prompt('Digite o valor de venda:');
+    /**
+     * Submete formulário de valor
+     */
+    submeterValor(e) {
+        e.preventDefault();
 
-        if (valorCusto && valorVenda) {
-            this.state.valores.push({
-                tipo_id: tipoId,
-                nome_tipo: nomeTipo,
-                lucro_utilizado: lucro || null,
-                valor_custo: parseFloat(valorCusto),
-                valor_venda: parseFloat(valorVenda)
-            });
-            this.renderizarValores();
-        }
+        const tipoId = document.getElementById('valorTipoId').value;
+        const nomeTipo = document.getElementById('valorNomeTipo').value;
+        const lucro = document.getElementById('valorLucro').value;
+        const valorCusto = document.getElementById('valorCustoInput').value;
+        const valorVenda = document.getElementById('valorVendaInput').value;
+
+        this.state.valores.push({
+            tipo_id: tipoId,
+            nome_tipo: nomeTipo,
+            lucro_utilizado: lucro || null,
+            valor_custo: parseFloat(valorCusto),
+            valor_venda: parseFloat(valorVenda)
+        });
+
+        this.renderizarValores();
+        this.fecharModalValor();
     },
 
     /**
@@ -592,13 +678,28 @@ const ProdutosManager = {
     },
 
     /**
-     * Adiciona uma nova variação
+     * Abre modal para adicionar variação
      */
-    adicionarVariacao() {
-        const nome = prompt('Digite o nome da variação (ex: Creme, Azul Escuro):');
-        if (!nome) return;
+    abrirModalAdicionarVariacao() {
+        this.elements.modalAdicionarVariacao.style.display = 'flex';
+    },
 
-        const estoque = prompt('Digite o estoque da variação:');
+    /**
+     * Fecha modal de adicionar variação
+     */
+    fecharModalVariacao() {
+        this.elements.modalAdicionarVariacao.style.display = 'none';
+        this.elements.formAdicionarVariacao.reset();
+    },
+
+    /**
+     * Submete formulário de variação
+     */
+    submeterVariacao(e) {
+        e.preventDefault();
+
+        const nome = document.getElementById('variacaoNome').value;
+        const estoque = document.getElementById('variacaoEstoque').value;
 
         const variacao = {
             variacao: {
@@ -608,31 +709,61 @@ const ProdutosManager = {
             }
         };
 
-        // Pergunta se quer adicionar valores específicos para essa variação
-        if (confirm('Deseja adicionar valores/preços específicos para esta variação?')) {
-            while (true) {
-                const tipoId = prompt('Digite o ID do tipo de preço (ou deixe em branco para finalizar):');
-                if (!tipoId) break;
-
-                const nomeTipo = prompt('Digite o nome do tipo:');
-                const lucro = prompt('Digite o percentual de lucro:');
-                const valorCusto = prompt('Digite o valor de custo:');
-                const valorVenda = prompt('Digite o valor de venda:');
-
-                if (nomeTipo && valorCusto && valorVenda) {
-                    variacao.variacao.valores.push({
-                        tipo_id: tipoId,
-                        nome_tipo: nomeTipo,
-                        lucro_utilizado: lucro || null,
-                        valor_custo: parseFloat(valorCusto),
-                        valor_venda: parseFloat(valorVenda)
-                    });
-                }
-            }
-        }
-
         this.state.variacoes.push(variacao);
         this.renderizarVariacoes();
+        this.fecharModalVariacao();
+    },
+
+    /**
+     * Abre modal para adicionar valor em variação
+     */
+    abrirModalAdicionarValorVariacao(variacaoIndex) {
+        this.variacaoIndexAtual = variacaoIndex;
+        this.elements.modalAdicionarValorVariacao.style.display = 'flex';
+    },
+
+    /**
+     * Fecha modal de adicionar valor em variação
+     */
+    fecharModalValorVariacao() {
+        this.elements.modalAdicionarValorVariacao.style.display = 'none';
+        this.elements.formAdicionarValorVariacao.reset();
+        this.variacaoIndexAtual = null;
+    },
+
+    /**
+     * Submete formulário de valor em variação
+     */
+    submeterValorVariacao(e) {
+        e.preventDefault();
+
+        if (this.variacaoIndexAtual === null || this.variacaoIndexAtual === undefined) {
+            alert('Erro: variação não identificada');
+            return;
+        }
+
+        const tipoId = document.getElementById('valorVariacaoTipoId').value;
+        const nomeTipo = document.getElementById('valorVariacaoNomeTipo').value;
+        const lucro = document.getElementById('valorVariacaoLucro').value;
+        const valorCusto = document.getElementById('valorVariacaoCusto').value;
+        const valorVenda = document.getElementById('valorVariacaoVenda').value;
+
+        const valor = {
+            tipo_id: tipoId,
+            nome_tipo: nomeTipo,
+            lucro_utilizado: lucro || null,
+            valor_custo: parseFloat(valorCusto),
+            valor_venda: parseFloat(valorVenda)
+        };
+
+        // Adiciona o valor na variação específica
+        if (!this.state.variacoes[this.variacaoIndexAtual].variacao.valores) {
+            this.state.variacoes[this.variacaoIndexAtual].variacao.valores = [];
+        }
+        this.state.variacoes[this.variacaoIndexAtual].variacao.valores.push(valor);
+
+        this.renderizarVariacoes();
+        this.fecharModalValorVariacao();
     },
 
     /**
@@ -655,10 +786,13 @@ const ProdutosManager = {
         this.elements.variacoesList.innerHTML = this.state.variacoes.map((item, index) => {
             const variacao = item.variacao || item;
             const valoresHtml = variacao.valores && variacao.valores.length > 0
-                ? `<div style="margin-top: 10px; padding-left: 15px;">
+                ? `<div style="margin-top: 10px; padding-left: 15px; border-left: 2px solid var(--border-color);">
+                    <div style="margin-bottom: 8px;">
+                        <strong style="font-size: 12px; color: var(--text-secondary);">Valores da Variação:</strong>
+                    </div>
                     ${variacao.valores.map(v => `
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            • ${v.nome_tipo}: Custo R$ ${this.formatarNumero(v.valor_custo)} | Venda R$ ${this.formatarNumero(v.valor_venda)}
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">
+                            • ${this.escaparHtml(v.nome_tipo)}: Custo R$ ${this.formatarNumero(v.valor_custo)} | Venda R$ ${this.formatarNumero(v.valor_venda)}
                         </div>
                     `).join('')}
                 </div>`
@@ -670,9 +804,14 @@ const ProdutosManager = {
                         <span class="dynamic-list-item-title">
                             ${this.escaparHtml(variacao.nome)} - Estoque: ${this.formatarNumero(variacao.estoque)}
                         </span>
-                        <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerVariacao(${index})">
-                            <i class="fas fa-trash"></i> Remover
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-small" onclick="ProdutosManager.abrirModalAdicionarValorVariacao(${index})" title="Adicionar valor/preço">
+                                <i class="fas fa-plus"></i> Valor
+                            </button>
+                            <button type="button" class="btn-remove-item" onclick="ProdutosManager.removerVariacao(${index})">
+                                <i class="fas fa-trash"></i> Remover
+                            </button>
+                        </div>
                     </div>
                     ${valoresHtml}
                 </div>
