@@ -240,10 +240,8 @@ class ServiceFrotaAbastecimentoRelatorio
         try {
             $resultado = $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
-                    'tipo_entidade' => 'colaborador',
-                    'entidade_id' => $destinatario_id,
-                    'numero' => $colaborador['celular'],
-                    'nome' => $colaborador['nome']
+                    'tipo' => 'colaborador',
+                    'id' => $destinatario_id
                 ],
                 'tipo' => 'text',
                 'mensagem' => $relatorio['mensagem'],
