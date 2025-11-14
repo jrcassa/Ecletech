@@ -46,10 +46,12 @@ class ServiceFrotaAbastecimentoRelatorio
     {
         $inicioCalculo = microtime(true);
 
-        // Busca abastecimentos do período
+        // Busca abastecimentos do período (ajusta data fim para incluir o dia completo)
+        $dataFimCompleta = date('Y-m-d 23:59:59', strtotime($periodo_fim));
+
         $filtros = [
             'data_inicio' => $periodo_inicio,
-            'data_fim' => $periodo_fim,
+            'data_fim' => $dataFimCompleta,
             'status' => 'abastecido'
         ];
 

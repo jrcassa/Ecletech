@@ -4,6 +4,46 @@
 
 O sistema de relatórios automáticos de abastecimento permite que colaboradores recebam relatórios periódicos (semanais ou mensais) via WhatsApp com análises de consumo, custos e alertas da frota.
 
+## ⚠️ IMPORTANTE: Incompatibilidade de Dia da Semana
+
+**ATENÇÃO:** O cron de relatórios semanais está configurado para rodar **apenas às segundas-feiras** às 8h.
+
+Se você configurar para receber relatórios em outro dia da semana (terça, quarta, quinta, sexta, sábado ou domingo), **os relatórios NÃO serão enviados automaticamente**!
+
+### Soluções:
+
+**Opção 1: Usar segunda-feira (recomendado)**
+```json
+{
+  "tipo_relatorio": "semanal",
+  "dia_envio_semanal": "segunda",
+  "hora_envio": "08:00:00"
+}
+```
+
+**Opção 2: Ajustar crontab para o dia desejado**
+
+Por exemplo, para quinta-feira:
+```cron
+# Envia relatórios semanais (quinta às 8h)
+0 8 * * 4 php /path/to/cron/relatorios/relatorio_semanal.php
+```
+
+**Opção 3: Criar múltiplos crons para cada dia**
+```cron
+# Segunda
+0 8 * * 1 php /path/to/cron/relatorios/relatorio_semanal.php
+
+# Quinta
+0 8 * * 4 php /path/to/cron/relatorios/relatorio_semanal.php
+```
+
+**Opção 4: Usar envio manual**
+
+Se preferir controle total, desative envio automático e use a API para enviar manualmente quando desejar.
+
+---
+
 ## 🔄 Como Funciona
 
 ### 1. Fluxo Automático (Cron Jobs)
@@ -224,7 +264,8 @@ Este script verifica:
 - ❌ Celular não cadastrado no perfil
 - ❌ WhatsApp não configurado
 - ❌ Crons não executando
-- ❌ Dia/hora de envio incorretos
+- ❌ **Dia/hora de envio incompatível com crontab** (MUITO COMUM!)
+  - Ex: Configurado para quinta, mas cron roda só segunda
 
 **Solução:**
 1. Verificar configuração via API
