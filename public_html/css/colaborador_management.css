@@ -1,3 +1,81 @@
 /* CSS específico para a página Colaborador Management (colaborador_management.html) */
 
-/* Personalizações específicas desta página */
+/* Estilos para abas (tabs) */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    bottom: -2px;
+}
+
+.tab-button:hover {
+    color: #ee670d;
+}
+
+.tab-button.active {
+    color: #ee670d;
+    border-bottom-color: #ee670d;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Checklist de permissões */
+.permissions-checklist {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+}
+
+.permission-group {
+    margin-bottom: 15px;
+}
+
+.permission-group-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+}
+
+.permission-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.permission-item label {
+    cursor: pointer;
+    color: var(--text-primary);
+    flex: 1;
+}

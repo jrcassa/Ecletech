@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientees - Ecletech</title>
+    <title>Clientes - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,3 +12,289 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/clientes.css">
 
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Clientes</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
+
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Clientes</h2>
+                        <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
+                            Novo Cliente</button>
+                    </div>
+
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="filtroBusca" placeholder="Nome, CNPJ/CPF, email...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipo de Pessoa</label>
+                            <select id="filtroTipoPessoa">
+                                <option value="">Todos</option>
+                                <option value="PF">Pessoa Física</option>
+                                <option value="PJ">Pessoa Jurídica</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filtroAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Tipo</th>
+                                    <th>CNPJ/CPF</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            Nenhum cliente encontrado.
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span class="page-info" id="pageInfo"></span>
+                            <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar -->
+    <div id="modalForm" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Cliente</h3>
+                <button class="close" id="closeModal">&times;</button>
+            </div>
+
+            <div id="modalError" style="display: none;">
+                <div class="error-message" id="modalErrorMessage"></div>
+            </div>
+
+            <!-- Abas -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="dadosGerais">
+                    <i class="fas fa-info-circle"></i> Dados Gerais
+                </button>
+                <button class="tab-button" data-tab="contatos">
+                    <i class="fas fa-address-book"></i> Contatos
+                </button>
+                <button class="tab-button" data-tab="enderecos">
+                    <i class="fas fa-map-marker-alt"></i> Endereços
+                </button>
+            </div>
+
+            <form id="formCliente">
+                <input type="hidden" id="clienteId">
+
+                <!-- Aba 1: Dados Gerais -->
+                <div class="tab-content active" id="tabDadosGerais">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tipoPessoa">Tipo de Pessoa *</label>
+                            <select id="tipoPessoa" required>
+                                <option value="">Selecione...</option>
+                                <option value="PF">Pessoa Física</option>
+                                <option value="PJ">Pessoa Jurídica</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ativo">Ativo *</label>
+                            <select id="ativo" required>
+                                <option value="1">Sim</option>
+                                <option value="0">Não</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nome">Nome *</label>
+                            <input type="text" id="nome" required>
+                        </div>
+
+                        <div class="form-group campo-condicional campo-pj" id="grupoRazaoSocial">
+                            <label for="razaoSocial">Razão Social</label>
+                            <input type="text" id="razaoSocial">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group campo-condicional campo-pj" id="grupoCnpj">
+                            <label for="cnpj">CNPJ *</label>
+                            <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
+                        </div>
+
+                        <div class="form-group campo-condicional campo-pf" id="grupoCpf">
+                            <label for="cpf">CPF *</label>
+                            <input type="text" id="cpf" placeholder="000.000.000-00">
+                        </div>
+
+                        <div class="form-group campo-condicional campo-pf" id="grupoRg">
+                            <label for="rg">RG</label>
+                            <input type="text" id="rg">
+                        </div>
+
+                        <div class="form-group campo-condicional campo-pf" id="grupoDataNascimento">
+                            <label for="dataNascimento">Data de Nascimento</label>
+                            <input type="date" id="dataNascimento">
+                        </div>
+                    </div>
+
+                    <div class="form-row campo-condicional campo-pj" id="grupoInscricoes">
+                        <div class="form-group">
+                            <label for="inscricaoEstadual">Inscrição Estadual</label>
+                            <input type="text" id="inscricaoEstadual">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inscricaoMunicipal">Inscrição Municipal</label>
+                            <input type="text" id="inscricaoMunicipal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tipoContribuinte">Tipo de Contribuinte</label>
+                            <select id="tipoContribuinte">
+                                <option value="">Selecione...</option>
+                                <option value="contribuinte">Contribuinte</option>
+                                <option value="isento">Isento</option>
+                                <option value="nao_contribuinte">Não Contribuinte</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="telefone">Telefone</label>
+                            <input type="text" id="telefone" placeholder="(00) 0000-0000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="celular">Celular</label>
+                            <input type="text" id="celular" placeholder="(00) 00000-0000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observacoes">Observações</label>
+                        <textarea id="observacoes"></textarea>
+                    </div>
+                </div>
+
+                <!-- Aba 2: Contatos -->
+                <div class="tab-content" id="tabContatos">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Lista de Contatos</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAddContato">
+                                <i class="fas fa-plus"></i> Adicionar Contato
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="listaContatos">
+                            <!-- Itens serão adicionados dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Endereços -->
+                <div class="tab-content" id="tabEnderecos">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Lista de Endereços</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAddEndereco">
+                                <i class="fas fa-plus"></i> Adicionar Endereço
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="listaEnderecos">
+                            <!-- Itens serão adicionados dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i>
+                        Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i>
+                        Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+
+    <script src="js/Clientes.js"></script>
+</body>
+
+</html>
