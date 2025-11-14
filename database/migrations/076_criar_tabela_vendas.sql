@@ -20,13 +20,13 @@ CREATE TABLE IF NOT EXISTS vendas (
     cliente_external_id VARCHAR(50) DEFAULT NULL,
     nome_cliente VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
-    -- Vendedor (colaborador)
-    vendedor_id BIGINT UNSIGNED DEFAULT NULL,
+    -- Vendedor (colaborador) - INT UNSIGNED pois colaboradores usa INT
+    vendedor_id INT UNSIGNED DEFAULT NULL,
     vendedor_external_id VARCHAR(50) DEFAULT NULL,
     nome_vendedor VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
-    -- Técnico (colaborador)
-    tecnico_id BIGINT UNSIGNED DEFAULT NULL,
+    -- Técnico (colaborador) - INT UNSIGNED pois colaboradores usa INT
+    tecnico_id INT UNSIGNED DEFAULT NULL,
     tecnico_external_id VARCHAR(50) DEFAULT NULL,
     nome_tecnico VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
