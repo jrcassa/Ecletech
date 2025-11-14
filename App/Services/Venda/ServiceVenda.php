@@ -54,7 +54,7 @@ class ServiceVenda
     public function criarVendaCompleta(array $dados, ?int $usuarioId = null): array
     {
         try {
-            $this->db->beginTransaction();
+            $this->db->iniciarTransacao();
 
             // 1. Valida dados básicos
             $this->validarDadosVenda($dados);
@@ -85,8 +85,16 @@ class ServiceVenda
             }
 
             // 7. Cria endereço de entrega
+            // Aceita tanto 'endereco' (singular) quanto 'enderecos' (plural array)
+            $endereco = null;
             if (!empty($dados['endereco'])) {
-                $this->criarEndereco($vendaId, $dados['endereco'], $usuarioId);
+                $endereco = $dados['endereco'];
+            } elseif (!empty($dados['enderecos']) && is_array($dados['enderecos']) && count($dados['enderecos']) > 0) {
+                $endereco = $dados['enderecos'][0]; // Pega primeiro endereço do array
+            }
+
+            if ($endereco) {
+                $this->criarEndereco($vendaId, $endereco, $usuarioId);
             }
 
             // 8. Cria atributos customizados
@@ -104,7 +112,7 @@ class ServiceVenda
             return $this->vendaModel->buscarCompleta($vendaId);
 
         } catch (\Exception $e) {
-            $this->db->rollBack();
+            $this->db->rollback();
             throw new \Exception('Erro ao criar venda: ' . $e->getMessage());
         }
     }
@@ -115,7 +123,7 @@ class ServiceVenda
     public function atualizarVendaCompleta(int $vendaId, array $dados, ?int $usuarioId = null): array
     {
         try {
-            $this->db->beginTransaction();
+            $this->db->iniciarTransacao();
 
             // 1. Verifica se venda existe
             $vendaExistente = $this->vendaModel->buscarPorId($vendaId);
@@ -142,10 +150,19 @@ class ServiceVenda
             }
 
             // 6. Atualiza endereço
-            if (isset($dados['endereco'])) {
+            // Aceita tanto 'endereco' quanto 'enderecos'
+            if (isset($dados['endereco']) || isset($dados['enderecos'])) {
                 $this->enderecoModel->deletarPorVenda($vendaId, $usuarioId);
+
+                $endereco = null;
                 if (!empty($dados['endereco'])) {
-                    $this->criarEndereco($vendaId, $dados['endereco'], $usuarioId);
+                    $endereco = $dados['endereco'];
+                } elseif (!empty($dados['enderecos']) && is_array($dados['enderecos']) && count($dados['enderecos']) > 0) {
+                    $endereco = $dados['enderecos'][0];
+                }
+
+                if ($endereco) {
+                    $this->criarEndereco($vendaId, $endereco, $usuarioId);
                 }
             }
 
@@ -167,7 +184,7 @@ class ServiceVenda
             return $this->vendaModel->buscarCompleta($vendaId);
 
         } catch (\Exception $e) {
-            $this->db->rollBack();
+            $this->db->rollback();
             throw new \Exception('Erro ao atualizar venda: ' . $e->getMessage());
         }
     }
