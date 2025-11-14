@@ -230,4 +230,14 @@ class ModelFrotaAbastecimentoRelatorioSnapshot
         $stmt = $this->db->executar($sql, [$meses]);
         return $stmt->rowCount();
     }
+
+    /**
+     * Deleta snapshot
+     */
+    public function deletar(int $id): bool
+    {
+        $sql = "DELETE FROM frotas_abastecimentos_relatorios_snapshots WHERE id = ?";
+        $this->db->executar($sql, [$id]);
+        return true;
+    }
 }
