@@ -54,6 +54,12 @@
     background: var(--bg-primary, #f7f8fa);
 }
 
+@media (min-width: 769px) {
+    .grid-stack {
+        padding-left: 2rem;
+    }
+}
+
 /* Widget Base */
 .widget {
     background: var(--bg-secondary, #fff);
