@@ -332,9 +332,17 @@ const Dashboard = {
      * Renderiza gráfico (linha/barra/área)
      */
     renderizarGrafico(widgetId, tipo, dados, container) {
+        // Cria wrapper com altura 100%
+        const wrapper = document.createElement('div');
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
+        wrapper.style.position = 'relative';
+
         const canvas = document.createElement('canvas');
+        wrapper.appendChild(canvas);
+
         container.innerHTML = '';
-        container.appendChild(canvas);
+        container.appendChild(wrapper);
 
         const chartType = tipo === 'grafico_linha' ? 'line' :
                          tipo === 'grafico_barra' ? 'bar' : 'line';
@@ -387,9 +395,17 @@ const Dashboard = {
      * Renderiza gráfico pizza/donut
      */
     renderizarGraficoPizza(widgetId, tipo, dados, container) {
+        // Cria wrapper com altura 100%
+        const wrapper = document.createElement('div');
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
+        wrapper.style.position = 'relative';
+
         const canvas = document.createElement('canvas');
+        wrapper.appendChild(canvas);
+
         container.innerHTML = '';
-        container.appendChild(canvas);
+        container.appendChild(wrapper);
 
         const chart = new Chart(canvas, {
             type: tipo === 'grafico_donut' ? 'doughnut' : 'pie',
