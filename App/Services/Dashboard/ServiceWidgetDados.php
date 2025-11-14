@@ -56,15 +56,14 @@ class ServiceWidgetDados
     private function obterDadosVendas(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'vendas_mes_linha', 'vendas_mes_barra', 'vendas_periodo_area' => $this->vendas_evolucao_periodo($colaboradorId, $config),
-            'vendas_valor_total_card' => $this->vendas_valor_total($colaboradorId, $config),
-            'vendas_hoje_contador' => $this->vendas_hoje($colaboradorId, $config),
-            'vendas_ticket_medio_card' => $this->vendas_ticket_medio($colaboradorId, $config),
-            'vendas_top_produtos' => $this->vendas_top_produtos($colaboradorId, $config),
-            'vendas_ultimas_lista' => $this->vendas_ultimas($colaboradorId, $config),
-            'vendas_comparativo_ano' => $this->vendas_comparativo_ano($colaboradorId, $config),
-            'vendas_por_cliente_pizza' => $this->vendas_por_cliente_pizza($colaboradorId, $config),
-            'vendas_por_produto_donut' => $this->vendas_por_produto_donut($colaboradorId, $config),
+            'vendas_total_periodo' => $this->vendas_valor_total($colaboradorId, $config),
+            'vendas_quantidade_periodo' => $this->vendas_hoje($colaboradorId, $config),
+            'vendas_evolucao_mensal' => $this->vendas_evolucao_periodo($colaboradorId, $config),
+            'vendas_por_vendedor' => $this->vendas_por_vendedor($colaboradorId, $config),
+            'vendas_por_produto' => $this->vendas_por_produto_donut($colaboradorId, $config),
+            'vendas_ticket_medio' => $this->vendas_ticket_medio($colaboradorId, $config),
+            'vendas_ultimas' => $this->vendas_ultimas($colaboradorId, $config),
+            'vendas_metas' => $this->vendas_metas($colaboradorId, $config),
             default => ['labels' => [], 'values' => []]
         };
     }
@@ -384,19 +383,38 @@ class ServiceWidgetDados
         ];
     }
 
+    private function vendas_por_vendedor(int $colaboradorId, array $config): array
+    {
+        $periodo = $config['periodo'] ?? 'mes_atual';
+        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
+
+        // Por enquanto retorna vazio - TODO: Implementar quando houver campo vendedor_id na tabela vendas
+        return ['labels' => [], 'values' => []];
+    }
+
+    private function vendas_metas(int $colaboradorId, array $config): array
+    {
+        $periodo = $config['periodo'] ?? 'mes_atual';
+        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
+
+        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela de metas
+        return ['labels' => ['Realizado', 'Meta'], 'values' => [0, 0]];
+    }
+
     /**
      * FINANCEIRO - Dados financeiros
      */
     private function obterDadosFinanceiro(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'financeiro_saldo_card' => $this->financeiro_saldo($colaboradorId, $config),
-            'financeiro_fluxo_caixa_linha' => $this->financeiro_fluxo_caixa($colaboradorId, $config),
-            'financeiro_pagar_tabela' => $this->financeiro_pagar_tabela($colaboradorId, $config),
-            'financeiro_receber_tabela' => $this->financeiro_receber_tabela($colaboradorId, $config),
-            'financeiro_pagamentos_hoje_lista' => $this->financeiro_pagamentos_hoje($colaboradorId, $config),
-            'financeiro_recebimentos_hoje_lista' => $this->financeiro_recebimentos_hoje($colaboradorId, $config),
-            'financeiro_resultado_barra' => $this->financeiro_resultado_barra($colaboradorId, $config),
+            'financeiro_saldo_atual' => $this->financeiro_saldo($colaboradorId, $config),
+            'financeiro_receber_periodo' => $this->financeiro_receber_periodo($colaboradorId, $config),
+            'financeiro_pagar_periodo' => $this->financeiro_pagar_periodo($colaboradorId, $config),
+            'financeiro_fluxo_caixa' => $this->financeiro_fluxo_caixa($colaboradorId, $config),
+            'financeiro_recebimentos_vencidos' => $this->financeiro_recebimentos_vencidos($colaboradorId, $config),
+            'financeiro_pagamentos_vencidos' => $this->financeiro_pagamentos_vencidos($colaboradorId, $config),
+            'financeiro_contas_bancarias' => $this->financeiro_contas_bancarias($colaboradorId, $config),
+            'financeiro_despesas_categoria' => $this->financeiro_despesas_categoria($colaboradorId, $config),
             default => ['labels' => [], 'values' => []]
         };
     }
@@ -678,20 +696,115 @@ class ServiceWidgetDados
         ];
     }
 
+    private function financeiro_receber_periodo(int $colaboradorId, array $config): array
+    {
+        $periodo = $config['periodo'] ?? 'mes_atual';
+        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
+
+        $resultado = $this->db->buscarUm(
+            "SELECT COALESCE(SUM(valor), 0) as total
+             FROM recebimentos
+             WHERE data_vencimento BETWEEN ? AND ?
+               AND data_recebimento IS NULL
+               AND deletado_em IS NULL",
+            [$dataInicio, $dataFim]
+        );
+
+        return [
+            'valor' => (float) $resultado['total'],
+            'label' => 'Contas a Receber',
+            'formato' => 'moeda'
+        ];
+    }
+
+    private function financeiro_pagar_periodo(int $colaboradorId, array $config): array
+    {
+        $periodo = $config['periodo'] ?? 'mes_atual';
+        [$dataInicio, $dataFim] = $this->calcularPeriodo($periodo);
+
+        $resultado = $this->db->buscarUm(
+            "SELECT COALESCE(SUM(valor), 0) as total
+             FROM pagamentos
+             WHERE data_vencimento BETWEEN ? AND ?
+               AND data_pagamento IS NULL
+               AND deletado_em IS NULL",
+            [$dataInicio, $dataFim]
+        );
+
+        return [
+            'valor' => (float) $resultado['total'],
+            'label' => 'Contas a Pagar',
+            'formato' => 'moeda'
+        ];
+    }
+
+    private function financeiro_recebimentos_vencidos(int $colaboradorId, array $config): array
+    {
+        $hoje = date('Y-m-d');
+
+        $resultado = $this->db->buscarUm(
+            "SELECT COALESCE(SUM(valor), 0) as total
+             FROM recebimentos
+             WHERE data_vencimento < ?
+               AND data_recebimento IS NULL
+               AND deletado_em IS NULL",
+            [$hoje]
+        );
+
+        return [
+            'valor' => (float) $resultado['total'],
+            'label' => 'Recebimentos Vencidos',
+            'formato' => 'moeda',
+            'cor' => '#e67e22'
+        ];
+    }
+
+    private function financeiro_pagamentos_vencidos(int $colaboradorId, array $config): array
+    {
+        $hoje = date('Y-m-d');
+
+        $resultado = $this->db->buscarUm(
+            "SELECT COALESCE(SUM(valor), 0) as total
+             FROM pagamentos
+             WHERE data_vencimento < ?
+               AND data_pagamento IS NULL
+               AND deletado_em IS NULL",
+            [$hoje]
+        );
+
+        return [
+            'valor' => (float) $resultado['total'],
+            'label' => 'Pagamentos Vencidos',
+            'formato' => 'moeda',
+            'cor' => '#c0392b'
+        ];
+    }
+
+    private function financeiro_contas_bancarias(int $colaboradorId, array $config): array
+    {
+        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela contas_bancarias
+        return ['cards' => []];
+    }
+
+    private function financeiro_despesas_categoria(int $colaboradorId, array $config): array
+    {
+        // Por enquanto retorna vazio - TODO: Implementar quando houver campo categoria em pagamentos
+        return ['labels' => [], 'values' => []];
+    }
+
     /**
      * FROTA - Dados da frota
      */
     private function obterDadosFrota(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'frota_ativos_contador' => $this->frota_ativos($colaboradorId, $config),
-            'frota_km_contador' => $this->frota_km_total($colaboradorId, $config),
-            'frota_consumo_linha' => $this->frota_consumo_linha($colaboradorId, $config),
-            'frota_custo_veiculo_tabela' => $this->frota_custo_veiculo_tabela($colaboradorId, $config),
-            'frota_alertas_lista' => $this->frota_alertas_lista($colaboradorId, $config),
-            'frota_abastecimentos_timeline' => $this->frota_abastecimentos_timeline($colaboradorId, $config),
-            'frota_custo_total_card' => $this->frota_custo_total($colaboradorId, $config),
-            'frota_media_consumo_card' => $this->frota_media_consumo($colaboradorId, $config),
+            'frota_total_veiculos' => $this->frota_ativos($colaboradorId, $config),
+            'frota_manutencoes_pendentes' => $this->frota_manutencoes_pendentes($colaboradorId, $config),
+            'frota_custo_mensal' => $this->frota_custo_total($colaboradorId, $config),
+            'frota_abastecimentos' => $this->frota_consumo_linha($colaboradorId, $config),
+            'frota_veiculos_status' => $this->frota_veiculos_status($colaboradorId, $config),
+            'frota_ultimas_manutencoes' => $this->frota_ultimas_manutencoes($colaboradorId, $config),
+            'frota_km_rodados' => $this->frota_km_total($colaboradorId, $config),
             default => ['labels' => [], 'values' => []]
         };
     }
@@ -892,17 +1005,57 @@ class ServiceWidgetDados
         ];
     }
 
+    private function frota_manutencoes_pendentes(int $colaboradorId, array $config): array
+    {
+        // Por enquanto retorna 0 - TODO: Implementar quando houver tabela de manutenções
+        return [
+            'valor' => 0,
+            'label' => 'Manutenções Pendentes',
+            'formato' => 'numero'
+        ];
+    }
+
+    private function frota_veiculos_status(int $colaboradorId, array $config): array
+    {
+        $veiculos = $this->db->buscarTodos(
+            "SELECT status, COUNT(*) as total
+             FROM frotas
+             WHERE deletado_em IS NULL
+             GROUP BY status"
+        );
+
+        $labels = [];
+        $values = [];
+
+        foreach ($veiculos as $v) {
+            $labels[] = ucfirst($v['status']);
+            $values[] = (int) $v['total'];
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values
+        ];
+    }
+
+    private function frota_ultimas_manutencoes(int $colaboradorId, array $config): array
+    {
+        // Por enquanto retorna vazio - TODO: Implementar quando houver tabela de manutenções
+        return ['items' => []];
+    }
+
     /**
      * CLIENTES - Dados de clientes
      */
     private function obterDadosClientes(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'clientes_total_card' => $this->clientes_total($colaboradorId, $config),
-            'clientes_novos_contador' => $this->clientes_novos($colaboradorId, $config),
-            'clientes_top_tabela' => $this->clientes_top_tabela($colaboradorId, $config),
-            'clientes_evolucao_linha' => $this->clientes_evolucao_linha($colaboradorId, $config),
-            'clientes_ultimos_lista' => $this->clientes_ultimos_lista($colaboradorId, $config),
+            'clientes_total_ativos' => $this->clientes_total($colaboradorId, $config),
+            'clientes_novos_mes' => $this->clientes_novos($colaboradorId, $config),
+            'clientes_evolucao' => $this->clientes_evolucao_linha($colaboradorId, $config),
+            'clientes_por_cidade' => $this->clientes_por_cidade($colaboradorId, $config),
+            'clientes_top_compradores' => $this->clientes_top_tabela($colaboradorId, $config),
+            'clientes_inativos' => $this->clientes_inativos($colaboradorId, $config),
             default => ['labels' => [], 'values' => []]
         };
     }
@@ -1041,17 +1194,75 @@ class ServiceWidgetDados
         return ['items' => $items];
     }
 
+    private function clientes_por_cidade(int $colaboradorId, array $config): array
+    {
+        $limite = $config['limite'] ?? 10;
+
+        $cidades = $this->db->buscarTodos(
+            "SELECT
+                ci.nome as cidade,
+                COUNT(DISTINCT c.id) as total
+             FROM clientes c
+             LEFT JOIN clientes_enderecos ce ON c.id = ce.cliente_id
+             LEFT JOIN cidades ci ON ce.cidade_id = ci.id
+             WHERE c.deletado_em IS NULL
+               AND ce.deletado_em IS NULL
+             GROUP BY ci.id, ci.nome
+             ORDER BY total DESC
+             LIMIT ?",
+            [$limite]
+        );
+
+        $labels = [];
+        $values = [];
+
+        foreach ($cidades as $cidade) {
+            $labels[] = $cidade['cidade'] ?? 'Não informada';
+            $values[] = (int) $cidade['total'];
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values
+        ];
+    }
+
+    private function clientes_inativos(int $colaboradorId, array $config): array
+    {
+        $diasInatividade = $config['dias_inatividade'] ?? 90;
+        $dataLimite = date('Y-m-d', strtotime("-{$diasInatividade} days"));
+
+        $resultado = $this->db->buscarUm(
+            "SELECT COUNT(DISTINCT c.id) as total
+             FROM clientes c
+             LEFT JOIN vendas v ON c.id = v.cliente_id
+                AND v.criado_em >= ?
+                AND v.deletado_em IS NULL
+             WHERE c.deletado_em IS NULL
+               AND v.id IS NULL",
+            [$dataLimite]
+        );
+
+        return [
+            'valor' => (int) $resultado['total'],
+            'label' => 'Clientes Inativos',
+            'formato' => 'numero',
+            'subtitulo' => 'Sem compras em ' . $diasInatividade . ' dias'
+        ];
+    }
+
     /**
      * PRODUTOS - Dados de produtos
      */
     private function obterDadosProdutos(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'produtos_total_contador' => $this->produtos_total($colaboradorId, $config),
-            'produtos_estoque_tabela' => $this->produtos_estoque_tabela($colaboradorId, $config),
-            'produtos_estoque_baixo_lista' => $this->produtos_estoque_baixo_lista($colaboradorId, $config),
-            'produtos_mais_vendidos_barra' => $this->produtos_mais_vendidos_barra($colaboradorId, $config),
-            'produtos_valor_estoque_card' => $this->produtos_valor_estoque($colaboradorId, $config),
+            'produtos_total_cadastrados' => $this->produtos_total($colaboradorId, $config),
+            'produtos_estoque_baixo' => $this->produtos_estoque_baixo_lista($colaboradorId, $config),
+            'produtos_valor_estoque' => $this->produtos_valor_estoque($colaboradorId, $config),
+            'produtos_mais_vendidos' => $this->produtos_mais_vendidos_barra($colaboradorId, $config),
+            'produtos_por_grupo' => $this->produtos_por_grupo($colaboradorId, $config),
+            'produtos_margem_lucro' => $this->produtos_margem_lucro($colaboradorId, $config),
             default => ['labels' => [], 'values' => []]
         };
     }
@@ -1159,15 +1370,51 @@ class ServiceWidgetDados
         ];
     }
 
+    private function produtos_por_grupo(int $colaboradorId, array $config): array
+    {
+        $grupos = $this->db->buscarTodos(
+            "SELECT
+                g.nome as grupo,
+                COUNT(p.id) as total
+             FROM produtos p
+             INNER JOIN grupos_produtos g ON p.grupo_produto_id = g.id
+             WHERE p.deletado_em IS NULL
+             GROUP BY g.id, g.nome
+             ORDER BY total DESC
+             LIMIT 10"
+        );
+
+        $labels = [];
+        $values = [];
+
+        foreach ($grupos as $grupo) {
+            $labels[] = $grupo['grupo'];
+            $values[] = (int) $grupo['total'];
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values
+        ];
+    }
+
+    private function produtos_margem_lucro(int $colaboradorId, array $config): array
+    {
+        // Por enquanto retorna vazio - TODO: Implementar quando houver campos de custo e margem
+        return [
+            'colunas' => ['Produto', 'Custo', 'Venda', 'Margem'],
+            'linhas' => []
+        ];
+    }
+
     /**
      * GERAL - Dados gerais
      */
     private function obterDadosGeral(string $widgetCodigo, int $colaboradorId, array $config, array $filtros): array
     {
         return match ($widgetCodigo) {
-            'geral_resumo_dia_cards' => $this->geral_resumo_dia($colaboradorId, $config),
-            'geral_atividade_feed' => $this->geral_atividade_feed($colaboradorId, $config),
-            'geral_notificacoes_lista' => $this->geral_notificacoes_lista($colaboradorId, $config),
+            'geral_resumo_dashboard' => $this->geral_resumo_dia($colaboradorId, $config),
+            'geral_avisos' => $this->geral_avisos($colaboradorId, $config),
             default => ['items' => []]
         };
     }
@@ -1225,6 +1472,15 @@ class ServiceWidgetDados
 
         // Retorna notificações pendentes
         // TODO: Implementar quando houver tabela de notificações
+        return ['items' => []];
+    }
+
+    private function geral_avisos(int $colaboradorId, array $config): array
+    {
+        $limite = $config['limite'] ?? 10;
+
+        // Retorna avisos e alertas
+        // TODO: Implementar quando houver tabela de avisos
         return ['items' => []];
     }
 
