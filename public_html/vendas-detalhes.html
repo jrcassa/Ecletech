@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/common.css">
 
     <style>
         * {
@@ -18,17 +17,61 @@
             box-sizing: border-box;
         }
 
+        /* Adicionando variáveis CSS para temas claro e escuro */
         :root {
+            /* Cores do tema claro */
             --bg-primary: #f8fafc;
             --bg-secondary: #ffffff;
+            --bg-tertiary: #f8fafc;
+            --bg-hover: #f1f5f9;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
             --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
             --shadow-color: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(0, 0, 0, 0.08);
+            --card-bg: #ffffff;
+            --info-item-bg: #f8fafc;
+            --scrollbar-track: transparent;
+            --scrollbar-thumb: #e2e8f0;
+            --scrollbar-thumb-hover: #cbd5e1;
+            --gradient-overlay: rgba(255, 255, 255, 0.15);
+            --active-bg: linear-gradient(135deg, #fee6d8 0%, #ffede0 100%);
+            --footer-gradient: linear-gradient(180deg, transparent 0%, #fafbfc 100%);
+            --json-viewer-bg: #1e293b;
+            --json-viewer-text: #e2e8f0;
+            --json-viewer-border: #334155;
             --primary-color: #ee670d;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
+        }
+
+        [data-theme="dark"] {
+            /* Cores do tema escuro */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #64748b;
+            --border-color: #334155;
+            --border-light: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(0, 0, 0, 0.4);
+            --card-bg: #1e293b;
+            --info-item-bg: #334155;
+            --scrollbar-track: transparent;
+            --scrollbar-thumb: #475569;
+            --scrollbar-thumb-hover: #64748b;
+            --gradient-overlay: rgba(255, 255, 255, 0.05);
+            --active-bg: linear-gradient(135deg, #334155 0%, #475569 100%);
+            --footer-gradient: linear-gradient(180deg, transparent 0%, #0f172a 100%);
+            --json-viewer-bg: #0f172a;
+            --json-viewer-text: #e2e8f0;
+            --json-viewer-border: #1e293b;
         }
 
         body {
@@ -36,6 +79,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             padding: 20px;
+            transition: background-color 0.3s ease;
         }
 
         .container {
@@ -460,6 +504,65 @@
         </div>
     </div>
 
+    <script>
+        // Sistema de tema claro/escuro
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                if (themeToggle) {
+                    const themeIcon = themeToggle.querySelector('i');
+                    if (themeIcon) {
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                    }
+                }
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                if (themeToggle) {
+                    const themeIcon = themeToggle.querySelector('i');
+                    if (themeIcon) {
+                        themeIcon.classList.remove('fa-sun');
+                        themeIcon.classList.add('fa-moon');
+                    }
+                }
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (themeToggle) {
+                const themeIcon = themeToggle.querySelector('i');
+                if (themeIcon) {
+                    if (newTheme === 'dark') {
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                    } else {
+                        themeIcon.classList.remove('fa-sun');
+                        themeIcon.classList.add('fa-moon');
+                    }
+                }
+            }
+        }
+
+        // Event listener para o botão de tema
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        // Carregar tema ao iniciar
+        loadTheme();
+    </script>
     <script src="/js/vendas-detalhes.js"></script>
 </body>
 </html>
