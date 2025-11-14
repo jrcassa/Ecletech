@@ -200,16 +200,16 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                vi.nome_produto as produto,
-                SUM(vi.valor_total) as total
-             FROM vendas_itens vi
-             INNER JOIN vendas v ON vi.venda_id = v.id
-             WHERE v.cadastrado_em BETWEEN ? AND ?
-               AND v.deletado_em IS NULL
-               AND vi.tipo = 'produto'
-             GROUP BY vi.nome_produto
-             ORDER BY total DESC
-             LIMIT ?",
+            vi.nome_produto as produto,
+            SUM(vi.valor_total) as total
+         FROM vendas_itens vi
+         INNER JOIN vendas v ON vi.venda_id = v.id
+         WHERE v.cadastrado_em BETWEEN ? AND ?
+           AND v.deletado_em IS NULL
+           AND vi.tipo = 'produto'
+         GROUP BY vi.nome_produto
+         ORDER BY total DESC
+         LIMIT ?",
             [$dataInicio, $dataFim . ' 23:59:59', $limite]
         );
 
@@ -251,7 +251,7 @@ class ServiceWidgetDados
         $values = [];
 
         foreach ($vendedores as $vendedor) {
-            $labels[] = $vendedor['vendedor'] ?? 'Vendedor #' . $vendedor['vendedor_id'];
+            $labels[] = $vendedor['vendedor'] ?? 'Vendedor';
             $values[] = (float) $vendedor['total'];
         }
 
@@ -283,13 +283,15 @@ class ServiceWidgetDados
         $recebimentos = $this->db->buscarUm(
             "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM recebimentos
-             WHERE liquidado = 1 AND deletado_em IS NULL"
+             WHERE liquidado = 1 AND deletado_em IS NULL",
+            []
         );
 
         $pagamentos = $this->db->buscarUm(
             "SELECT COALESCE(SUM(valor_total), 0) as total
              FROM pagamentos
-             WHERE liquidado = 1 AND deletado_em IS NULL"
+             WHERE liquidado = 1 AND deletado_em IS NULL",
+            []
         );
 
         $saldo = $recebimentos['total'] - $pagamentos['total'];
@@ -464,7 +466,8 @@ class ServiceWidgetDados
              FROM contas_bancarias
              WHERE ativo = 1 AND deletado_em IS NULL
              ORDER BY nome ASC
-             LIMIT 10"
+             LIMIT 10",
+            []
         );
 
         $cards = [];
@@ -529,7 +532,8 @@ class ServiceWidgetDados
         $resultado = $this->db->buscarUm(
             "SELECT COUNT(*) as total
              FROM frotas
-             WHERE status = 'ativo' AND deletado_em IS NULL"
+             WHERE status = 'ativo' AND deletado_em IS NULL",
+            []
         );
 
         return [
@@ -625,7 +629,8 @@ class ServiceWidgetDados
             "SELECT status, COUNT(*) as total
              FROM frotas
              WHERE deletado_em IS NULL
-             GROUP BY status"
+             GROUP BY status",
+            []
         );
 
         $labels = [];
@@ -660,7 +665,8 @@ class ServiceWidgetDados
     private function clientes_total(int $colaboradorId, array $config): array
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientes WHERE ativo = 1 AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM clientes WHERE ativo = 1 AND deletado_em IS NULL",
+            []
         );
 
         return [
@@ -825,7 +831,8 @@ class ServiceWidgetDados
     private function produtos_total(int $colaboradorId, array $config): array
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM produtos WHERE deletado_em IS NULL AND ativo = 1"
+            "SELECT COUNT(*) as total FROM produtos WHERE deleted_at IS NULL AND ativo = 1",
+            []
         );
 
         return [
@@ -843,17 +850,17 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                id,
-                nome,
-                codigo_interno,
-                estoque
-             FROM produtos
-             WHERE deletado_em IS NULL
-               AND ativo = 1
-               AND movimenta_estoque = 1
-               AND estoque < ?
-             ORDER BY estoque ASC
-             LIMIT ?",
+            id,
+            nome,
+            codigo_interno,
+            estoque
+         FROM produtos
+         WHERE deleted_at IS NULL
+           AND ativo = 1
+           AND movimenta_estoque = 1
+           AND estoque < ?
+         ORDER BY estoque ASC
+         LIMIT ?",
             [$estoqueMinimo, $limite]
         );
 
@@ -879,16 +886,16 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                vi.nome_produto as nome,
-                SUM(vi.quantidade) as total_vendido
-             FROM vendas_itens vi
-             INNER JOIN vendas v ON vi.venda_id = v.id
-             WHERE v.cadastrado_em BETWEEN ? AND ?
-               AND v.deletado_em IS NULL
-               AND vi.tipo = 'produto'
-             GROUP BY vi.produto_id, vi.nome_produto
-             ORDER BY total_vendido DESC
-             LIMIT ?",
+            vi.nome_produto as nome,
+            SUM(vi.quantidade) as total_vendido
+         FROM vendas_itens vi
+         INNER JOIN vendas v ON vi.venda_id = v.id
+         WHERE v.cadastrado_em BETWEEN ? AND ?
+           AND v.deletado_em IS NULL
+           AND vi.tipo = 'produto'
+         GROUP BY vi.produto_id, vi.nome_produto
+         ORDER BY total_vendido DESC
+         LIMIT ?",
             [$dataInicio, $dataFim . ' 23:59:59', $limite]
         );
 
@@ -907,10 +914,11 @@ class ServiceWidgetDados
     {
         $resultado = $this->db->buscarUm(
             "SELECT COALESCE(SUM(estoque * valor_custo), 0) as total
-             FROM produtos
-             WHERE deletado_em IS NULL
-               AND ativo = 1
-               AND movimenta_estoque = 1"
+         FROM produtos
+         WHERE deleted_at IS NULL
+           AND ativo = 1
+           AND movimenta_estoque = 1",
+            []
         );
 
         return [
@@ -924,15 +932,16 @@ class ServiceWidgetDados
     {
         $grupos = $this->db->buscarTodos(
             "SELECT
-                gp.nome as grupo,
-                COUNT(p.id) as total
-             FROM produtos p
-             INNER JOIN grupos_produtos gp ON p.grupo_id = gp.id
-             WHERE p.deletado_em IS NULL
-               AND gp.deletado_em IS NULL
-             GROUP BY gp.id, gp.nome
-             ORDER BY total DESC
-             LIMIT 10"
+            gp.nome as grupo,
+            COUNT(p.id) as total
+         FROM produtos p
+         INNER JOIN grupos_produtos gp ON p.grupo_id = gp.id
+         WHERE p.deleted_at IS NULL
+           AND gp.deletado_em IS NULL
+         GROUP BY gp.id, gp.nome
+         ORDER BY total DESC
+         LIMIT 10",
+            []
         );
 
         $labels = [];
@@ -952,20 +961,20 @@ class ServiceWidgetDados
 
         $produtos = $this->db->buscarTodos(
             "SELECT
-                nome,
-                valor_custo,
-                valor_venda,
-                CASE
-                    WHEN valor_custo > 0 THEN ((valor_venda - valor_custo) / valor_custo * 100)
-                    ELSE 0
-                END as margem
-             FROM produtos
-             WHERE deletado_em IS NULL
-               AND ativo = 1
-               AND valor_custo > 0
-               AND valor_venda > 0
-             ORDER BY margem DESC
-             LIMIT ?",
+            nome,
+            valor_custo,
+            valor_venda,
+            CASE
+                WHEN valor_custo > 0 THEN ((valor_venda - valor_custo) / valor_custo * 100)
+                ELSE 0
+            END as margem
+         FROM produtos
+         WHERE deleted_at IS NULL
+           AND ativo = 1
+           AND valor_custo > 0
+           AND valor_venda > 0
+         ORDER BY margem DESC
+         LIMIT ?",
             [$limite]
         );
 
