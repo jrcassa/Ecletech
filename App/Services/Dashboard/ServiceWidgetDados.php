@@ -387,7 +387,7 @@ class ServiceWidgetDados
 
         $resultado = $this->db->buscarUm(
             "SELECT COALESCE(SUM(km_percorrido), 0) as total
-             FROM frotas_abastecimento
+             FROM frotas_abastecimentos
              WHERE data_abastecimento BETWEEN ? AND ?
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim]
@@ -435,7 +435,7 @@ class ServiceWidgetDados
         $resultado = $this->db->buscarUm(
             "SELECT COUNT(*) as total
              FROM clientes
-             WHERE criado_em BETWEEN ? AND ?
+             WHERE cadastrado_em BETWEEN ? AND ?
                AND deletado_em IS NULL",
             [$dataInicio, $dataFim . ' 23:59:59']
         );
@@ -498,7 +498,7 @@ class ServiceWidgetDados
         // Clientes novos
         $clientes = $this->db->buscarUm(
             "SELECT COUNT(*) as total FROM clientes
-             WHERE DATE(criado_em) = ? AND deletado_em IS NULL",
+             WHERE DATE(cadastrado_em) = ? AND deletado_em IS NULL",
             [$hoje]
         );
 
