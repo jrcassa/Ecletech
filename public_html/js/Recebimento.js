@@ -172,7 +172,7 @@ const RecebimentoManager = {
                 API.get('/plano-de-contas?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/centro-de-custo?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/conta-bancaria?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
-                API.get('/forma-de-recebimento?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } }))
+                API.get('/forma-de-pagamento?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } }))
             ]);
 
             this.state.clientes = clientes.dados?.itens || [];
