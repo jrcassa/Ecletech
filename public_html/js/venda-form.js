@@ -9,10 +9,16 @@ const VendaFormManager = {
         vendaId: null,
         itens: [],
         pagamentos: [],
+        produtos: [],
+        servicos: [],
+        formasPagamento: [],
+        cidades: [],
         permissoes: {
             criar: false,
             editar: false
-        }
+        },
+        tipoPagamento: 'avista', // 'avista' ou 'parcelado'
+        tipoEntrega: 'retirar' // 'retirar' ou 'entrega'
     },
 
     // Elementos DOM
@@ -29,7 +35,12 @@ const VendaFormManager = {
         btnAddPagamento: document.getElementById('btnAddPagamento'),
         listaItens: document.getElementById('listaItens'),
         listaPagamentos: document.getElementById('listaPagamentos'),
-        totalItens: document.getElementById('totalItens')
+        totalItens: document.getElementById('totalItens'),
+        tipoPagamentoAvista: document.getElementById('tipoPagamentoAvista'),
+        tipoPagamentoParcelado: document.getElementById('tipoPagamentoParcelado'),
+        tipoEntregaRetirar: document.getElementById('tipoEntregaRetirar'),
+        tipoEntregaEntregar: document.getElementById('tipoEntregaEntregar'),
+        enderecoContainer: document.getElementById('enderecoContainer')
     },
 
     /**
@@ -85,6 +96,14 @@ const VendaFormManager = {
         this.elements.formVenda.addEventListener('submit', (e) => this.salvar(e));
         this.elements.btnAddItem.addEventListener('click', () => this.adicionarItem());
         this.elements.btnAddPagamento.addEventListener('click', () => this.adicionarPagamento());
+
+        // Tipo de pagamento
+        this.elements.tipoPagamentoAvista?.addEventListener('change', () => this.atualizarTipoPagamento());
+        this.elements.tipoPagamentoParcelado?.addEventListener('change', () => this.atualizarTipoPagamento());
+
+        // Tipo de entrega
+        this.elements.tipoEntregaRetirar?.addEventListener('change', () => this.atualizarTipoEntrega());
+        this.elements.tipoEntregaEntregar?.addEventListener('change', () => this.atualizarTipoEntrega());
     },
 
     /**
@@ -123,7 +142,7 @@ const VendaFormManager = {
     },
 
     /**
-     * Carrega dados auxiliares (clientes, colaboradores, etc.)
+     * Carrega dados auxiliares (clientes, colaboradores, produtos, serviços, etc.)
      */
     async carregarDadosAuxiliares() {
         try {
@@ -154,6 +173,44 @@ const VendaFormManager = {
             if (lojasResp.sucesso) {
                 const lojas = lojasResp.dados?.itens || lojasResp.dados || [];
                 this.popularSelect('lojaId', lojas, 'id', 'nome');
+            }
+
+            // Carrega produtos
+            const produtosResp = await API.get('/produto?ativo=1&limite=1000');
+            if (produtosResp.sucesso) {
+                this.state.produtos = produtosResp.dados?.itens || produtosResp.dados || [];
+            }
+
+            // Carrega serviços
+            const servicosResp = await API.get('/servico?ativo=1&limite=1000');
+            if (servicosResp.sucesso) {
+                this.state.servicos = servicosResp.dados?.itens || servicosResp.dados || [];
+            }
+
+            // Carrega formas de pagamento - tenta ambas as rotas
+            try {
+                const formasPagResp = await API.get('/forma-de-pagamento?ativo=1&limite=100');
+                if (formasPagResp.sucesso) {
+                    this.state.formasPagamento = formasPagResp.dados?.itens || formasPagResp.dados || [];
+                }
+            } catch (error) {
+                // Tenta rota alternativa
+                try {
+                    const formasPagResp = await API.get('/formas-pagamento?ativo=1&limite=100');
+                    if (formasPagResp.sucesso) {
+                        this.state.formasPagamento = formasPagResp.dados?.itens || formasPagResp.dados || [];
+                    }
+                } catch (error2) {
+                    console.error('Erro ao carregar formas de pagamento:', error2);
+                    this.state.formasPagamento = [];
+                }
+            }
+
+            // Carrega cidades
+            const cidadesResp = await API.get('/cidades?limite=1000');
+            if (cidadesResp.sucesso) {
+                this.state.cidades = cidadesResp.dados?.itens || cidadesResp.dados || [];
+                this.popularSelect('enderecoCidadeId', this.state.cidades, 'id', 'nome');
             }
 
         } catch (error) {
@@ -220,18 +277,35 @@ const VendaFormManager = {
 
                 // Carrega pagamentos
                 this.state.pagamentos = venda.pagamentos || [];
+
+                // Define tipo de pagamento baseado no número de parcelas
+                if (this.state.pagamentos.length <= 1) {
+                    this.state.tipoPagamento = 'avista';
+                    this.elements.tipoPagamentoAvista.checked = true;
+                } else {
+                    this.state.tipoPagamento = 'parcelado';
+                    this.elements.tipoPagamentoParcelado.checked = true;
+                }
+                this.atualizarTipoPagamento();
                 this.renderizarPagamentos();
 
                 // Carrega endereço
                 if (venda.enderecos && venda.enderecos.length > 0) {
                     const endereco = venda.enderecos[0];
+                    this.state.tipoEntrega = 'entrega';
+                    this.elements.tipoEntregaEntregar.checked = true;
+
                     document.getElementById('enderecoCep').value = endereco.cep || '';
                     document.getElementById('enderecoLogradouro').value = endereco.logradouro || '';
                     document.getElementById('enderecoNumero').value = endereco.numero || '';
                     document.getElementById('enderecoComplemento').value = endereco.complemento || '';
                     document.getElementById('enderecoBairro').value = endereco.bairro || '';
                     document.getElementById('enderecoCidadeId').value = endereco.cidade_id || '';
+                } else {
+                    this.state.tipoEntrega = 'retirar';
+                    this.elements.tipoEntregaRetirar.checked = true;
                 }
+                this.atualizarTipoEntrega();
 
                 this.showForm();
             }
@@ -247,7 +321,8 @@ const VendaFormManager = {
         const item = {
             id: Date.now(),
             tipo: 'produto',
-            produto_id: '',
+            produto_id: null,
+            servico_id: null,
             nome_produto: '',
             quantidade: 1,
             valor_venda: 0,
@@ -283,6 +358,21 @@ const VendaFormManager = {
         this.state.itens.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'dynamic-list-item';
+
+            // Monta opções de produtos
+            let produtosOptions = '<option value="">Selecione um produto...</option>';
+            this.state.produtos.forEach(produto => {
+                const selected = item.produto_id == produto.id ? 'selected' : '';
+                produtosOptions += `<option value="${produto.id}" ${selected}>${produto.nome}</option>`;
+            });
+
+            // Monta opções de serviços
+            let servicosOptions = '<option value="">Selecione um serviço...</option>';
+            this.state.servicos.forEach(servico => {
+                const selected = item.servico_id == servico.id ? 'selected' : '';
+                servicosOptions += `<option value="${servico.id}" ${selected}>${servico.nome}</option>`;
+            });
+
             div.innerHTML = `
                 <div class="dynamic-list-item-header">
                     <strong>Item ${index + 1}</strong>
@@ -292,29 +382,41 @@ const VendaFormManager = {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Tipo</label>
-                        <select data-field="tipo" data-id="${item.id}">
+                        <label>Tipo *</label>
+                        <select data-field="tipo" data-id="${item.id}" required>
                             <option value="produto" ${item.tipo === 'produto' ? 'selected' : ''}>Produto</option>
                             <option value="servico" ${item.tipo === 'servico' ? 'selected' : ''}>Serviço</option>
                         </select>
                     </div>
+                    <div class="form-group item-select-produto" style="display: ${item.tipo === 'produto' ? 'block' : 'none'}">
+                        <label>Produto *</label>
+                        <select data-field="produto_id" data-id="${item.id}" ${item.tipo === 'produto' ? 'required' : ''}>
+                            ${produtosOptions}
+                        </select>
+                    </div>
+                    <div class="form-group item-select-servico" style="display: ${item.tipo === 'servico' ? 'block' : 'none'}">
+                        <label>Serviço *</label>
+                        <select data-field="servico_id" data-id="${item.id}" ${item.tipo === 'servico' ? 'required' : ''}>
+                            ${servicosOptions}
+                        </select>
+                    </div>
                     <div class="form-group">
-                        <label>Descrição</label>
-                        <input type="text" data-field="nome_produto" data-id="${item.id}" value="${item.nome_produto || ''}" placeholder="Descrição do item">
+                        <label>Nome/Descrição</label>
+                        <input type="text" data-field="nome_produto" data-id="${item.id}" value="${item.nome_produto || ''}" placeholder="Preenchido automaticamente" readonly>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Quantidade</label>
-                        <input type="number" step="0.01" data-field="quantidade" data-id="${item.id}" value="${item.quantidade || 1}">
+                        <label>Quantidade *</label>
+                        <input type="number" step="0.01" min="0.01" data-field="quantidade" data-id="${item.id}" value="${item.quantidade || 1}" required>
                     </div>
                     <div class="form-group">
-                        <label>Valor Unitário</label>
-                        <input type="number" step="0.01" data-field="valor_venda" data-id="${item.id}" value="${item.valor_venda || 0}">
+                        <label>Valor Unitário *</label>
+                        <input type="number" step="0.01" min="0" data-field="valor_venda" data-id="${item.id}" value="${item.valor_venda || 0}" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Desconto</label>
-                        <input type="number" step="0.01" data-field="desconto_valor" data-id="${item.id}" value="${item.desconto_valor || 0}">
+                        <label>Desconto (R$)</label>
+                        <input type="number" step="0.01" min="0" data-field="desconto_valor" data-id="${item.id}" value="${item.desconto_valor || 0}">
                     </div>
                     <div class="form-group">
                         <label>Total</label>
@@ -326,8 +428,67 @@ const VendaFormManager = {
             // Event listeners
             div.querySelector('.btn-remove-item').addEventListener('click', () => this.removerItem(item.id));
 
-            div.querySelectorAll('input[data-field], select[data-field]').forEach(input => {
-                input.addEventListener('change', (e) => this.atualizarItem(item.id, e.target.dataset.field, e.target.value));
+            // Listener para mudança de tipo
+            const tipoSelect = div.querySelector('select[data-field="tipo"]');
+            tipoSelect.addEventListener('change', (e) => {
+                const novoTipo = e.target.value;
+                this.atualizarItem(item.id, 'tipo', novoTipo);
+
+                // Mostra/oculta selects apropriados
+                const itemDiv = e.target.closest('.dynamic-list-item');
+                const produtoDiv = itemDiv.querySelector('.item-select-produto');
+                const servicoDiv = itemDiv.querySelector('.item-select-servico');
+                const produtoSelect = itemDiv.querySelector('select[data-field="produto_id"]');
+                const servicoSelect = itemDiv.querySelector('select[data-field="servico_id"]');
+
+                if (novoTipo === 'produto') {
+                    produtoDiv.style.display = 'block';
+                    servicoDiv.style.display = 'none';
+                    produtoSelect.setAttribute('required', 'required');
+                    servicoSelect.removeAttribute('required');
+                    servicoSelect.value = '';
+                } else {
+                    produtoDiv.style.display = 'none';
+                    servicoDiv.style.display = 'block';
+                    servicoSelect.setAttribute('required', 'required');
+                    produtoSelect.removeAttribute('required');
+                    produtoSelect.value = '';
+                }
+            });
+
+            // Listener para seleção de produto
+            const produtoSelect = div.querySelector('select[data-field="produto_id"]');
+            produtoSelect.addEventListener('change', (e) => {
+                const produtoId = e.target.value;
+                if (produtoId) {
+                    const produto = this.state.produtos.find(p => p.id == produtoId);
+                    if (produto) {
+                        this.atualizarItem(item.id, 'produto_id', produtoId);
+                        this.atualizarItem(item.id, 'nome_produto', produto.nome);
+                        this.atualizarItem(item.id, 'valor_venda', produto.valor_venda || 0);
+                    }
+                }
+            });
+
+            // Listener para seleção de serviço
+            const servicoSelect = div.querySelector('select[data-field="servico_id"]');
+            servicoSelect.addEventListener('change', (e) => {
+                const servicoId = e.target.value;
+                if (servicoId) {
+                    const servico = this.state.servicos.find(s => s.id == servicoId);
+                    if (servico) {
+                        this.atualizarItem(item.id, 'servico_id', servicoId);
+                        this.atualizarItem(item.id, 'nome_produto', servico.nome);
+                        this.atualizarItem(item.id, 'valor_venda', servico.valor_venda || 0);
+                    }
+                }
+            });
+
+            // Listeners para outros campos
+            div.querySelectorAll('input[data-field]').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    this.atualizarItem(item.id, e.target.dataset.field, e.target.value);
+                });
             });
 
             container.appendChild(div);
@@ -361,6 +522,37 @@ const VendaFormManager = {
     atualizarTotalItens() {
         const total = this.state.itens.reduce((sum, item) => sum + (parseFloat(item.valor_total) || 0), 0);
         this.elements.totalItens.textContent = this.formatarMoeda(total);
+    },
+
+    /**
+     * Atualiza tipo de pagamento
+     */
+    atualizarTipoPagamento() {
+        if (this.elements.tipoPagamentoAvista.checked) {
+            this.state.tipoPagamento = 'avista';
+            this.elements.btnAddPagamento.style.display = 'none';
+
+            // Se à vista e não tem pagamento, cria um automaticamente
+            if (this.state.pagamentos.length === 0) {
+                const totalItens = this.state.itens.reduce((sum, item) => sum + (parseFloat(item.valor_total) || 0), 0);
+                this.state.pagamentos = [{
+                    id: Date.now(),
+                    parcela: 1,
+                    data_vencimento: '',
+                    valor: totalItens,
+                    forma_pagamento_id: '',
+                    pago: 0
+                }];
+            } else if (this.state.pagamentos.length > 1) {
+                // Se tinha mais de uma parcela, mantém só a primeira
+                this.state.pagamentos = [this.state.pagamentos[0]];
+            }
+        } else {
+            this.state.tipoPagamento = 'parcelado';
+            this.elements.btnAddPagamento.style.display = 'inline-flex';
+        }
+
+        this.renderizarPagamentos();
     },
 
     /**
@@ -404,24 +596,41 @@ const VendaFormManager = {
             return;
         }
 
+        // Monta opções de formas de pagamento
+        let formasPagamentoOptions = '<option value="">Selecione...</option>';
+        this.state.formasPagamento.forEach(forma => {
+            formasPagamentoOptions += `<option value="${forma.id}">${forma.nome}</option>`;
+        });
+
         this.state.pagamentos.forEach((pagamento, index) => {
             const div = document.createElement('div');
             div.className = 'dynamic-list-item';
+
+            const podeRemover = this.state.tipoPagamento === 'parcelado' && this.state.pagamentos.length > 1;
+
             div.innerHTML = `
                 <div class="dynamic-list-item-header">
                     <strong>Parcela ${pagamento.parcela}</strong>
-                    <button type="button" class="btn-remove-item" data-id="${pagamento.id}">
-                        <i class="fas fa-trash"></i> Remover
-                    </button>
+                    ${podeRemover ? `
+                        <button type="button" class="btn-remove-item" data-id="${pagamento.id}">
+                            <i class="fas fa-trash"></i> Remover
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Data Vencimento</label>
-                        <input type="date" data-field="data_vencimento" data-id="${pagamento.id}" value="${pagamento.data_vencimento || ''}">
+                        <label>Data Vencimento *</label>
+                        <input type="date" data-field="data_vencimento" data-id="${pagamento.id}" value="${pagamento.data_vencimento || ''}" required>
                     </div>
                     <div class="form-group">
-                        <label>Valor</label>
-                        <input type="number" step="0.01" data-field="valor" data-id="${pagamento.id}" value="${pagamento.valor || 0}">
+                        <label>Valor *</label>
+                        <input type="number" step="0.01" min="0.01" data-field="valor" data-id="${pagamento.id}" value="${pagamento.valor || 0}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Forma de Pagamento *</label>
+                        <select data-field="forma_pagamento_id" data-id="${pagamento.id}" required>
+                            ${formasPagamentoOptions}
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Pago</label>
@@ -433,8 +642,16 @@ const VendaFormManager = {
                 </div>
             `;
 
+            // Seta o valor da forma de pagamento
+            const formaPagSelect = div.querySelector('select[data-field="forma_pagamento_id"]');
+            if (formaPagSelect && pagamento.forma_pagamento_id) {
+                formaPagSelect.value = pagamento.forma_pagamento_id;
+            }
+
             // Event listeners
-            div.querySelector('.btn-remove-item').addEventListener('click', () => this.removerPagamento(pagamento.id));
+            if (podeRemover) {
+                div.querySelector('.btn-remove-item')?.addEventListener('click', () => this.removerPagamento(pagamento.id));
+            }
 
             div.querySelectorAll('input[data-field], select[data-field]').forEach(input => {
                 input.addEventListener('change', (e) => this.atualizarPagamento(pagamento.id, e.target.dataset.field, e.target.value));
@@ -455,12 +672,41 @@ const VendaFormManager = {
     },
 
     /**
+     * Atualiza tipo de entrega
+     */
+    atualizarTipoEntrega() {
+        if (this.elements.tipoEntregaRetirar.checked) {
+            this.state.tipoEntrega = 'retirar';
+            this.elements.enderecoContainer.style.display = 'none';
+
+            // Remove required dos campos de endereço
+            this.elements.enderecoContainer.querySelectorAll('input, select').forEach(input => {
+                input.removeAttribute('required');
+            });
+        } else {
+            this.state.tipoEntrega = 'entrega';
+            this.elements.enderecoContainer.style.display = 'block';
+        }
+    },
+
+    /**
      * Salva a venda
      */
     async salvar(e) {
         e.preventDefault();
 
         try {
+            // Validações
+            if (this.state.itens.length === 0) {
+                Utils.Notificacao.erro('Adicione pelo menos um item à venda');
+                return;
+            }
+
+            if (this.state.pagamentos.length === 0) {
+                Utils.Notificacao.erro('Adicione pelo menos um pagamento');
+                return;
+            }
+
             // Monta dados da venda
             const dados = {
                 codigo: document.getElementById('codigo').value,
@@ -481,8 +727,8 @@ const VendaFormManager = {
                 aos_cuidados_de: document.getElementById('aosCuidadosDe').value || null,
                 itens: this.state.itens.map(item => ({
                     tipo: item.tipo,
-                    produto_id: item.produto_id || null,
-                    servico_id: item.servico_id || null,
+                    produto_id: item.tipo === 'produto' ? (item.produto_id || null) : null,
+                    servico_id: item.tipo === 'servico' ? (item.servico_id || null) : null,
                     nome_produto: item.nome_produto,
                     quantidade: parseFloat(item.quantidade) || 0,
                     valor_venda: parseFloat(item.valor_venda) || 0,
@@ -499,17 +745,22 @@ const VendaFormManager = {
                 enderecos: []
             };
 
-            // Adiciona endereço se preenchido
-            const cep = document.getElementById('enderecoCep').value;
-            if (cep) {
-                dados.enderecos.push({
-                    cep: cep,
-                    logradouro: document.getElementById('enderecoLogradouro').value || null,
-                    numero: document.getElementById('enderecoNumero').value || null,
-                    complemento: document.getElementById('enderecoComplemento').value || null,
-                    bairro: document.getElementById('enderecoBairro').value || null,
-                    cidade_id: document.getElementById('enderecoCidadeId').value || null
-                });
+            // Adiciona endereço se tipo de entrega for 'entrega'
+            if (this.state.tipoEntrega === 'entrega') {
+                const cep = document.getElementById('enderecoCep').value;
+                const logradouro = document.getElementById('enderecoLogradouro').value;
+                const numero = document.getElementById('enderecoNumero').value;
+
+                if (cep || logradouro || numero) {
+                    dados.enderecos.push({
+                        cep: cep || null,
+                        logradouro: logradouro || null,
+                        numero: numero || null,
+                        complemento: document.getElementById('enderecoComplemento').value || null,
+                        bairro: document.getElementById('enderecoBairro').value || null,
+                        cidade_id: document.getElementById('enderecoCidadeId').value || null
+                    });
+                }
             }
 
             let response;
