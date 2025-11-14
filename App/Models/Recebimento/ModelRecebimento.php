@@ -32,15 +32,13 @@ class ModelRecebimento
                 cc.nome as nome_centro_custo,
                 cb.nome as nome_conta_bancaria,
                 fp.nome as nome_forma_pagamento,
-                u.nome as nome_usuario,
-                l.nome as nome_loja
+                u.nome as nome_usuario
              FROM recebimentos r
              LEFT JOIN plano_de_contas pc ON r.plano_contas_id = pc.id AND pc.deletado_em IS NULL
              LEFT JOIN centro_de_custo cc ON r.centro_custo_id = cc.id AND cc.deletado_em IS NULL
              LEFT JOIN contas_bancarias cb ON r.conta_bancaria_id = cb.id AND cb.deletado_em IS NULL
              LEFT JOIN forma_de_pagamento fp ON r.forma_pagamento_id = fp.id AND fp.deletado_em IS NULL
              LEFT JOIN colaboradores u ON r.usuario_id = u.id AND u.deletado_em IS NULL
-             LEFT JOIN lojas l ON r.loja_id = l.id AND l.deletado_em IS NULL
              WHERE r.id = ? AND r.deletado_em IS NULL",
             [$id]
         );
@@ -123,15 +121,13 @@ class ModelRecebimento
                     cc.nome as nome_centro_custo,
                     cb.nome as nome_conta_bancaria,
                     fp.nome as nome_forma_pagamento,
-                    u.nome as nome_usuario,
-                    l.nome as nome_loja
+                    u.nome as nome_usuario
                 FROM recebimentos r
                 LEFT JOIN plano_de_contas pc ON r.plano_contas_id = pc.id AND pc.deletado_em IS NULL
                 LEFT JOIN centro_de_custo cc ON r.centro_custo_id = cc.id AND cc.deletado_em IS NULL
                 LEFT JOIN contas_bancarias cb ON r.conta_bancaria_id = cb.id AND cb.deletado_em IS NULL
                 LEFT JOIN forma_de_pagamento fp ON r.forma_pagamento_id = fp.id AND fp.deletado_em IS NULL
                 LEFT JOIN colaboradores u ON r.usuario_id = u.id AND u.deletado_em IS NULL
-                LEFT JOIN lojas l ON r.loja_id = l.id AND l.deletado_em IS NULL
                 WHERE r.deletado_em IS NULL";
         $parametros = [];
 
