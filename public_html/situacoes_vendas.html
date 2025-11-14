@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<!DOCTYPE html>
-<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,855 +12,11 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Situações de Vendas - Ecletech</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-            display: flex;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 280px;
-            height: 100vh;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .sidebar.closed {
-            transform: translateX(-280px);
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sidebar-header .logo {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .sidebar-header h2 {
-            font-size: 20px;
-            margin: 0;
-            color: white;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-
-        .sidebar-nav {
-            padding: 16px 0;
-        }
-
-        .nav-section {
-            margin-bottom: 24px;
-        }
-
-        .nav-section-title {
-            padding: 8px 20px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 4px;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.75);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            font-size: 14px;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .sidebar-nav a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            background: linear-gradient(90deg, #667eea 0%, transparent 100%);
-            transition: all 0.3s ease;
-            opacity: 0;
-        }
-
-        .sidebar-nav a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            padding-left: 24px;
-        }
-
-        .sidebar-nav a:hover::before {
-            width: 100%;
-            height: 100%;
-            opacity: 0.1;
-        }
-
-        .sidebar-nav a.active {
-            background: rgba(102, 126, 234, 0.15);
-            color: white;
-            border-left-color: #667eea;
-            box-shadow: inset 0 0 20px rgba(102, 126, 234, 0.1);
-        }
-
-        .sidebar-nav a.active .icon {
-            transform: scale(1.1);
-        }
-
-        .sidebar-nav a .icon {
-            margin-right: 14px;
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-            transition: transform 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        
-        /* Sidebar Scroll Area */
-        .sidebar-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-
-        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Menu Items */
-        .sidebar-nav a {
-            display: block;
-            color: rgba(255, 255, 255, 0.75);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            font-size: 14px;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .menu-item-content {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-        }
-
-        .sidebar-nav a:hover .menu-item-content {
-            padding-left: 24px;
-        }
-
-        /* Submenus */
-        .submenu-toggle {
-            width: 100%;
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.75);
-            text-decoration: none;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            font-size: 14px;
-            font-weight: 500;
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
-            text-align: left;
-        }
-
-        .submenu-toggle:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-        }
-
-        .submenu-toggle .submenu-arrow {
-            transition: transform 0.3s ease;
-            font-size: 12px;
-        }
-
-        .submenu-toggle.open .submenu-arrow {
-            transform: rotate(180deg);
-        }
-
-        .submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .submenu.open {
-            max-height: 500px;
-        }
-
-        .submenu a {
-            padding-left: 56px;
-            font-size: 13px;
-        }
-
-        /* Sidebar Footer */
-        .sidebar-footer {
-            padding: 16px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
-        }
-
-        .user-info-sidebar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .user-details {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .user-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-role {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.6);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Overlay para mobile */
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-
-        .sidebar-overlay.show {
-            display: block;
-        }
-
-        /* Main content */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            transition: margin-left 0.3s ease;
-            width: 100%;
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        .header {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #333;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .menu-toggle:hover {
-            background: #f0f0f0;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 24px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: #5568d3;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-success {
-            background: #28a745;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .card h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-group label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f8f9fa;
-        }
-
-        th {
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #333;
-            font-size: 13px;
-            text-transform: uppercase;
-        }
-
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .color-preview {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
-            border: 2px solid #ddd;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .modal-header h3 {
-            color: #333;
-            font-size: 20px;
-        }
-
-        .close {
-            font-size: 28px;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
-            border: none;
-            background: none;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .color-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .color-input-group input[type="color"] {
-            width: 60px;
-            height: 45px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 2px;
-        }
-
-        .color-input-group input[type="text"] {
-            flex: 1;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 25px;
-        }
-
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .no-data {
-            text-align: center;
-            color: #666;
-            padding: 40px;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .pagination button {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            background: white;
-            color: #333;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination .page-info {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .permission-denied {
-            background: #fff3cd;
-            color: #856404;
-            padding: 20px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        /* Sistema de Notificações Toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 400px;
-        }
-
-        .toast {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            border-left: 4px solid #667eea;
-            opacity: 0;
-            transform: translateX(400px);
-            transition: all 0.3s ease;
-        }
-
-        .toast-show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .toast-icon {
-            font-size: 20px;
-            font-weight: bold;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .toast-message {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #333;
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #999;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            min-width: 20px;
-        }
-
-        .toast-close:hover {
-            color: #333;
-        }
-
-        /* Tipos de notificação */
-        .toast-sucesso {
-            border-left-color: #28a745;
-        }
-
-        .toast-sucesso .toast-icon {
-            color: #28a745;
-        }
-
-        .toast-erro {
-            border-left-color: #dc3545;
-        }
-
-        .toast-erro .toast-icon {
-            color: #dc3545;
-        }
-
-        .toast-aviso {
-            border-left-color: #ffc107;
-        }
-
-        .toast-aviso .toast-icon {
-            color: #ffc107;
-        }
-
-        .toast-info {
-            border-left-color: #667eea;
-        }
-
-        .toast-info .toast-icon {
-            color: #667eea;
-        }
-
-        /* Responsivo */
-        @media (max-width: 480px) {
-            .toast-container {
-                left: 10px;
-                right: 10px;
-                max-width: none;
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-280px);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .sidebar-overlay {
-                display: none !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/modern-layout.css">
 </head>
 <body>
-        <!-- Sidebar -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">E</div>
@@ -986,63 +140,31 @@
         </div>
 
         <div class="sidebar-footer">
-            <div class="user-info-sidebar">
+            <div class="user-info-sidebar" id="userInfoDropdown">
                 <div class="user-avatar" id="userAvatar">U</div>
                 <div class="user-details">
                     <div class="user-name" id="userNameSidebar">Carregando...</div>
                     <div class="user-role" id="userRoleSidebar">Usuário</div>
                 </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item" style="border-top: 1px solid var(--border-light); margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-
-
-        <nav class="sidebar-nav">
-            <a href="./home.html">
-                <span class="icon">🏠</span>
-                <span>Home</span>
-            </a>
-            <a href="./frotas.html">
-                <span class="icon">🚗</span>
-                <span>Frotas</span>
-            </a>
-            <a href="./cidades.html">
-                <span class="icon">🌆</span>
-                <span>Cidades</span>
-            </a>
-            <a href="./situacoes_vendas.html" class="active">
-                <span class="icon">📊</span>
-                <span>Situações de Vendas</span>
-            </a>
-            <a href="./tipos_enderecos.html">
-            <a href="./tipos_contatos.html">
-                <span class="icon">📞</span>
-                <span>Tipos de Contatos</span>
-            </a>
-                <span class="icon">📍</span>
-                <span>Tipos de Endereços</span>
-            </a>
-            <a href="./colaboradores.html">
-                <span class="icon">👥</span>
-                <span>Colaboradores</span>
-            </a>
-            <a href="./colaborador_management.html">
-                <span class="icon">⚙️</span>
-                <span>Gestão de Acessos</span>
-            </a>
-            <a href="./loja.html">
-                <span class="icon">🏪</span>
-                <span>Informações da Loja</span>
-            </a>
-            <a href="./brute_force.html">
-                <span class="icon">🛡️</span>
-                <span>Proteção Brute Force</span>
-            </a>
-            <a href="./auditoria.html">
-                <span class="icon">📋</span>
-                <span>Auditoria</span>
-            </a>
-        </nav>
     </div>
 
     <!-- Overlay -->
@@ -1058,6 +180,9 @@
                 <h1>Gerenciar Situações de Vendas</h1>
             </div>
             <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
                 <button class="btn btn-secondary" onclick="window.location.href='./home.html'">
                     <i class="fas fa-arrow-left"></i> Voltar
                 </button>
@@ -1068,67 +193,68 @@
         </header>
 
         <div class="container">
-        <div id="permissionDenied" class="permission-denied" style="display: none;">
-            Você não tem permissão para acessar esta página.
-        </div>
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
 
-        <div id="pageContent" style="display: none;">
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; border: none; padding: 0;">Situações de Vendas Cadastradas</h2>
-                    <button class="btn btn-success" id="btnNovo" style="display: none;">+ Nova Situação</button>
-                </div>
-
-                <div class="filters">
-                    <div class="filter-group">
-                        <label>Buscar</label>
-                        <input type="text" id="filtroBusca" placeholder="Nome ou ID externo...">
-                    </div>
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select id="filtroAtivo">
-                            <option value="">Todos</option>
-                            <option value="1" selected>Ativo</option>
-                            <option value="0">Inativo</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>&nbsp;</label>
-                        <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
-                    </div>
-                </div>
-
-                <div id="loadingContainer" class="loading-container">
-                    <div class="spinner"></div>
-                </div>
-
-                <div id="errorContainer" style="display: none;">
-                    <div class="error-message" id="errorMessage"></div>
-                </div>
-
-                <div id="tableContainer" class="table-container" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>ID Externo</th>
-                                <th>Nome</th>
-                                <th>Cor</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-
-                    <div id="noData" class="no-data" style="display: none;">
-                        Nenhuma situação de venda encontrada.
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;">Situações de Vendas Cadastradas</h2>
+                        <button class="btn btn-success" id="btnNovo"><i class="fas fa-plus"></i> Nova Situação</button>
                     </div>
 
-                    <div class="pagination" id="pagination">
-                        <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
-                        <span class="page-info" id="pageInfo"></span>
-                        <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="filtroBusca" placeholder="Nome ou ID externo...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filtroAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativo</option>
+                                <option value="0">Inativo</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ID Externo</th>
+                                    <th>Nome</th>
+                                    <th>Cor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            Nenhuma situação de venda encontrada.
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span class="page-info" id="pageInfo"></span>
+                            <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1184,12 +310,43 @@
             </form>
         </div>
     </div>
-    </div>
+
+    <style>
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input-group input[type="color"] {
+            width: 60px;
+            height: 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .color-preview {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 2px solid var(--border-color);
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+    </style>
 
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
     <script src="js/sidebar.js"></script>
+    <script src="js/theme.js"></script>
     <script>
         // Sidebar toggle
         const sidebar = document.getElementById('sidebar');
@@ -1255,21 +412,22 @@
             }
         });
 
-
         // Sincroniza color picker com input de texto
         const colorPicker = document.getElementById('colorPicker');
         const corInput = document.getElementById('cor');
 
-        colorPicker.addEventListener('input', (e) => {
-            corInput.value = e.target.value.toUpperCase();
-        });
+        if (colorPicker && corInput) {
+            colorPicker.addEventListener('input', (e) => {
+                corInput.value = e.target.value.toUpperCase();
+            });
 
-        corInput.addEventListener('input', (e) => {
-            const valor = e.target.value;
-            if (/^#[0-9A-Fa-f]{6}$/.test(valor)) {
-                colorPicker.value = valor;
-            }
-        });
+            corInput.addEventListener('input', (e) => {
+                const valor = e.target.value;
+                if (/^#[0-9A-Fa-f]{6}$/.test(valor)) {
+                    colorPicker.value = valor;
+                }
+            });
+        }
     </script>
     <script src="js/SituacoesVendas.js"></script>
 </body>
