@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forma de Pagamento - Ecletech</title>
+    <title>Centro de Custo - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -812,15 +812,183 @@
             }
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
 
-    <div id="sidebar-container"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
+        </div>
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html" data-permission="frota.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html" data-permission="estado.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html" data-permission="cidade.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                        <a href="./grupos_produtos.html" data-permission="grupos_produtos.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-boxes"></i></span>
+                                <span>Grupos de Produtos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html" data-permission="loja.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                    <a href="./contas_bancarias.html" data-permission="conta_bancaria.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-university"></i></span>
+                            <span>Contas Bancárias</span>
+                        </div>
+                    </a>
+                    <a href="./plano_de_contas.html" data-permission="plano_de_contas.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-book"></i></span>
+                            <span>Plano de Contas</span>
+                        </div>
+                    </a>
+                    <a href="./centro_de_custo.html" data-permission="centro_de_custo.visualizar" class="active">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-chart-pie"></i></span>
+                            <span>Centro de Custo</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar" id="userInfoDropdown">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item"
+                        style="border-top: 1px solid #f1f5f9; margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
@@ -852,18 +1020,18 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <div>
-                            <h2 style="margin: 0; border: none; padding: 0;">Forma de Pagamento</h2>
-                            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Gerencie as formas de pagamento disponíveis</p>
+                            <h2 style="margin: 0; border: none; padding: 0;">Centro de Custo</h2>
+                            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Gerencie os centros de custo da empresa</p>
                         </div>
                         <button class="btn" id="btnNovo" style="display: none;">
-                            <i class="fas fa-plus"></i> Nova Forma de Pagamento
+                            <i class="fas fa-plus"></i> Novo Centro de Custo
                         </button>
                     </div>
 
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="inputBusca" placeholder="Nome da forma de pagamento..." style="min-width: 250px;">
+                            <input type="text" id="inputBusca" placeholder="Nome do centro de custo..." style="min-width: 250px;">
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
@@ -895,8 +1063,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Nome</th>
-                                    <th>Conta Bancária</th>
-                                    <th style="text-align: center;">Máx. Parcelas</th>
+                                    <th>ID Externo</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="text-align: center;">Ações</th>
                                 </tr>
@@ -906,7 +1073,7 @@
 
                         <div id="noData" class="no-data" style="display: none;">
                             <i class="fas fa-inbox" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
-                            <p>Nenhuma forma de pagamento encontrada</p>
+                            <p>Nenhum centro de custo encontrado</p>
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -929,40 +1096,16 @@
         <div class="modal-backdrop"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Nova Forma de Pagamento</h3>
+                <h3 id="modalTitle">Novo Centro de Custo</h3>
                 <button class="modal-close" id="btnCloseModal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formFormaDePagamento">
-                    <input type="hidden" id="formaId">
+                <form id="formCentroDeCusto">
+                    <input type="hidden" id="centroId">
 
                     <div class="form-group">
                         <label for="inputNome">Nome <span class="required">*</span></label>
-                        <input type="text" id="inputNome" placeholder="Ex: Dinheiro à Vista" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="selectContaBancaria">Conta Bancária <span class="required">*</span></label>
-                        <select id="selectContaBancaria" required>
-                            <option value="">Selecione uma conta bancária</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="inputMaximoParcelas">Máximo de Parcelas <span class="required">*</span></label>
-                            <input type="number" id="inputMaximoParcelas" placeholder="1" min="1" value="1" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputIntervaloParcelas">Intervalo entre Parcelas (dias)</label>
-                            <input type="number" id="inputIntervaloParcelas" placeholder="30" min="0" value="0">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputIntervaloPrimeira">Intervalo até Primeira Parcela (dias)</label>
-                        <input type="number" id="inputIntervaloPrimeira" placeholder="0" min="0" value="0">
+                        <input type="text" id="inputNome" placeholder="Ex: Centro de Custo 01" required>
                     </div>
 
                     <div class="form-group">
@@ -978,7 +1121,7 @@
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="checkAtivo" checked>
-                            <span>Forma de pagamento ativa</span>
+                            <span>Centro de custo ativo</span>
                         </label>
                     </div>
                 </form>
@@ -998,11 +1141,11 @@
                 <h3>Confirmar Exclusão</h3>
             </div>
             <div class="modal-body">
-                <p>Tem certeza que deseja excluir esta forma de pagamento?</p>
+                <p>Tem certeza que deseja excluir este centro de custo?</p>
                 <p style="color: var(--text-secondary); font-size: 14px;">Esta ação não pode ser desfeita.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="FormaDePagamentoManager.fecharModalConfirm()">Cancelar</button>
+                <button type="button" class="btn btn-secondary" onclick="CentroDeCustoManager.fecharModalConfirm()">Cancelar</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
             </div>
         </div>
@@ -1011,11 +1154,10 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
-    <script src="js/FormaDePagamento.js"></script>
+    <script src="js/CentroDeCusto.js"></script>
     <script>
-        // Initialize FormaDePagamento on page load
+        // Initialize CentroDeCusto on page load
         document.addEventListener('DOMContentLoaded', () => {
             // Check authentication
             if (!AuthAPI.isAuthenticated()) {
@@ -1023,8 +1165,8 @@
                 return;
             }
 
-            // Initialize the forma de pagamento manager
-            FormaDePagamentoManager.init();
+            // Initialize the centro de custo manager
+            CentroDeCustoManager.init();
         });
     </script>
 </body>
