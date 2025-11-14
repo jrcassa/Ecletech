@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS vendas (
     tecnico_external_id VARCHAR(50) DEFAULT NULL,
     nome_tecnico VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
-    -- Situação
-    situacao_venda_id BIGINT UNSIGNED DEFAULT NULL,
+    -- Situação - INT UNSIGNED pois situacoes_vendas usa INT
+    situacao_venda_id INT UNSIGNED DEFAULT NULL,
     situacao_venda_external_id VARCHAR(50) DEFAULT NULL,
     nome_situacao VARCHAR(100) DEFAULT NULL COMMENT 'Snapshot',
 
@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS vendas (
     centro_custo_external_id VARCHAR(50) DEFAULT NULL,
     nome_centro_custo VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
-    -- Loja
-    loja_id BIGINT UNSIGNED DEFAULT NULL,
+    -- Loja - INT UNSIGNED pois lojas usa INT
+    loja_id INT UNSIGNED DEFAULT NULL,
     loja_external_id VARCHAR(50) DEFAULT NULL,
     nome_loja VARCHAR(255) DEFAULT NULL COMMENT 'Snapshot',
 
