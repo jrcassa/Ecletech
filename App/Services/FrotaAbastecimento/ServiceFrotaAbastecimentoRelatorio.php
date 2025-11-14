@@ -234,7 +234,7 @@ class ServiceFrotaAbastecimentoRelatorio
             'tempo_processamento' => $relatorio['dados']['tempo_calculo']
         ]);
 
-        // Tenta enviar via fila WhatsApp
+        // Envia via WhatsApp (modo direto para ter controle imediato do resultado)
         try {
             $resultado = $this->serviceWhatsapp->enviarMensagem([
                 'destinatario' => [
@@ -246,6 +246,7 @@ class ServiceFrotaAbastecimentoRelatorio
                 'tipo' => 'text',
                 'mensagem' => $relatorio['mensagem'],
                 'prioridade' => 'normal',
+                'modo_envio' => 'direto', // Força envio direto para garantir resultado imediato
                 'metadata' => [
                     'modulo' => 'frota_abastecimento_relatorio',
                     'tipo_relatorio' => $tipo_relatorio,
@@ -255,6 +256,7 @@ class ServiceFrotaAbastecimentoRelatorio
                 ]
             ]);
 
+            // Se enviou com sucesso (modo direto confirma envio real)
             if ($resultado['sucesso']) {
                 $this->modelLog->marcarEnviado($logId);
             } else {
