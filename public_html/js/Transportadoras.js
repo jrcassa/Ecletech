@@ -279,7 +279,7 @@ const TransportadorasManager = {
         this.elements.loadingContainer.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
 
-        if (this.state.transportadora.length === 0) {
+        if (this.state.transportadoras.length === 0) {
             this.elements.tableContainer.style.display = 'block';
             this.elements.noData.style.display = 'block';
             this.elements.tableBody.innerHTML = '';
@@ -291,7 +291,7 @@ const TransportadorasManager = {
 
         this.elements.tableBody.innerHTML = '';
 
-        this.state.transportadora.forEach(transportadora => {
+        this.state.transportadoras.forEach(transportadora => {
             const tr = document.createElement('tr');
 
             const documento = transportadora.tipo_pessoa === 'PF' ?
@@ -887,11 +887,11 @@ const TransportadorasManager = {
             timeoutId = setTimeout(async () => {
                 const cidades = await this.buscarCidades(termo);
 
-                if (cidade.length > 0) {
+                if (cidades.length > 0) {
                     listElement.innerHTML = '';
                     listElement.style.display = 'block';
 
-                    cidade.forEach(cidade => {
+                    cidades.forEach(cidade => {
                         const item = document.createElement('div');
                         item.style.cssText = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;';
                         item.textContent = `${cidade.nome} - ${cidade.estado || ''}`;
