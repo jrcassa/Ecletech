@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Abastecimento - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/frota_abastecimento_relatorios.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+</head>
+
+<body>
+    <div id="sidebar-container"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1><i class="fas fa-chart-line"></i> Relatórios de Abastecimento</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModalGeracao()">
+                        <i class="fas fa-paper-plane"></i> Gerar Manual
+                    </button>
+                    <button class="btn" onclick="window.location.href='./logout.html'">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Tabs de Navegação -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="configuracoes">
+                    <i class="fas fa-cog"></i> Configurações
+                </button>
+                <button class="tab-button" data-tab="historico">
+                    <i class="fas fa-history"></i> Histórico de Envios
+                </button>
+                <button class="tab-button" data-tab="snapshots">
+                    <i class="fas fa-camera"></i> Snapshots
+                </button>
+            </div>
+
+            <!-- Tab: Configurações -->
+            <div id="tab-configuracoes" class="tab-content active">
+
+                <!-- Card: Nova Configuração / Editar -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-plus-circle"></i> <span id="form-titulo">Nova Configuração</span></h2>
+                        <button class="btn btn-secondary btn-sm" onclick="limparFormulario()" id="btn-cancelar" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-configuracao">
+                            <input type="hidden" id="config-id">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tipo_relatorio">Tipo de Relatório *</label>
+                                    <select id="tipo_relatorio" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="semanal">Semanal</option>
+                                        <option value="mensal">Mensal</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" id="group-dia-semanal" style="display: none;">
+                                    <label for="dia_envio_semanal">Dia da Semana *</label>
+                                    <select id="dia_envio_semanal">
+                                        <option value="">Selecione...</option>
+                                        <option value="segunda">Segunda-feira</option>
+                                        <option value="terca">Terça-feira</option>
+                                        <option value="quarta">Quarta-feira</option>
+                                        <option value="quinta">Quinta-feira</option>
+                                        <option value="sexta">Sexta-feira</option>
+                                        <option value="sabado">Sábado</option>
+                                        <option value="domingo">Domingo</option>
+                                    </select>
+                                    <small class="form-hint">⚠️ Recomendado: Segunda-feira (conforme cron configurado)</small>
+                                </div>
+
+                                <div class="form-group" id="group-dia-mensal" style="display: none;">
+                                    <label for="dia_envio_mensal">Dia do Mês *</label>
+                                    <input type="number" id="dia_envio_mensal" min="1" max="28" placeholder="1-28">
+                                    <small class="form-hint">Digite um número de 1 a 28</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="hora_envio">Hora de Envio</label>
+                                    <input type="time" id="hora_envio" value="08:00">
+                                    <small class="form-hint">Padrão: 08:00</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="formato_relatorio">Formato do Relatório</label>
+                                    <select id="formato_relatorio">
+                                        <option value="detalhado">Detalhado (Padrão)</option>
+                                        <option value="resumido">Resumido</option>
+                                        <option value="completo">Completo</option>
+                                    </select>
+                                    <small class="form-hint">Detalhado: resumo + top 5 | Completo: todos os rankings</small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="ativo" checked>
+                                    Ativo
+                                </label>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Salvar Configuração
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Card: Minhas Configurações -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-list"></i> Minhas Configurações</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="carregarConfiguracoes()">
+                            <i class="fas fa-sync"></i> Atualizar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-configuracoes" class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando configurações...</p>
+                        </div>
+                        <div id="error-configuracoes" class="error-message" style="display: none;"></div>
+                        <div id="lista-configuracoes" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Histórico -->
+            <div id="tab-historico" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Histórico de Envios</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="carregarHistorico()">
+                            <i class="fas fa-sync"></i> Atualizar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label for="filtro-tipo">Tipo</label>
+                                <select id="filtro-tipo">
+                                    <option value="">Todos</option>
+                                    <option value="semanal">Semanal</option>
+                                    <option value="mensal">Mensal</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filtro-status">Status</label>
+                                <select id="filtro-status">
+                                    <option value="">Todos</option>
+                                    <option value="enviado">Enviado</option>
+                                    <option value="erro">Erro</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filtro-data-inicio">Data Início</label>
+                                <input type="date" id="filtro-data-inicio">
+                            </div>
+                            <div class="filter-group">
+                                <label for="filtro-data-fim">Data Fim</label>
+                                <input type="date" id="filtro-data-fim">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="aplicarFiltrosHistorico()">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                                <button class="btn btn-secondary" onclick="limparFiltrosHistorico()">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="loading-historico" class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando histórico...</p>
+                        </div>
+                        <div id="error-historico" class="error-message" style="display: none;"></div>
+                        <div id="table-historico" class="table-container" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tipo</th>
+                                        <th>Período</th>
+                                        <th>Destinatário</th>
+                                        <th>Formato</th>
+                                        <th>Status</th>
+                                        <th>Data Envio</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historico-tbody"></tbody>
+                            </table>
+                            <div class="pagination" id="pagination-historico"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Snapshots -->
+            <div id="tab-snapshots" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-camera"></i> Snapshots Calculados</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="carregarSnapshots()">
+                            <i class="fas fa-sync"></i> Atualizar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label for="filtro-snapshot-tipo">Tipo</label>
+                                <select id="filtro-snapshot-tipo">
+                                    <option value="">Todos</option>
+                                    <option value="semanal">Semanal</option>
+                                    <option value="mensal">Mensal</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filtro-snapshot-ano">Ano</label>
+                                <input type="number" id="filtro-snapshot-ano" placeholder="2025" min="2020" max="2099">
+                            </div>
+                            <div class="filter-group">
+                                <label for="filtro-snapshot-mes">Mês</label>
+                                <select id="filtro-snapshot-mes">
+                                    <option value="">Todos</option>
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" onclick="aplicarFiltrosSnapshots()">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                                <button class="btn btn-secondary" onclick="limparFiltrosSnapshots()">
+                                    <i class="fas fa-eraser"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="loading-snapshots" class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando snapshots...</p>
+                        </div>
+                        <div id="error-snapshots" class="error-message" style="display: none;"></div>
+                        <div id="lista-snapshots" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Geração Manual -->
+    <div class="modal" id="modal-geracao">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-paper-plane"></i> Geração Manual de Relatório</h3>
+                <button class="close-modal" onclick="fecharModalGeracao()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-geracao-manual">
+                    <div class="form-group">
+                        <label for="geracao-tipo">Tipo de Relatório *</label>
+                        <select id="geracao-tipo" required>
+                            <option value="">Selecione...</option>
+                            <option value="semanal">Semanal</option>
+                            <option value="mensal">Mensal</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="geracao-data-inicio">Data Início *</label>
+                            <input type="date" id="geracao-data-inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="geracao-data-fim">Data Fim *</label>
+                            <input type="date" id="geracao-data-fim" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="geracao-formato">Formato *</label>
+                        <select id="geracao-formato" required>
+                            <option value="detalhado">Detalhado</option>
+                            <option value="resumido">Resumido</option>
+                            <option value="completo">Completo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="gerarSemEnviar()">
+                            <i class="fas fa-eye"></i> Apenas Gerar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Gerar e Enviar
+                        </button>
+                    </div>
+                </form>
+                <div id="resultado-geracao" style="display: none; margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Histórico -->
+    <div class="modal" id="modal-detalhes">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Detalhes do Envio</h3>
+                <button class="close-modal" onclick="fecharModalDetalhes()">×</button>
+            </div>
+            <div class="modal-body" id="detalhes-conteudo">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando detalhes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Snapshot -->
+    <div class="modal" id="modal-snapshot">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Detalhes do Snapshot</h3>
+                <button class="close-modal" onclick="fecharModalSnapshot()">×</button>
+            </div>
+            <div class="modal-body" id="snapshot-conteudo">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando snapshot...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/frota_abastecimento_relatorios.js"></script>
+
+</body>
+
+</html>
