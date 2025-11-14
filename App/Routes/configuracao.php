@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Configuracao\ControllerConfiguracao;
+use App\Middleware\MiddlewareAcl;
 
 /**
  * Rotas de Configurações
@@ -8,13 +9,17 @@ use App\Controllers\Configuracao\ControllerConfiguracao;
 return function ($router) {
     // Rotas protegidas por autenticação e ACL
     $router->grupo([
-        'prefix' => '/configuracoes',
-        'middleware' => ['auth', 'acl']
+        'prefixo' => 'configuracoes',
+        'middleware' => ['auth', 'admin']
     ], function($router) {
 
         // Configurações de Brute Force
-        // Requer permissão: config.visualizar para GET, config.editar para PUT
-        $router->get('/brute-force', [ControllerConfiguracao::class, 'obterBruteForce']);
-        $router->put('/brute-force', [ControllerConfiguracao::class, 'atualizarBruteForce']);
+        // GET /configuracoes/brute-force - Requer permissão: config.visualizar
+        $router->get('/brute-force', [ControllerConfiguracao::class, 'obterBruteForce'])
+            ->middleware(MiddlewareAcl::requer('config.visualizar'));
+
+        // PUT /configuracoes/brute-force - Requer permissão: config.editar
+        $router->put('/brute-force', [ControllerConfiguracao::class, 'atualizarBruteForce'])
+            ->middleware(MiddlewareAcl::requer('config.editar'));
     });
 };

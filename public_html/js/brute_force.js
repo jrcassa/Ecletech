@@ -18,9 +18,7 @@ const BruteForceManager = {
         },
         permissoes: {
             visualizar: false,
-            editar: false,
-            criar: false,
-            excluir: false
+            editar: false
         }
     },
 
@@ -88,24 +86,22 @@ const BruteForceManager = {
 
             console.log('Permissões carregadas:', permissoes);
 
-            // Verifica cada tipo de permissão
+            // Verifica cada tipo de permissão (apenas visualizar e editar existem)
             this.state.permissoes.visualizar = permissoes.includes('config.visualizar');
             this.state.permissoes.editar = permissoes.includes('config.editar');
-            this.state.permissoes.criar = permissoes.includes('config.criar');
-            this.state.permissoes.excluir = permissoes.includes('config.excluir');
 
             console.log('Permissões de config:', this.state.permissoes);
 
             // Atualiza botões de acordo com permissões
             if (this.state.permissoes.editar) {
+                // Botão Salvar Config
                 const btnSalvar = document.getElementById('btnSalvarConfig');
                 if (btnSalvar) {
                     btnSalvar.style.display = 'inline-flex';
                     console.log('Botão Salvar Config exibido');
                 }
-            }
 
-            if (this.state.permissoes.criar) {
+                // Botão Novo Bloqueio (também requer permissão de editar)
                 const btnNovo = document.getElementById('btnNovoBloqueio');
                 if (btnNovo) {
                     btnNovo.style.display = 'inline-flex';
@@ -114,11 +110,11 @@ const BruteForceManager = {
                     console.error('Botão Novo Bloqueio não encontrado no DOM');
                 }
             } else {
-                console.log('Usuário não tem permissão config.criar');
+                console.log('Usuário não tem permissão config.editar');
             }
 
-            // Se não tem nenhuma permissão de escrita, mostra aviso
-            if (!this.state.permissoes.editar && !this.state.permissoes.criar && !this.state.permissoes.excluir) {
+            // Se não tem permissão de editar, mostra aviso
+            if (!this.state.permissoes.editar) {
                 console.info('Usuário tem apenas permissão de visualização');
             }
 
@@ -591,7 +587,7 @@ const BruteForceManager = {
 
             API.showSuccess('Bloqueio removido com sucesso!');
             await this.carregarBloqueios(this.state.bloqueios.page);
-            await this.carregarEstatisticas();
+            // await this.carregarEstatisticas(); // Comentado: elementos DOM não existem na página
 
         } catch (error) {
             console.error('Erro ao desbloquear:', error);
@@ -704,7 +700,7 @@ const BruteForceManager = {
             API.showSuccess('Bloqueio criado com sucesso!');
             this.fecharModalNovoBloqueio();
             await this.carregarBloqueios(1);
-            await this.carregarEstatisticas();
+            // await this.carregarEstatisticas(); // Comentado: elementos DOM não existem na página
 
         } catch (error) {
             console.error('Erro ao criar bloqueio:', error);
@@ -737,7 +733,8 @@ function switchTab(tabName) {
     // Carrega dados da tab
     switch(tabName) {
         case 'estatisticas':
-            BruteForceManager.carregarEstatisticas();
+            // BruteForceManager.carregarEstatisticas(); // Comentado: elementos DOM não existem na página
+            console.warn('Tab de estatísticas não disponível - elementos DOM não implementados');
             break;
         case 'tentativas':
             BruteForceManager.carregarTentativas();
