@@ -494,7 +494,7 @@ const RecebimentoManager = {
             'plano_contas_id': 'selectPlanoContas',
             'centro_custo_id': 'selectCentroCusto',
             'conta_bancaria_id': 'selectContaBancaria',
-            'forma_recebimento_id': 'selectFormaRecebimento'
+            'forma_pagamento_id': 'selectFormaRecebimento'
         };
 
         const inputId = fieldMap[fieldName];
@@ -684,7 +684,7 @@ const RecebimentoManager = {
         form.querySelector('#selectPlanoContas').value = pag.plano_contas_id || '';
         form.querySelector('#selectCentroCusto').value = pag.centro_custo_id || '';
         form.querySelector('#selectContaBancaria').value = pag.conta_bancaria_id || '';
-        form.querySelector('#selectFormaRecebimento').value = pag.forma_recebimento_id || '';
+        form.querySelector('#selectFormaRecebimento').value = pag.forma_pagamento_id || '';
 
         form.querySelector('#inputDataVencimento').value = pag.data_vencimento || '';
         form.querySelector('#inputDataLiquidacao').value = pag.data_liquidacao || '';
