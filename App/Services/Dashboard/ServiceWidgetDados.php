@@ -191,6 +191,7 @@ class ServiceWidgetDados
              INNER JOIN produtos p ON vi.produto_id = p.id
              WHERE v.criado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
+               AND p.deletado_em IS NULL
              GROUP BY p.id, p.nome
              ORDER BY total DESC
              LIMIT ?",
@@ -363,6 +364,7 @@ class ServiceWidgetDados
              INNER JOIN produtos p ON vi.produto_id = p.id
              WHERE v.criado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
+               AND p.deletado_em IS NULL
              GROUP BY p.id, p.nome
              ORDER BY total DESC
              LIMIT ?",
@@ -1206,7 +1208,6 @@ class ServiceWidgetDados
              LEFT JOIN clientes_enderecos ce ON c.id = ce.cliente_id
              LEFT JOIN cidades ci ON ce.cidade_id = ci.id
              WHERE c.deletado_em IS NULL
-               AND ce.deletado_em IS NULL
              GROUP BY ci.id, ci.nome
              ORDER BY total DESC
              LIMIT ?",
@@ -1339,6 +1340,7 @@ class ServiceWidgetDados
              INNER JOIN produtos p ON vi.produto_id = p.id
              WHERE v.criado_em BETWEEN ? AND ?
                AND v.deletado_em IS NULL
+               AND p.deletado_em IS NULL
              GROUP BY p.id, p.nome
              ORDER BY total_vendido DESC
              LIMIT ?",
