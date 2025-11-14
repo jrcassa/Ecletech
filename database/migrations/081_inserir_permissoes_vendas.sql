@@ -22,25 +22,26 @@ ON DUPLICATE KEY UPDATE
     ativo = VALUES(ativo);
 
 -- ========================================
--- ATRIBUIR PERMISSÕES AO ADMINISTRADOR
+-- ATRIBUIR PERMISSÕES AOS ROLES
 -- ========================================
 
--- Buscar ID do nível Administrador
-SET @nivel_admin_id = (SELECT id FROM colaborador_niveis WHERE nome = 'Administrador' LIMIT 1);
+-- Associar todas as permissões de venda ao role Super Admin (ID 1)
+INSERT INTO colaborador_role_permissions (role_id, permission_id, criado_em)
+SELECT 1, p.id, NOW()
+FROM colaborador_permissions p
+WHERE p.modulo = 'venda'
+AND NOT EXISTS (
+    SELECT 1 FROM colaborador_role_permissions crp
+    WHERE crp.role_id = 1 AND crp.permission_id = p.id
+);
 
--- Inserir permissões para o nível Administrador (se existir)
-INSERT INTO colaborador_niveis_permissions (nivel_id, permission_id)
-SELECT
-    @nivel_admin_id,
-    cp.id
-FROM
-    colaborador_permissions cp
-WHERE
-    cp.modulo = 'venda'
-    AND @nivel_admin_id IS NOT NULL
-    AND NOT EXISTS (
-        SELECT 1
-        FROM colaborador_niveis_permissions cnp
-        WHERE cnp.nivel_id = @nivel_admin_id
-        AND cnp.permission_id = cp.id
-    );
+-- Associar permissões ao role Admin (ID 2)
+INSERT INTO colaborador_role_permissions (role_id, permission_id, criado_em)
+SELECT 2, p.id, NOW()
+FROM colaborador_permissions p
+WHERE p.modulo = 'venda'
+AND p.codigo IN ('venda.listar', 'venda.visualizar', 'venda.criar', 'venda.editar')
+AND NOT EXISTS (
+    SELECT 1 FROM colaborador_role_permissions crp
+    WHERE crp.role_id = 2 AND crp.permission_id = p.id
+);
