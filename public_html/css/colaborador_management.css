@@ -40,7 +40,92 @@
     display: block;
 }
 
-/* Checklist de permissões */
+/* Modal grande para permissões */
+.modal-large .modal-content {
+    max-width: 900px;
+    width: 90%;
+}
+
+.modal-body {
+    padding: 20px 0;
+}
+
+/* Container de permissões */
+.permissions-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 0 20px;
+}
+
+/* Grupo de módulo */
+.module-group {
+    margin-bottom: 25px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.module-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #ee670d, #ff8534);
+    padding: 12px 20px;
+    letter-spacing: 0.5px;
+}
+
+.permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    padding: 15px;
+    background: var(--bg-secondary);
+}
+
+/* Item de permissão */
+.permission-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.permission-item:hover {
+    border-color: #ee670d;
+    background: var(--bg-hover);
+}
+
+.permission-item input[type="checkbox"] {
+    margin-right: 12px;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.permission-item label {
+    cursor: pointer;
+    color: var(--text-primary);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.permission-name {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.permission-code {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'Courier New', monospace;
+}
+
+/* Checklist de permissões (legado) */
 .permissions-checklist {
     max-height: 400px;
     overflow-y: auto;
@@ -61,21 +146,4 @@
     padding: 8px;
     background: var(--bg-secondary);
     border-radius: 4px;
-}
-
-.permission-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    margin-bottom: 5px;
-}
-
-.permission-item input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-.permission-item label {
-    cursor: pointer;
-    color: var(--text-primary);
-    flex: 1;
 }

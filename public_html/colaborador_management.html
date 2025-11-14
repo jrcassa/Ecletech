@@ -375,6 +375,35 @@
         </div>
     </div>
 
+    <!-- Modal para Gerenciar Permissões da Role -->
+    <div id="modalRolePermissoes" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modalRolePermissoesTitle">Gerenciar Permissões</h3>
+                <button class="close" id="closeModalRolePermissoes">&times;</button>
+            </div>
+
+            <div id="modalRolePermissoesError" style="display: none;">
+                <div class="error-message" id="modalRolePermissoesErrorMessage"></div>
+            </div>
+
+            <div class="modal-body">
+                <div id="permissoesContainer" class="permissions-container">
+                    <!-- Permissões serão carregadas dinamicamente -->
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="btnCancelarRolePermissoes">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnSalvarRolePermissoes">
+                    <i class="fas fa-save"></i> Salvar Permissões
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>

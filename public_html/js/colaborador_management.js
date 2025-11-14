@@ -705,10 +705,5 @@ const ManagementApp = {
     }
 };
 
-// Inicializa quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    ManagementApp.init();
-});
-
 // Expõe globalmente para uso nos event handlers inline
 window.ManagementApp = ManagementApp;
