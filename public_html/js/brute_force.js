@@ -74,7 +74,7 @@ const BruteForceManager = {
         }
 
         // Carrega dados iniciais
-        // await this.carregarConfiguracoes(); // Rota ainda não implementada
+        this.mostrarConfiguracoesPadrao(); // Mostra configurações com valores padrão
         await this.carregarBloqueios();
     },
 
@@ -111,7 +111,30 @@ const BruteForceManager = {
     },
 
     /**
-     * Carrega configurações de brute force
+     * Mostra configurações com valores padrão
+     */
+    mostrarConfiguracoesPadrao() {
+        const loadingConfig = document.getElementById('loadingConfig');
+        const configContent = document.getElementById('configContent');
+
+        // Esconde loading
+        if (loadingConfig) loadingConfig.style.display = 'none';
+
+        // Preenche com valores padrão
+        const maxTentativas = document.getElementById('config-max-tentativas');
+        const tempoBloqueio = document.getElementById('config-tempo-bloqueio');
+        const janelaTempo = document.getElementById('config-janela-tempo');
+
+        if (maxTentativas) maxTentativas.value = 5;
+        if (tempoBloqueio) tempoBloqueio.value = 30;
+        if (janelaTempo) janelaTempo.value = 15;
+
+        // Mostra conteúdo
+        if (configContent) configContent.style.display = 'block';
+    },
+
+    /**
+     * Carrega configurações de brute force (para uso futuro quando a rota existir)
      */
     async carregarConfiguracoes() {
         try {
@@ -329,7 +352,18 @@ const BruteForceManager = {
      * Carrega bloqueios ativos
      */
     async carregarBloqueios(page = 1) {
+        const loadingBloqueios = document.getElementById('loadingBloqueios');
+        const tableContainer = document.getElementById('tableContainer');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const noData = document.getElementById('noData');
+
         try {
+            // Mostra loading
+            if (loadingBloqueios) loadingBloqueios.style.display = 'flex';
+            if (tableContainer) tableContainer.style.display = 'none';
+            if (errorContainer) errorContainer.style.display = 'none';
+
             this.state.bloqueios.page = page;
 
             const params = {
@@ -344,14 +378,36 @@ const BruteForceManager = {
                 throw new Error(response.mensagem || 'Erro ao carregar bloqueios');
             }
 
-            this.renderizarBloqueios(response.dados.itens || []);
-            this.renderizarPaginacaoBloqueios(response.dados.paginacao);
+            const bloqueios = response.dados.itens || [];
+
+            // Esconde loading
+            if (loadingBloqueios) loadingBloqueios.style.display = 'none';
+
+            // Se tem dados, renderiza e mostra tabela
+            if (bloqueios.length > 0) {
+                this.renderizarBloqueios(bloqueios);
+                this.renderizarPaginacaoBloqueios(response.dados.paginacao);
+                if (tableContainer) tableContainer.style.display = 'block';
+                if (noData) noData.style.display = 'none';
+            } else {
+                // Sem dados, mostra mensagem
+                if (tableContainer) tableContainer.style.display = 'block';
+                if (this.elements.bloqueiosTableBody) {
+                    this.elements.bloqueiosTableBody.innerHTML = '';
+                }
+                if (noData) noData.style.display = 'block';
+            }
 
         } catch (error) {
             console.error('Erro ao carregar bloqueios:', error);
-            this.elements.bloqueiosTableBody.innerHTML = `
-                <tr><td colspan="8" class="empty-state">Erro ao carregar bloqueios</td></tr>
-            `;
+
+            // Esconde loading
+            if (loadingBloqueios) loadingBloqueios.style.display = 'none';
+
+            // Mostra erro
+            if (errorContainer) errorContainer.style.display = 'block';
+            if (errorMessage) errorMessage.textContent = error.message || 'Erro ao carregar bloqueios';
+            if (tableContainer) tableContainer.style.display = 'none';
         }
     },
 
@@ -662,4 +718,50 @@ document.addEventListener('click', (e) => {
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await BruteForceManager.init();
+
+    // Event listeners para botões de filtro
+    const btnFiltrarBloqueios = document.getElementById('btnFiltrarBloqueios');
+    if (btnFiltrarBloqueios) {
+        btnFiltrarBloqueios.addEventListener('click', () => {
+            BruteForceManager.aplicarFiltrosBloqueios();
+        });
+    }
+
+    // Event listener para botão de novo bloqueio
+    const btnNovoBloqueio = document.getElementById('btnNovoBloqueio');
+    if (btnNovoBloqueio) {
+        btnNovoBloqueio.addEventListener('click', () => {
+            BruteForceManager.abrirModalNovoBloqueio();
+        });
+    }
+
+    // Event listeners do modal
+    const closeModalBloqueio = document.getElementById('closeModalBloqueio');
+    if (closeModalBloqueio) {
+        closeModalBloqueio.addEventListener('click', () => {
+            BruteForceManager.fecharModalNovoBloqueio();
+        });
+    }
+
+    const btnCancelarBloqueio = document.getElementById('btnCancelarBloqueio');
+    if (btnCancelarBloqueio) {
+        btnCancelarBloqueio.addEventListener('click', () => {
+            BruteForceManager.fecharModalNovoBloqueio();
+        });
+    }
+
+    const formNovoBloqueio = document.getElementById('formNovoBloqueio');
+    if (formNovoBloqueio) {
+        formNovoBloqueio.addEventListener('submit', (e) => {
+            e.preventDefault();
+            BruteForceManager.criarBloqueio();
+        });
+    }
+
+    const novoTipoBloqueio = document.getElementById('novo-tipo-bloqueio');
+    if (novoTipoBloqueio) {
+        novoTipoBloqueio.addEventListener('change', () => {
+            BruteForceManager.ajustarCamposBloqueio();
+        });
+    }
 });
