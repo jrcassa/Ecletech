@@ -147,6 +147,10 @@ $router->grupo([
     $rotasLoginAttempts = require __DIR__ . '/login_attempts.php';
     $rotasLoginAttempts($router);
 
+    // Inclui rotas de configurações
+    $rotasConfiguracao = require __DIR__ . '/configuracao.php';
+    $rotasConfiguracao($router);
+
     // Inclui rotas de auditoria
     $rotasAuditoria = require __DIR__ . '/auditoria.php';
     $rotasAuditoria($router);

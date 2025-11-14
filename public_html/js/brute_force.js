@@ -86,21 +86,40 @@ const BruteForceManager = {
             // Aguarda as permissões serem carregadas pelo SidebarManager
             const permissoes = await aguardarPermissoes();
 
+            console.log('Permissões carregadas:', permissoes);
+
             // Verifica cada tipo de permissão
             this.state.permissoes.visualizar = permissoes.includes('config.visualizar');
             this.state.permissoes.editar = permissoes.includes('config.editar');
             this.state.permissoes.criar = permissoes.includes('config.criar');
             this.state.permissoes.excluir = permissoes.includes('config.excluir');
 
+            console.log('Permissões de config:', this.state.permissoes);
+
             // Atualiza botões de acordo com permissões
             if (this.state.permissoes.editar) {
                 const btnSalvar = document.getElementById('btnSalvarConfig');
-                if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+                if (btnSalvar) {
+                    btnSalvar.style.display = 'inline-flex';
+                    console.log('Botão Salvar Config exibido');
+                }
             }
 
             if (this.state.permissoes.criar) {
                 const btnNovo = document.getElementById('btnNovoBloqueio');
-                if (btnNovo) btnNovo.style.display = 'inline-flex';
+                if (btnNovo) {
+                    btnNovo.style.display = 'inline-flex';
+                    console.log('Botão Novo Bloqueio exibido');
+                } else {
+                    console.error('Botão Novo Bloqueio não encontrado no DOM');
+                }
+            } else {
+                console.log('Usuário não tem permissão config.criar');
+            }
+
+            // Se não tem nenhuma permissão de escrita, mostra aviso
+            if (!this.state.permissoes.editar && !this.state.permissoes.criar && !this.state.permissoes.excluir) {
+                console.info('Usuário tem apenas permissão de visualização');
             }
 
         } catch (error) {
