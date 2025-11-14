@@ -345,6 +345,7 @@ const AdministradoresManager = {
                 document.getElementById('adminId').value = admin.id;
                 document.getElementById('nome').value = admin.nome;
                 document.getElementById('email').value = admin.email;
+                document.getElementById('celular').value = admin.celular || '';
                 document.getElementById('nivelId').value = admin.nivel_id;
                 document.getElementById('ativo').value = admin.ativo;
 
@@ -376,6 +377,7 @@ const AdministradoresManager = {
         const dados = {
             nome: document.getElementById('nome').value,
             email: document.getElementById('email').value,
+            celular: document.getElementById('celular').value || '',
             nivel_id: parseInt(document.getElementById('nivelId').value),
             ativo: parseInt(document.getElementById('ativo').value)
         };
