@@ -608,7 +608,7 @@ const VendaFormManager = {
                     </div>
                     <div class="form-group">
                         <label>Valor Unitário *</label>
-                        <input type="number" step="0.01" min="0" data-field="valor_venda" data-id="${item.id}" value="${item.valor_venda || 0}" readonly style="background: var(--bg-tertiary);">
+                        <input type="number" step="0.01" min="0" data-field="valor_venda" data-id="${item.id}" value="${item.valor_venda || 0}">
                     </div>
                     <div class="form-group">
                         <label>Desconto (R$)</label>
@@ -1042,29 +1042,86 @@ const VendaFormManager = {
      * Valida campos obrigatórios e navega para aba com erro
      */
     validarCamposObrigatorios() {
-        // Mapeia campos obrigatórios para suas respectivas abas
-        const camposPorAba = {
-            'geral': ['dataVenda', 'codigo', 'situacaoVendaId'],
-            'itens': [],  // Validação especial para itens
-            'pagamentos': [],  // Validação especial para pagamentos
-            'endereco': [],  // Campos de endereço são condicionais
-            'observacoes': []
-        };
+        // Verifica campos da aba GERAL
+        const camposGerais = ['dataVenda', 'codigo', 'situacaoVendaId'];
+        for (const campoId of camposGerais) {
+            const campo = document.getElementById(campoId);
+            if (campo && !campo.value.trim()) {
+                this.navegarParaAba('geral');
+                campo.focus();
 
-        // Verifica cada aba
-        for (const [aba, campos] of Object.entries(camposPorAba)) {
-            for (const campoId of campos) {
-                const campo = document.getElementById(campoId);
-                if (campo && campo.hasAttribute('required') && !campo.value.trim()) {
-                    // Navega para a aba com erro
-                    this.navegarParaAba(aba);
-                    campo.focus();
+                const label = document.querySelector(`label[for="${campoId}"]`);
+                const nomeCampo = label ? label.textContent.replace('*', '').trim() : campoId;
 
-                    // Obtém o label do campo
-                    const label = document.querySelector(`label[for="${campoId}"]`);
-                    const nomeCampo = label ? label.textContent.replace('*', '').trim() : campoId;
+                Utils.Notificacao.erro(`O campo "${nomeCampo}" é obrigatório`);
+                return false;
+            }
+        }
 
-                    Utils.Notificacao.erro(`O campo "${nomeCampo}" é obrigatório`);
+        // Verifica ITENS (validação dos campos dinâmicos)
+        if (this.state.itens.length > 0) {
+            for (let i = 0; i < this.state.itens.length; i++) {
+                const item = this.state.itens[i];
+
+                // Valida tipo
+                if (!item.tipo) {
+                    this.navegarParaAba('itens');
+                    Utils.Notificacao.erro(`Item ${i + 1}: Selecione o tipo (Produto ou Serviço)`);
+                    return false;
+                }
+
+                // Valida se tem produto ou serviço selecionado
+                if (item.tipo === 'produto' && !item.produto_id) {
+                    this.navegarParaAba('itens');
+                    Utils.Notificacao.erro(`Item ${i + 1}: Selecione um produto`);
+                    return false;
+                }
+
+                if (item.tipo === 'servico' && !item.servico_id) {
+                    this.navegarParaAba('itens');
+                    Utils.Notificacao.erro(`Item ${i + 1}: Selecione um serviço`);
+                    return false;
+                }
+
+                // Valida quantidade
+                if (!item.quantidade || parseFloat(item.quantidade) <= 0) {
+                    this.navegarParaAba('itens');
+                    Utils.Notificacao.erro(`Item ${i + 1}: Informe uma quantidade válida`);
+                    return false;
+                }
+
+                // Valida valor unitário
+                if (!item.valor_venda || parseFloat(item.valor_venda) <= 0) {
+                    this.navegarParaAba('itens');
+                    Utils.Notificacao.erro(`Item ${i + 1}: Informe um valor unitário válido`);
+                    return false;
+                }
+            }
+        }
+
+        // Verifica PAGAMENTOS (validação dos campos dinâmicos)
+        if (this.state.pagamentos.length > 0) {
+            for (let i = 0; i < this.state.pagamentos.length; i++) {
+                const pag = this.state.pagamentos[i];
+
+                // Valida data de vencimento
+                if (!pag.data_vencimento) {
+                    this.navegarParaAba('pagamentos');
+                    Utils.Notificacao.erro(`Parcela ${i + 1}: Informe a data de vencimento`);
+                    return false;
+                }
+
+                // Valida valor
+                if (!pag.valor || parseFloat(pag.valor) <= 0) {
+                    this.navegarParaAba('pagamentos');
+                    Utils.Notificacao.erro(`Parcela ${i + 1}: Informe um valor válido`);
+                    return false;
+                }
+
+                // Valida forma de pagamento
+                if (!pag.forma_pagamento_id) {
+                    this.navegarParaAba('pagamentos');
+                    Utils.Notificacao.erro(`Parcela ${i + 1}: Selecione a forma de pagamento`);
                     return false;
                 }
             }
