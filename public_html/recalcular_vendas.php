@@ -98,49 +98,23 @@
 
                 for (const venda of vendas) {
                     try {
-                        // Busca venda completa com itens
-                        const vendaCompleta = await API.get(`/venda/${venda.id}`);
+                        const valorAtual = parseFloat(venda.valor_total) || 0;
 
-                        if (!vendaCompleta.sucesso) {
-                            throw new Error('Erro ao buscar venda completa');
+                        // Chama endpoint de recálculo
+                        const resultado = await API.post(`/venda/${venda.id}/recalcular-totais`, {});
+
+                        if (!resultado.sucesso) {
+                            throw new Error('Erro ao recalcular totais');
                         }
 
-                        const dados = vendaCompleta.dados;
+                        const totais = resultado.dados;
+                        const valorNovo = parseFloat(totais.valor_total) || 0;
 
-                        // Calcula valor total dos itens
-                        const valorItens = (dados.itens || []).reduce((total, item) => {
-                            return total + (parseFloat(item.valor_total) || 0);
-                        }, 0);
-
-                        const valorFrete = parseFloat(dados.valor_frete) || 0;
-                        const descontoValor = parseFloat(dados.desconto_valor) || 0;
-                        const valorTotal = valorItens + valorFrete - descontoValor;
-
-                        // Atualiza apenas se o valor estiver diferente
-                        const valorAtual = parseFloat(dados.valor_total) || 0;
-
-                        if (Math.abs(valorAtual - valorTotal) > 0.01) {
-                            // Prepara dados para atualização
-                            const dadosAtualizacao = {
-                                codigo: dados.codigo,
-                                data_venda: dados.data_venda,
-                                cliente_id: dados.cliente_id,
-                                vendedor_id: dados.vendedor_id,
-                                situacao_venda_id: dados.situacao_venda_id,
-                                valor_frete: valorFrete,
-                                desconto_valor: descontoValor,
-                                valor_total: valorTotal,
-                                itens: dados.itens || [],
-                                pagamentos: dados.pagamentos || []
-                            };
-
-                            // Atualiza a venda
-                            await API.put(`/venda/${venda.id}`, dadosAtualizacao);
-
-                            log(`✓ Venda #${dados.codigo} (ID: ${venda.id}) - R$ ${valorAtual.toFixed(2)} → R$ ${valorTotal.toFixed(2)}`, 'success');
+                        if (Math.abs(valorAtual - valorNovo) > 0.01) {
+                            log(`✓ Venda #${venda.codigo} (ID: ${venda.id}) - R$ ${valorAtual.toFixed(2)} → R$ ${valorNovo.toFixed(2)}`, 'success');
                             atualizadas++;
                         } else {
-                            log(`- Venda #${dados.codigo} (ID: ${venda.id}) - Já está correto: R$ ${valorTotal.toFixed(2)}`, 'info');
+                            log(`- Venda #${venda.codigo} (ID: ${venda.id}) - Já está correto: R$ ${valorNovo.toFixed(2)}`, 'info');
                         }
 
                     } catch (error) {

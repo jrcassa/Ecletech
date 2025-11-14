@@ -166,4 +166,22 @@ class ControllerVenda extends BaseController
             $this->tratarErro($e);
         }
     }
+
+    /**
+     * Recalcula os totais de uma venda baseado nos itens
+     */
+    public function recalcularTotais(string $id): void
+    {
+        try {
+            if (!$this->validarId($id, 'Venda')) {
+                return;
+            }
+
+            $totais = $this->service->recalcularTotaisVenda((int) $id);
+
+            $this->sucesso($totais, 'Totais recalculados com sucesso');
+        } catch (\Exception $e) {
+            $this->tratarErro($e);
+        }
+    }
 }
