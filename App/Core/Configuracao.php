@@ -113,9 +113,18 @@ class Configuracao
 
     /**
      * Define uma configuração
+     * Se a chave não contém ponto, salva diretamente no .env
      */
     public function definir(string $chave, mixed $valor): void
     {
+        // Se a chave não tem ponto, é uma variável direta do .env
+        if (strpos($chave, '.') === false) {
+            // Salva no .env
+            $this->carregadorEnv->definir($chave, $valor);
+            return;
+        }
+
+        // Caso contrário, atualiza apenas em memória
         $partes = explode('.', $chave);
         $config = &$this->configuracoes;
 

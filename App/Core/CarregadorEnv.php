@@ -106,4 +106,71 @@ class CarregadorEnv
     {
         return $this->variaveis;
     }
+
+    /**
+     * Define uma variável de ambiente e persiste no arquivo .env
+     */
+    public function definir(string $nome, mixed $valor, string $caminhoArquivo = null): bool
+    {
+        // Se não foi passado o caminho, tenta usar o padrão
+        if ($caminhoArquivo === null) {
+            $caminhoArquivo = __DIR__ . '/../../.env';
+        }
+
+        // Atualiza em memória
+        $this->variaveis[$nome] = $valor;
+        putenv("{$nome}={$valor}");
+        $_ENV[$nome] = $valor;
+        $_SERVER[$nome] = $valor;
+
+        // Persiste no arquivo
+        return $this->salvarNoArquivo($nome, $valor, $caminhoArquivo);
+    }
+
+    /**
+     * Salva uma variável no arquivo .env
+     */
+    private function salvarNoArquivo(string $nome, mixed $valor, string $caminhoArquivo): bool
+    {
+        if (!file_exists($caminhoArquivo)) {
+            return false;
+        }
+
+        // Lê o arquivo
+        $conteudo = file_get_contents($caminhoArquivo);
+        $linhas = explode("\n", $conteudo);
+        $encontrado = false;
+
+        // Procura pela variável existente
+        foreach ($linhas as $indice => $linha) {
+            $linha = trim($linha);
+
+            // Ignora comentários e linhas vazias
+            if (empty($linha) || str_starts_with($linha, '#')) {
+                continue;
+            }
+
+            // Verifica se é a variável que estamos procurando
+            if (strpos($linha, '=') !== false) {
+                list($nomeExistente) = explode('=', $linha, 2);
+                $nomeExistente = trim($nomeExistente);
+
+                if ($nomeExistente === $nome) {
+                    // Atualiza a linha
+                    $linhas[$indice] = "{$nome}={$valor}";
+                    $encontrado = true;
+                    break;
+                }
+            }
+        }
+
+        // Se não encontrou, adiciona no final
+        if (!$encontrado) {
+            $linhas[] = "{$nome}={$valor}";
+        }
+
+        // Salva de volta no arquivo
+        $novoConteudo = implode("\n", $linhas);
+        return file_put_contents($caminhoArquivo, $novoConteudo) !== false;
+    }
 }
