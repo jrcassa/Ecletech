@@ -1163,9 +1163,6 @@
             }
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
@@ -1511,10 +1508,134 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
     <script src="js/Loja.js"></script>
-    
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Event listener para o botão de tema
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Carregar tema ao iniciar
+        loadTheme();
+
+        const userInfoDropdown = document.getElementById('userInfoDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+
+        userInfoDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userInfoDropdown.classList.toggle('open');
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            userInfoDropdown.classList.remove('open');
+            userDropdownMenu.classList.remove('show');
+        });
+
+        userDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        logoutBtnSidebar.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        menuToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('expanded');
+            }
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        });
+
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => sm.classList.remove('open'));
+            document.querySelectorAll('.submenu-toggle').forEach(btn => btn.classList.remove('open'));
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!AuthAPI.isAuthenticated()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const usuario = API.getUser();
+            if (usuario) {
+                document.getElementById('userDisplayName').textContent = usuario.nome || usuario.email;
+            }
+
+            await LojaManager.init();
+
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

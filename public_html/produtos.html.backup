@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fornecedores - Ecletech</title>
+    <title>Produtos - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1653,15 +1653,183 @@
             }
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
 
-    <div id="sidebar-container"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
+        </div>
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html" data-permission="frota.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                    <a href="./fornecedores.html" data-permission="fornecedor.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-truck"></i></span>
+                            <span>Fornecedores</span>
+                        </div>
+                    </a>
+                    <a href="./clientes.html" data-permission="cliente.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Clientes</span>
+                        </div>
+                    </a>
+                    <a href="./grupos_produtos.html" data-permission="grupos_produtos.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-layer-group"></i></span>
+                            <span>Grupos de Produtos</span>
+                        </div>
+                    </a>
+                    <a href="./produtos.html" class="active" data-permission="produtos.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-box"></i></span>
+                            <span>Produtos</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html" data-permission="estado.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html" data-permission="cidade.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html" data-permission="loja.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar" id="userInfoDropdown">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item"
+                        style="border-top: 1px solid #f1f5f9; margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
@@ -1669,7 +1837,7 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Fornecedores</h1>
+                <h1>Produtos</h1>
             </div>
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
@@ -1690,22 +1858,20 @@
             <div id="pageContent" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Fornecedores</h2>
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Produtos</h2>
                         <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
-                            Novo Fornecedor</button>
+                            Novo Produto</button>
                     </div>
 
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="filtroBusca" placeholder="Nome, CNPJ/CPF, email...">
+                            <input type="text" id="filtroBusca" placeholder="Nome, código interno ou código de barras...">
                         </div>
                         <div class="filter-group">
-                            <label>Tipo de Pessoa</label>
-                            <select id="filtroTipoPessoa">
-                                <option value="">Todos</option>
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
+                            <label>Grupo</label>
+                            <select id="filtroGrupo">
+                                <option value="">Todos os grupos</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -1735,11 +1901,11 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>Código Interno</th>
                                     <th>Nome</th>
-                                    <th>Tipo</th>
-                                    <th>CNPJ/CPF</th>
-                                    <th>Email</th>
-                                    <th>Telefone</th>
+                                    <th>Grupo</th>
+                                    <th>Estoque</th>
+                                    <th>Valor Venda</th>
                                     <th>Status</th>
                                     <th>Ações</th>
                                 </tr>
@@ -1748,7 +1914,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum fornecedor encontrado.
+                            Nenhum produto encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -1766,7 +1932,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Fornecedor</h3>
+                <h3 id="modalTitle">Novo Produto</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -1774,31 +1940,40 @@
                 <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <!-- Abas -->
+            <!-- Sistema de Abas -->
             <div class="tabs">
-                <button class="tab-button active" data-tab="dadosGerais">
-                    <i class="fas fa-info-circle"></i> Dados Gerais
+                <button type="button" class="tab-button active" data-tab="gerais">
+                    <i class="fas fa-box"></i> Dados Gerais
                 </button>
-                <button class="tab-button" data-tab="contatos">
-                    <i class="fas fa-address-book"></i> Contatos
+                <button type="button" class="tab-button" data-tab="valores">
+                    <i class="fas fa-tags"></i> Valores/Preços
                 </button>
-                <button class="tab-button" data-tab="enderecos">
-                    <i class="fas fa-map-marker-alt"></i> Endereços
+                <button type="button" class="tab-button" data-tab="variacoes">
+                    <i class="fas fa-palette"></i> Variações
+                </button>
+                <button type="button" class="tab-button" data-tab="fiscal">
+                    <i class="fas fa-file-invoice"></i> Fiscal
+                </button>
+                <button type="button" class="tab-button" data-tab="fornecedores">
+                    <i class="fas fa-truck"></i> Fornecedores
                 </button>
             </div>
 
-            <form id="formFornecedor">
-                <input type="hidden" id="fornecedorId">
+            <form id="formProduto">
+                <input type="hidden" id="produtoId">
 
-                <!-- Aba 1: Dados Gerais -->
-                <div class="tab-content active" id="tabDadosGerais">
+                <!-- Aba: Dados Gerais -->
+                <div id="tabGerais" class="tab-content active">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="tipoPessoa">Tipo de Pessoa *</label>
-                            <select id="tipoPessoa" required>
-                                <option value="">Selecione...</option>
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
+                            <label for="externalId">ID Externo</label>
+                            <input type="text" id="externalId" placeholder="ID do sistema externo (opcional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="grupoId">Grupo de Produtos</label>
+                            <select id="grupoId">
+                                <option value="">Selecione um grupo (opcional)</option>
                             </select>
                         </div>
 
@@ -1814,109 +1989,181 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nome">Nome *</label>
-                            <input type="text" id="nome" required>
+                            <input type="text" id="nome" required placeholder="Nome do produto">
                         </div>
 
-                        <div class="form-group campo-condicional campo-pj" id="grupoRazaoSocial">
-                            <label for="razaoSocial">Razão Social</label>
-                            <input type="text" id="razaoSocial">
+                        <div class="form-group">
+                            <label for="codigoInterno">Código Interno</label>
+                            <input type="text" id="codigoInterno" placeholder="Código interno do produto">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="codigoBarra">Código de Barras</label>
+                            <input type="text" id="codigoBarra" placeholder="Código de barras">
                         </div>
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group campo-condicional campo-pj" id="grupoCnpj">
-                            <label for="cnpj">CNPJ *</label>
-                            <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoCpf">
-                            <label for="cpf">CPF *</label>
-                            <input type="text" id="cpf" placeholder="000.000.000-00">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoRg">
-                            <label for="rg">RG</label>
-                            <input type="text" id="rg">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoDataNascimento">
-                            <label for="dataNascimento">Data de Nascimento</label>
-                            <input type="date" id="dataNascimento">
-                        </div>
-                    </div>
-
-                    <div class="form-row campo-condicional campo-pj" id="grupoInscricoes">
                         <div class="form-group">
-                            <label for="inscricaoEstadual">Inscrição Estadual</label>
-                            <input type="text" id="inscricaoEstadual">
+                            <label for="possuiVariacao">Possui Variação?</label>
+                            <select id="possuiVariacao">
+                                <option value="0">Não</option>
+                                <option value="1">Sim</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="inscricaoMunicipal">Inscrição Municipal</label>
-                            <input type="text" id="inscricaoMunicipal">
+                            <label for="possuiComposicao">Possui Composição?</label>
+                            <select id="possuiComposicao">
+                                <option value="0">Não</option>
+                                <option value="1">Sim</option>
+                            </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="tipoContribuinte">Tipo de Contribuinte</label>
-                            <select id="tipoContribuinte">
-                                <option value="">Selecione...</option>
-                                <option value="contribuinte">Contribuinte</option>
-                                <option value="isento">Isento</option>
-                                <option value="nao_contribuinte">Não Contribuinte</option>
+                            <label for="movimentaEstoque">Movimenta Estoque?</label>
+                            <select id="movimentaEstoque">
+                                <option value="1">Sim</option>
+                                <option value="0">Não</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="telefone">Telefone</label>
-                            <input type="text" id="telefone" placeholder="(00) 0000-0000">
+                            <label for="peso">Peso (kg)</label>
+                            <input type="number" step="0.001" id="peso" placeholder="0.000">
                         </div>
 
                         <div class="form-group">
-                            <label for="celular">Celular</label>
-                            <input type="text" id="celular" placeholder="(00) 00000-0000">
+                            <label for="largura">Largura (cm)</label>
+                            <input type="number" step="0.01" id="largura" placeholder="0.00">
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email">
+                            <label for="altura">Altura (cm)</label>
+                            <input type="number" step="0.01" id="altura" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comprimento">Comprimento (cm)</label>
+                            <input type="number" step="0.01" id="comprimento" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="estoque">Estoque</label>
+                            <input type="number" step="0.01" id="estoque" value="0" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorCusto">Valor Custo</label>
+                            <input type="number" step="0.01" id="valorCusto" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorVenda">Valor Venda</label>
+                            <input type="number" step="0.01" id="valorVenda" placeholder="0.00">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="observacoes">Observações</label>
-                        <textarea id="observacoes"></textarea>
+                        <label for="descricao">Descrição</label>
+                        <textarea id="descricao" rows="4" placeholder="Descrição do produto (opcional)"></textarea>
                     </div>
                 </div>
 
-                <!-- Aba 2: Contatos -->
-                <div class="tab-content" id="tabContatos">
+                <!-- Aba: Valores/Preços -->
+                <div id="tabValores" class="tab-content">
                     <div class="dynamic-list">
                         <div class="dynamic-list-header">
-                            <h4>Lista de Contatos</h4>
-                            <button type="button" class="btn btn-success btn-small" id="btnAddContato">
-                                <i class="fas fa-plus"></i> Adicionar Contato
+                            <h4>Valores por Tipo de Preço (Varejo, Atacado, etc)</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarValor">
+                                <i class="fas fa-plus"></i> Adicionar Valor
                             </button>
                         </div>
-                        <div class="dynamic-list-items" id="listaContatos">
-                            <!-- Itens serão adicionados dinamicamente -->
+                        <div class="dynamic-list-items" id="valoresList"></div>
+                    </div>
+                </div>
+
+                <!-- Aba: Variações -->
+                <div id="tabVariacoes" class="tab-content">
+                    <div class="dynamic-list">
+                        <div class="dynamic-list-header">
+                            <h4>Variações do Produto</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarVariacao">
+                                <i class="fas fa-plus"></i> Adicionar Variação
+                            </button>
+                        </div>
+                        <div class="dynamic-list-items" id="variacoesList"></div>
+                    </div>
+                </div>
+
+                <!-- Aba: Fiscal -->
+                <div id="tabFiscal" class="tab-content">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ncm">NCM</label>
+                            <input type="text" id="ncm" placeholder="Nomenclatura Comum do Mercosul">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cest">CEST</label>
+                            <input type="text" id="cest" placeholder="Código Especificador da Substituição Tributária">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pesoLiquido">Peso Líquido (kg)</label>
+                            <input type="number" step="0.001" id="pesoLiquido" placeholder="0.000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pesoBruto">Peso Bruto (kg)</label>
+                            <input type="number" step="0.001" id="pesoBruto" placeholder="0.000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorAproximadoTributos">Valor Aproximado Tributos</label>
+                            <input type="number" step="0.01" id="valorAproximadoTributos" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valorFixoPis">Valor Fixo PIS</label>
+                            <input type="number" step="0.0001" id="valorFixoPis" placeholder="0.0000">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoPisSt">Valor Fixo PIS ST</label>
+                            <input type="number" step="0.01" id="valorFixoPisSt" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoConfins">Valor Fixo COFINS</label>
+                            <input type="number" step="0.01" id="valorFixoConfins" placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="valorFixoConfinsSt">Valor Fixo COFINS ST</label>
+                            <input type="number" step="0.01" id="valorFixoConfinsSt" placeholder="0.00">
                         </div>
                     </div>
                 </div>
 
-                <!-- Aba 3: Endereços -->
-                <div class="tab-content" id="tabEnderecos">
+                <!-- Aba: Fornecedores -->
+                <div id="tabFornecedores" class="tab-content">
                     <div class="dynamic-list">
                         <div class="dynamic-list-header">
-                            <h4>Lista de Endereços</h4>
-                            <button type="button" class="btn btn-success btn-small" id="btnAddEndereco">
-                                <i class="fas fa-plus"></i> Adicionar Endereço
+                            <h4>Fornecedores do Produto</h4>
+                            <button type="button" class="btn btn-success btn-small" id="btnAdicionarFornecedor">
+                                <i class="fas fa-plus"></i> Adicionar Fornecedor
                             </button>
                         </div>
-                        <div class="dynamic-list-items" id="listaEnderecos">
-                            <!-- Itens serão adicionados dinamicamente -->
-                        </div>
+                        <div class="dynamic-list-items" id="fornecedoresList"></div>
                     </div>
                 </div>
 
@@ -1930,13 +2177,289 @@
         </div>
     </div>
 
+    <!-- Modal para Adicionar Fornecedor -->
+    <div id="modalAdicionarFornecedor" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Fornecedor</h3>
+                <button class="close" id="closeFornecedorModal">&times;</button>
+            </div>
+            <form id="formAdicionarFornecedor">
+                <div class="form-group">
+                    <label for="selectFornecedor">Selecione o Fornecedor *</label>
+                    <select id="selectFornecedor" required>
+                        <option value="">Selecione um fornecedor...</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarFornecedor">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Valor/Preço -->
+    <div id="modalAdicionarValor" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Valor/Preço</h3>
+                <button class="close" id="closeValorModal">&times;</button>
+            </div>
+            <form id="formAdicionarValor">
+                <div class="form-group">
+                    <label for="valorTipoId">ID do Tipo de Preço *</label>
+                    <input type="text" id="valorTipoId" required placeholder="Ex: 90864">
+                </div>
+                <div class="form-group">
+                    <label for="valorNomeTipo">Nome do Tipo *</label>
+                    <input type="text" id="valorNomeTipo" required placeholder="Ex: Varejo, Atacado">
+                </div>
+                <div class="form-group">
+                    <label for="valorLucro">Percentual de Lucro (%)</label>
+                    <input type="number" step="0.01" id="valorLucro" placeholder="Ex: 15.00">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valorCustoInput">Valor Custo *</label>
+                        <input type="number" step="0.01" id="valorCustoInput" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="valorVendaInput">Valor Venda *</label>
+                        <input type="number" step="0.01" id="valorVendaInput" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarValor">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Variação -->
+    <div id="modalAdicionarVariacao" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Variação</h3>
+                <button class="close" id="closeVariacaoModal">&times;</button>
+            </div>
+            <form id="formAdicionarVariacao">
+                <div class="form-group">
+                    <label for="variacaoNome">Nome da Variação *</label>
+                    <input type="text" id="variacaoNome" required placeholder="Ex: Creme, Azul Escuro">
+                </div>
+                <div class="form-group">
+                    <label for="variacaoEstoque">Estoque</label>
+                    <input type="number" step="0.01" id="variacaoEstoque" value="0" placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarVariacao">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Valor em Variação -->
+    <div id="modalAdicionarValorVariacao" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Adicionar Valor para Variação</h3>
+                <button class="close" id="closeValorVariacaoModal">&times;</button>
+            </div>
+            <form id="formAdicionarValorVariacao">
+                <div class="form-group">
+                    <label for="valorVariacaoTipoId">ID do Tipo de Preço *</label>
+                    <input type="text" id="valorVariacaoTipoId" required placeholder="Ex: 90864">
+                </div>
+                <div class="form-group">
+                    <label for="valorVariacaoNomeTipo">Nome do Tipo *</label>
+                    <input type="text" id="valorVariacaoNomeTipo" required placeholder="Ex: Varejo, Atacado">
+                </div>
+                <div class="form-group">
+                    <label for="valorVariacaoLucro">Percentual de Lucro (%)</label>
+                    <input type="number" step="0.01" id="valorVariacaoLucro" placeholder="Ex: 15.00">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valorVariacaoCusto">Valor Custo *</label>
+                        <input type="number" step="0.01" id="valorVariacaoCusto" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="valorVariacaoVenda">Valor Venda *</label>
+                        <input type="number" step="0.01" id="valorVariacaoVenda" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarValorVariacao">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
-    
-    <script src="js/Fornecedores.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Event listener para o botão de tema
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Carregar tema ao iniciar
+        loadTheme();
+
+        const userInfoDropdown = document.getElementById('userInfoDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+
+        userInfoDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userInfoDropdown.classList.toggle('open');
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            userInfoDropdown.classList.remove('open');
+            userDropdownMenu.classList.remove('show');
+        });
+
+        userDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        logoutBtnSidebar.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+            }
+        });
+
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => {
+                sm.classList.remove('open');
+            });
+            document.querySelectorAll('.submenu-toggle').forEach(btn => {
+                btn.classList.remove('open');
+            });
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
+        });
+
+        // Sistema de Abas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const tabName = this.getAttribute('data-tab');
+
+                // Remove active de todas as abas e conteúdos
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // Adiciona active na aba e conteúdo clicados
+                this.classList.add('active');
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            });
+        });
+    </script>
+    <script src="js/Produtos.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fornecedores - Ecletech</title>
+    <title>Clientees - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1653,15 +1653,177 @@
             }
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
 
-    <div id="sidebar-container"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
+        </div>
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html" data-permission="frota.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                    <a href="./fornecedores.html" data-permission="fornecedor.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-truck"></i></span>
+                            <span>Fornecedores</span>
+                        </div>
+                    </a>
+                    <a href="./clientes.html" class="active" data-permission="cliente.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Clientes</span>
+                        </div>
+                    </a>
+                    <a href="./transportadoras.html" data-permission="transportadora.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-shipping-fast"></i></span>
+                            <span>Transportadoras</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html" data-permission="estado.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html" data-permission="cidade.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html" data-permission="loja.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar" id="userInfoDropdown">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item"
+                        style="border-top: 1px solid #f1f5f9; margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
@@ -1669,7 +1831,7 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Fornecedores</h1>
+                <h1>Clientees</h1>
             </div>
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
@@ -1690,9 +1852,9 @@
             <div id="pageContent" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Fornecedores</h2>
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Clientees</h2>
                         <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
-                            Novo Fornecedor</button>
+                            Novo Cliente</button>
                     </div>
 
                     <div class="filters">
@@ -1748,7 +1910,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum fornecedor encontrado.
+                            Nenhum cliente encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -1766,7 +1928,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Fornecedor</h3>
+                <h3 id="modalTitle">Novo Cliente</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -1787,8 +1949,8 @@
                 </button>
             </div>
 
-            <form id="formFornecedor">
-                <input type="hidden" id="fornecedorId">
+            <form id="formCliente">
+                <input type="hidden" id="clienteId">
 
                 <!-- Aba 1: Dados Gerais -->
                 <div class="tab-content active" id="tabDadosGerais">
@@ -1933,10 +2095,180 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
-    
-    <script src="js/Fornecedores.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Event listener para o botão de tema
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Carregar tema ao iniciar
+        loadTheme();
+
+        const userInfoDropdown = document.getElementById('userInfoDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+
+        userInfoDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userInfoDropdown.classList.toggle('open');
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            userInfoDropdown.classList.remove('open');
+            userDropdownMenu.classList.remove('show');
+        });
+
+        userDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        logoutBtnSidebar.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+            }
+        });
+
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => {
+                sm.classList.remove('open');
+            });
+            document.querySelectorAll('.submenu-toggle').forEach(btn => {
+                btn.classList.remove('open');
+            });
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
+        });
+
+        // Sistema de Abas
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const tabName = this.getAttribute('data-tab');
+
+                // Remove active de todas as abas e conteúdos
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // Adiciona active na aba e conteúdo clicados
+                this.classList.add('active');
+                document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            });
+        });
+
+        // Controle de campos condicionais baseado no tipo de pessoa
+        document.getElementById('tipoPessoa').addEventListener('change', function () {
+            const tipoPessoa = this.value;
+            const camposPF = document.querySelectorAll('.campo-pf');
+            const camposPJ = document.querySelectorAll('.campo-pj');
+
+            // Esconde todos primeiro
+            camposPF.forEach(campo => {
+                campo.classList.remove('show');
+                const input = campo.querySelector('input, select');
+                if (input) input.removeAttribute('required');
+            });
+            camposPJ.forEach(campo => {
+                campo.classList.remove('show');
+                const input = campo.querySelector('input, select');
+                if (input) input.removeAttribute('required');
+            });
+
+            // Mostra os campos apropriados
+            if (tipoPessoa === 'PF') {
+                camposPF.forEach(campo => {
+                    campo.classList.add('show');
+                });
+                document.getElementById('cpf').setAttribute('required', 'required');
+            } else if (tipoPessoa === 'PJ') {
+                camposPJ.forEach(campo => {
+                    campo.classList.add('show');
+                });
+                document.getElementById('cnpj').setAttribute('required', 'required');
+            }
+        });
+    </script>
+    <script src="js/Clientes.js"></script>
 </body>
 
 </html>

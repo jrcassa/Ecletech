@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fornecedores - Ecletech</title>
+    <title>Frotas - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1030,34 +1030,22 @@
             flex: 1;
         }
 
+        /* Estilos específicos para a página de frotas */
         .card {
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
+            padding: 32px;
             box-shadow: 0 4px 20px var(--shadow-color);
             border: 1px solid var(--border-color);
-            animation: fadeIn 0.6s ease-out 0.2s backwards;
             transition: background-color 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            margin-bottom: 32px;
         }
 
         .card h2 {
             color: var(--text-primary);
-            font-size: 24px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            font-size: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
             border-bottom: 2px solid var(--border-light);
             font-weight: 700;
         }
@@ -1096,6 +1084,64 @@
         .filter-group select:focus {
             outline: none;
             border-color: #ee670d;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #ee670d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #d85a0a;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
         }
 
         .table-container {
@@ -1169,61 +1215,6 @@
             gap: 8px;
         }
 
-        .btn {
-            padding: 10px 20px;
-            background: #ee670d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: #d65c0a;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-success {
-            background: #28a745;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -1245,7 +1236,7 @@
             background: var(--card-bg);
             border-radius: 10px;
             padding: 30px;
-            max-width: 900px;
+            max-width: 800px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -1276,46 +1267,6 @@
 
         .close:hover {
             color: var(--text-primary);
-        }
-
-        /* Sistema de Abas */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--border-light);
-            flex-wrap: wrap;
-        }
-
-        .tab-button {
-            background: none;
-            border: none;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-            position: relative;
-            bottom: -2px;
-        }
-
-        .tab-button:hover {
-            color: #ee670d;
-        }
-
-        .tab-button.active {
-            color: #ee670d;
-            border-bottom-color: #ee670d;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
         }
 
         .form-row {
@@ -1366,78 +1317,6 @@
             gap: 10px;
             justify-content: flex-end;
             margin-top: 25px;
-        }
-
-        /* Campos Condicionais */
-        .campo-condicional {
-            display: none;
-        }
-
-        .campo-condicional.show {
-            display: block;
-        }
-
-        /* Listas Dinâmicas */
-        .dynamic-list {
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-            background: var(--bg-tertiary);
-        }
-
-        .dynamic-list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .dynamic-list-header h4 {
-            color: var(--text-primary);
-            font-size: 16px;
-            margin: 0;
-        }
-
-        .dynamic-list-items {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .dynamic-list-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .dynamic-list-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .dynamic-list-item-title {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-
-        .btn-remove-item {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-remove-item:hover {
-            background: #c82333;
         }
 
         .loading-container {
@@ -1538,18 +1417,18 @@
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-width: 420px;
+            gap: 10px;
+            max-width: 400px;
         }
 
         .toast {
             display: flex;
             align-items: flex-start;
-            gap: 14px;
+            gap: 12px;
             background: var(--card-bg);
-            padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px var(--shadow-hover);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-hover);
             border-left: 4px solid #ee670d;
             opacity: 0;
             transform: translateX(400px);
@@ -1641,10 +1520,6 @@
             .header {
                 padding: 16px 20px;
             }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (min-width: 769px) {
@@ -1653,15 +1528,171 @@
             }
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
 
-    <div id="sidebar-container"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
+        </div>
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html" class="active" data-permission="frota.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html" data-permission="estado.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html" data-permission="cidade.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                        <a href="./grupos_produtos.html" data-permission="grupos_produtos.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-boxes"></i></span>
+                                <span>Grupos de Produtos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html" data-permission="loja.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                    <a href="./contas_bancarias.html" data-permission="conta_bancaria.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-university"></i></span>
+                            <span>Contas Bancárias</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar" id="userInfoDropdown">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item"
+                        style="border-top: 1px solid #f1f5f9; margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
@@ -1669,7 +1700,7 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1>Fornecedores</h1>
+                <h1>Gerenciar Frotas</h1>
             </div>
             <div class="header-right">
                 <button class="theme-toggle" id="themeToggle" title="Alternar tema">
@@ -1690,30 +1721,36 @@
             <div id="pageContent" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Fornecedores</h2>
-                        <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
-                            Novo Fornecedor</button>
+                        <h2 style="margin: 0; border: none; padding: 0;">Veículos da Frota</h2>
+                        <button class="btn btn-success" id="btnNovo"><i class="fas fa-plus"></i> Novo Veículo</button>
                     </div>
 
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="filtroBusca" placeholder="Nome, CNPJ/CPF, email...">
+                            <input type="text" id="filtroBusca" placeholder="Nome, placa, marca ou modelo...">
                         </div>
                         <div class="filter-group">
-                            <label>Tipo de Pessoa</label>
-                            <select id="filtroTipoPessoa">
+                            <label>Tipo</label>
+                            <select id="filtroTipo">
                                 <option value="">Todos</option>
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
+                                <option value="motocicleta">Motocicleta</option>
+                                <option value="automovel">Automóvel</option>
+                                <option value="caminhonete">Caminhonete</option>
+                                <option value="caminhao">Caminhão</option>
+                                <option value="onibus">Ônibus</option>
+                                <option value="van">Van</option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
-                            <select id="filtroAtivo">
+                            <select id="filtroStatus">
                                 <option value="">Todos</option>
-                                <option value="1" selected>Ativos</option>
-                                <option value="0">Inativos</option>
+                                <option value="ativo" selected>Ativo</option>
+                                <option value="inativo">Inativo</option>
+                                <option value="manutencao">Manutenção</option>
+                                <option value="reservado">Reservado</option>
+                                <option value="vendido">Vendido</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -1737,9 +1774,10 @@
                                     <th>ID</th>
                                     <th>Nome</th>
                                     <th>Tipo</th>
-                                    <th>CNPJ/CPF</th>
-                                    <th>Email</th>
-                                    <th>Telefone</th>
+                                    <th>Placa</th>
+                                    <th>Marca/Modelo</th>
+                                    <th>Ano</th>
+                                    <th>KM</th>
                                     <th>Status</th>
                                     <th>Ações</th>
                                 </tr>
@@ -1748,7 +1786,7 @@
                         </table>
 
                         <div id="noData" class="no-data" style="display: none;">
-                            Nenhum fornecedor encontrado.
+                            Nenhum veículo encontrado.
                         </div>
 
                         <div class="pagination" id="pagination">
@@ -1766,7 +1804,7 @@
     <div id="modalForm" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Fornecedor</h3>
+                <h3 id="modalTitle">Novo Veículo</h3>
                 <button class="close" id="closeModal">&times;</button>
             </div>
 
@@ -1774,157 +1812,120 @@
                 <div class="error-message" id="modalErrorMessage"></div>
             </div>
 
-            <!-- Abas -->
-            <div class="tabs">
-                <button class="tab-button active" data-tab="dadosGerais">
-                    <i class="fas fa-info-circle"></i> Dados Gerais
-                </button>
-                <button class="tab-button" data-tab="contatos">
-                    <i class="fas fa-address-book"></i> Contatos
-                </button>
-                <button class="tab-button" data-tab="enderecos">
-                    <i class="fas fa-map-marker-alt"></i> Endereços
-                </button>
-            </div>
+            <form id="formVeiculo">
+                <input type="hidden" id="veiculoId">
 
-            <form id="formFornecedor">
-                <input type="hidden" id="fornecedorId">
-
-                <!-- Aba 1: Dados Gerais -->
-                <div class="tab-content active" id="tabDadosGerais">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="tipoPessoa">Tipo de Pessoa *</label>
-                            <select id="tipoPessoa" required>
-                                <option value="">Selecione...</option>
-                                <option value="PF">Pessoa Física</option>
-                                <option value="PJ">Pessoa Jurídica</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="ativo">Ativo *</label>
-                            <select id="ativo" required>
-                                <option value="1">Sim</option>
-                                <option value="0">Não</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="nome">Nome *</label>
-                            <input type="text" id="nome" required>
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pj" id="grupoRazaoSocial">
-                            <label for="razaoSocial">Razão Social</label>
-                            <input type="text" id="razaoSocial">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group campo-condicional campo-pj" id="grupoCnpj">
-                            <label for="cnpj">CNPJ *</label>
-                            <input type="text" id="cnpj" placeholder="00.000.000/0000-00">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoCpf">
-                            <label for="cpf">CPF *</label>
-                            <input type="text" id="cpf" placeholder="000.000.000-00">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoRg">
-                            <label for="rg">RG</label>
-                            <input type="text" id="rg">
-                        </div>
-
-                        <div class="form-group campo-condicional campo-pf" id="grupoDataNascimento">
-                            <label for="dataNascimento">Data de Nascimento</label>
-                            <input type="date" id="dataNascimento">
-                        </div>
-                    </div>
-
-                    <div class="form-row campo-condicional campo-pj" id="grupoInscricoes">
-                        <div class="form-group">
-                            <label for="inscricaoEstadual">Inscrição Estadual</label>
-                            <input type="text" id="inscricaoEstadual">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inscricaoMunicipal">Inscrição Municipal</label>
-                            <input type="text" id="inscricaoMunicipal">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tipoContribuinte">Tipo de Contribuinte</label>
-                            <select id="tipoContribuinte">
-                                <option value="">Selecione...</option>
-                                <option value="contribuinte">Contribuinte</option>
-                                <option value="isento">Isento</option>
-                                <option value="nao_contribuinte">Não Contribuinte</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="telefone">Telefone</label>
-                            <input type="text" id="telefone" placeholder="(00) 0000-0000">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="celular">Celular</label>
-                            <input type="text" id="celular" placeholder="(00) 00000-0000">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email">
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nome">Nome do Veículo *</label>
+                        <input type="text" id="nome" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="observacoes">Observações</label>
-                        <textarea id="observacoes"></textarea>
+                        <label for="tipo">Tipo *</label>
+                        <select id="tipo" required>
+                            <option value="">Selecione...</option>
+                            <option value="motocicleta">Motocicleta</option>
+                            <option value="automovel">Automóvel</option>
+                            <option value="caminhonete">Caminhonete</option>
+                            <option value="caminhao">Caminhão</option>
+                            <option value="onibus">Ônibus</option>
+                            <option value="van">Van</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Aba 2: Contatos -->
-                <div class="tab-content" id="tabContatos">
-                    <div class="dynamic-list">
-                        <div class="dynamic-list-header">
-                            <h4>Lista de Contatos</h4>
-                            <button type="button" class="btn btn-success btn-small" id="btnAddContato">
-                                <i class="fas fa-plus"></i> Adicionar Contato
-                            </button>
-                        </div>
-                        <div class="dynamic-list-items" id="listaContatos">
-                            <!-- Itens serão adicionados dinamicamente -->
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="placa">Placa *</label>
+                        <input type="text" id="placa" placeholder="ABC-1234 ou ABC1D23" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" required>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                            <option value="manutencao">Manutenção</option>
+                            <option value="reservado">Reservado</option>
+                            <option value="vendido">Vendido</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Aba 3: Endereços -->
-                <div class="tab-content" id="tabEnderecos">
-                    <div class="dynamic-list">
-                        <div class="dynamic-list-header">
-                            <h4>Lista de Endereços</h4>
-                            <button type="button" class="btn btn-success btn-small" id="btnAddEndereco">
-                                <i class="fas fa-plus"></i> Adicionar Endereço
-                            </button>
-                        </div>
-                        <div class="dynamic-list-items" id="listaEnderecos">
-                            <!-- Itens serão adicionados dinamicamente -->
-                        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca">
                     </div>
+
+                    <div class="form-group">
+                        <label for="modelo">Modelo</label>
+                        <input type="text" id="modelo">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="anoFabricacao">Ano de Fabricação</label>
+                        <input type="number" id="anoFabricacao" min="1900" max="2100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="anoModelo">Ano do Modelo</label>
+                        <input type="number" id="anoModelo" min="1900" max="2100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cor">Cor</label>
+                        <input type="text" id="cor">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chassi">Chassi</label>
+                        <input type="text" id="chassi" placeholder="17 caracteres">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="renavam">RENAVAM</label>
+                        <input type="text" id="renavam" placeholder="11 dígitos">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quilometragem">Quilometragem (km)</label>
+                        <input type="number" id="quilometragem" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capacidadeTanque">Capacidade do Tanque (L)</label>
+                        <input type="number" id="capacidadeTanque" min="0" step="0.1">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dataAquisicao">Data de Aquisição</label>
+                        <input type="date" id="dataAquisicao">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valorAquisicao">Valor de Aquisição (R$)</label>
+                        <input type="number" id="valorAquisicao" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes"></textarea>
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i>
-                        Cancelar</button>
-                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i>
-                        Salvar</button>
+                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i> Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i> Salvar</button>
                 </div>
             </form>
         </div>
@@ -1933,10 +1934,141 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
-    
-    <script src="js/Fornecedores.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Event listener para o botão de tema
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Carregar tema ao iniciar
+        loadTheme();
+
+
+        const userInfoDropdown = document.getElementById('userInfoDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+
+        userInfoDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userInfoDropdown.classList.toggle('open');
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            userInfoDropdown.classList.remove('open');
+            userDropdownMenu.classList.remove('show');
+        });
+
+        userDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        logoutBtnSidebar.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+            }
+        });
+
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => {
+                sm.classList.remove('open');
+            });
+            document.querySelectorAll('.submenu-toggle').forEach(btn => {
+                btn.classList.remove('open');
+            });
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
+        });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+    </script>
+    <script src="js/Frotas.js"></script>
 </body>
 
 </html>

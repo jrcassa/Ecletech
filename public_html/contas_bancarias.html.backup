@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Ecletech</title>
+    <title>Contas Bancárias - Ecletech</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1359,65 +1359,34 @@
             }
         }
 
-        /* Estilos específicos para componentes */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            border: 1px solid var(--border-color);
-            animation: fadeIn 0.6s ease-out 0.2s backwards;
-            transition: background-color 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .card h2 {
-            color: var(--text-primary);
-            font-size: 24px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-light);
-            font-weight: 700;
-        }
-
+        /* Filters */
         .filters {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
+            align-items: flex-end;
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
         .filter-group label {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
-            font-weight: 600;
+            font-weight: 500;
         }
 
         .filter-group input,
         .filter-group select {
-            padding: 8px 12px;
+            padding: 10px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
-            background: var(--card-bg);
+            background: var(--bg-secondary);
             color: var(--text-primary);
             transition: border-color 0.2s;
         }
@@ -1428,45 +1397,59 @@
             border-color: #ee670d;
         }
 
+        /* Table */
         .table-container {
             overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            background: var(--bg-secondary);
         }
 
         thead {
-            background: var(--bg-tertiary);
+            background: var(--bg-hover);
         }
 
         th {
-            padding: 12px;
+            padding: 14px 16px;
             text-align: left;
             font-weight: 600;
-            color: var(--text-primary);
-            font-size: 13px;
+            color: var(--text-secondary);
+            font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
         }
 
         td {
-            padding: 12px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--border-light);
             font-size: 14px;
             color: var(--text-primary);
+        }
+
+        tbody tr {
+            transition: background 0.2s;
         }
 
         tbody tr:hover {
             background: var(--bg-hover);
         }
 
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
         .badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 12px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
         }
 
         .badge-success {
@@ -1474,14 +1457,19 @@
             color: #155724;
         }
 
+        [data-theme="dark"] .badge-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #5bc77d;
+        }
+
         .badge-danger {
             background: #f8d7da;
             color: #721c24;
         }
 
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
+        [data-theme="dark"] .badge-danger {
+            background: rgba(220, 53, 69, 0.2);
+            color: #f16a7a;
         }
 
         .badge-info {
@@ -1489,87 +1477,166 @@
             color: #0c5460;
         }
 
+        [data-theme="dark"] .badge-info {
+            background: rgba(23, 162, 184, 0.2);
+            color: #4fc3f7;
+        }
+
         .badge-secondary {
             background: #e2e3e5;
             color: #383d41;
         }
 
+        [data-theme="dark"] .badge-secondary {
+            background: rgba(108, 117, 125, 0.2);
+            color: #adb5bd;
+        }
+
         .actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .page-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+
+        .no-data i {
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .no-data p {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .permission-denied {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 60px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .permission-denied h3 {
+            margin-top: 16px;
+            color: var(--text-primary);
+        }
+
+        .permission-denied p {
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        [data-theme="dark"] .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            color: #f16a7a;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ee670d 0%, #ff8833 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 103, 13, 0.35);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
+        }
+
+        .btn-group {
             display: flex;
             gap: 8px;
         }
 
-        .btn {
-            padding: 10px 20px;
-            background: #ee670d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            border: 1px solid var(--border-color);
         }
 
-        .btn:hover {
-            background: #d65c0a;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .btn-success {
-            background: #28a745;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        .btn-primary {
-            background: #007bff;
-        }
-
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
+        /* Modal */
         .modal {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2000;
+            z-index: 10000;
+            display: none;
             align-items: center;
             justify-content: center;
         }
@@ -1585,99 +1652,116 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
+            position: relative;
             background: var(--card-bg);
-            border-radius: 10px;
-            padding: 0;
-            max-width: 900px;
+            border-radius: 12px;
             width: 90%;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
-            z-index: 2001;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
         }
 
-        .modal-small .modal-content {
-            max-width: 500px;
+        .modal-small {
+            max-width: 400px;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 30px;
-            border-bottom: 2px solid var(--border-light);
         }
 
         .modal-header h3 {
+            margin: 0;
             color: var(--text-primary);
             font-size: 20px;
-            margin: 0;
-        }
-
-        .modal-body {
-            padding: 30px;
-        }
-
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            padding: 20px 30px;
-            border-top: 1px solid var(--border-light);
         }
 
         .modal-close {
+            background: none;
+            border: none;
             font-size: 28px;
-            font-weight: bold;
             color: var(--text-tertiary);
             cursor: pointer;
-            border: none;
-            background: none;
             padding: 0;
-            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
         }
 
         .modal-close:hover {
+            background: var(--bg-hover);
             color: var(--text-primary);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+        .modal-body {
+            padding: 24px;
         }
 
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form */
         .form-group {
             margin-bottom: 20px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            color: var(--text-primary);
-            font-weight: 600;
+            margin-bottom: 6px;
             font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 10px 12px;
+            padding: 10px 14px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
-            background: var(--card-bg);
+            background: var(--bg-secondary);
             color: var(--text-primary);
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
+            transition: border-color 0.2s;
         }
 
         .form-group input:focus,
@@ -1687,8 +1771,9 @@
             border-color: #ee670d;
         }
 
-        .required {
-            color: #dc3545;
+        .form-group textarea {
+            resize: vertical;
+            font-family: inherit;
         }
 
         .checkbox-label {
@@ -1696,8 +1781,7 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 14px;
-            color: var(--text-primary);
+            user-select: none;
         }
 
         .checkbox-label input[type="checkbox"] {
@@ -1705,226 +1789,180 @@
             cursor: pointer;
         }
 
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-light);
-            border-top: 4px solid #ee670d;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .error-container {
-            padding: 20px;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-
-        .no-data {
-            text-align: center;
-            color: var(--text-secondary);
-            padding: 40px;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .pagination button {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #ee670d;
-            color: white;
-            border-color: #ee670d;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination .page-info {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .permission-denied {
-            background: #fff3cd;
-            color: #856404;
-            padding: 20px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        /* Sistema de Notificações Toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 420px;
-        }
-
-        .toast {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            background: var(--card-bg);
-            padding: 18px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px var(--shadow-hover);
-            border-left: 4px solid #ee670d;
-            opacity: 0;
-            transform: translateX(400px);
-            transition: all 0.3s ease;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .toast-icon {
-            font-size: 20px;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .toast-message {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.5;
-            color: var(--text-primary);
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            font-size: 18px;
-            color: var(--text-tertiary);
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            transition: color 0.2s;
-        }
-
-        .toast-close:hover {
-            color: var(--text-primary);
-        }
-
-        .toast-success {
-            border-left-color: #10b981;
-        }
-
-        .toast-success .toast-icon {
-            color: #10b981;
-        }
-
-        .toast-error {
-            border-left-color: #ef4444;
-        }
-
-        .toast-error .toast-icon {
+        .required {
             color: #ef4444;
         }
 
-        .toast-warning {
-            border-left-color: #f59e0b;
-        }
-
-        .toast-warning .toast-icon {
-            color: #f59e0b;
-        }
-
-        .toast-info {
-            border-left-color: #3b82f6;
-        }
-
-        .toast-info .toast-icon {
-            color: #3b82f6;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-280px);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .container {
-                padding: 20px 16px;
-            }
-
-            .header {
-                padding: 16px 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
+        .loading-container {
+            text-align: center;
+            padding: 40px;
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
     <div class="toast-container" id="toastContainer"></div>
 
-    <div id="sidebar-container"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">E</div>
+            <h2>Ecletech</h2>
+        </div>
+
+        <div class="sidebar-scroll">
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="./home.html" class="active">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-home"></i></span>
+                            <span>Home</span>
+                        </div>
+                    </a>
+                    <a href="./frotas.html" data-permission="frota.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-car"></i></span>
+                            <span>Frotas</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Cadastros</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-database"></i></span>
+                            <span>Cadastros Gerais</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="cadastros-submenu">
+                        <a href="./estados.html" data-permission="estado.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map"></i></span>
+                                <span>Estados</span>
+                            </div>
+                        </a>
+                        <a href="./cidades.html" data-permission="cidade.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-city"></i></span>
+                                <span>Cidades</span>
+                            </div>
+                        </a>
+                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                <span>Situações de Vendas</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
+                                <span>Tipos de Endereços</span>
+                            </div>
+                        </a>
+                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-phone"></i></span>
+                                <span>Tipos de Contatos</span>
+                            </div>
+                        </a>
+                        <a href="./grupos_produtos.html" data-permission="grupos_produtos.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-boxes"></i></span>
+                                <span>Grupos de Produtos</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="./colaboradores.html" data-permission="colaboradores.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Colaboradores</span>
+                        </div>
+                    </a>
+                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-user-shield"></i></span>
+                            <span>Gestão de Acessos</span>
+                        </div>
+                    </a>
+                    <a href="./loja.html" data-permission="loja.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-store"></i></span>
+                            <span>Informações da Loja</span>
+                        </div>
+                    </a>
+                    <a href="./contas_bancarias.html" data-permission="conta_bancaria.visualizar">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-university"></i></span>
+                            <span>Contas Bancárias</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Administração</div>
+
+                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        <div class="menu-item-content">
+                            <span class="icon"><i class="fas fa-tools"></i></span>
+                            <span>Ferramentas</span>
+                        </div>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </button>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="./brute_force.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                                <span>Proteção Brute Force</span>
+                            </div>
+                        </a>
+                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
+                            <div class="menu-item-content">
+                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
+                                <span>Auditoria</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info-sidebar" id="userInfoDropdown">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameSidebar">Carregando...</div>
+                    <div class="user-role" id="userRoleSidebar">Usuário</div>
+                </div>
+                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
+
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <a href="./perfil.html" class="user-dropdown-item">
+                        <i class="fas fa-user"></i>
+                        <span>Meu Perfil</span>
+                    </a>
+                    <a href="./configuracoes.html" class="user-dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
+                    </a>
+                    <div class="user-dropdown-item"
+                        style="border-top: 1px solid #f1f5f9; margin-top: 4px; padding-top: 14px;"></div>
+                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair da Conta</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content" id="mainContent">
         <header class="header">
@@ -1957,35 +1995,35 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <div>
-                            <h2 style="margin: 0; border: none; padding: 0;">Pagamentos</h2>
-                            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Gerencie contas a pagar e contas a receber</p>
+                            <h2 style="margin: 0; border: none; padding: 0;">Contas Bancárias</h2>
+                            <p style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">Gerencie as contas bancárias da empresa</p>
                         </div>
                         <button class="btn" id="btnNovo" style="display: none;">
-                            <i class="fas fa-plus"></i> Novo Pagamento
+                            <i class="fas fa-plus"></i> Nova Conta
                         </button>
                     </div>
 
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="inputBusca" placeholder="Descrição ou código..." style="min-width: 250px;">
+                            <input type="text" id="inputBusca" placeholder="Nome, banco, conta..." style="min-width: 250px;">
                         </div>
                         <div class="filter-group">
-                            <label>Status</label>
-                            <select id="selectLiquidado">
+                            <label>Tipo de Conta</label>
+                            <select id="selectTipoConta">
                                 <option value="">Todos</option>
-                                <option value="0" selected>Pendentes</option>
-                                <option value="1">Liquidados</option>
+                                <option value="corrente">Conta Corrente</option>
+                                <option value="poupanca">Poupança</option>
+                                <option value="investimento">Investimento</option>
+                                <option value="outro">Outro</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Tipo</label>
-                            <select id="selectEntidade">
+                            <label>Status</label>
+                            <select id="selectAtivo">
                                 <option value="">Todos</option>
-                                <option value="C">Contas a Receber (Cliente)</option>
-                                <option value="F">Contas a Pagar (Fornecedor)</option>
-                                <option value="T">Transportadora</option>
-                                <option value="U">Funcionário</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -2009,18 +2047,23 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Código</th>
-                                    <th>Descrição</th>
+                                    <th>Nome</th>
+                                    <th>Banco</th>
+                                    <th>Agência</th>
+                                    <th>Conta</th>
                                     <th>Tipo</th>
-                                    <th>Entidade</th>
-                                    <th style="text-align: right;">Valor</th>
-                                    <th>Vencimento</th>
+                                    <th style="text-align: right;">Saldo Inicial</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="text-align: center;">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody"></tbody>
                         </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            <i class="fas fa-inbox" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                            <p>Nenhuma conta bancária encontrada</p>
+                        </div>
 
                         <div class="pagination" id="pagination">
                             <button id="btnPrevious" class="btn btn-secondary" disabled>
@@ -2040,160 +2083,85 @@
     <!-- Modal de Formulário -->
     <div class="modal" id="modalForm">
         <div class="modal-backdrop"></div>
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Novo Pagamento</h3>
+                <h3 id="modalTitle">Nova Conta Bancária</h3>
                 <button class="modal-close" id="btnCloseModal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formPagamento">
-                    <input type="hidden" id="pagamentoId">
+                <form id="formConta">
+                    <input type="hidden" id="contaId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputExternalId">ID Externo</label>
+                            <input type="text" id="inputExternalId" placeholder="ID do sistema externo">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputNome">Nome da Conta <span class="required">*</span></label>
+                            <input type="text" id="inputNome" placeholder="Ex: Conta Corrente Principal" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputBancoCodigo">Código do Banco</label>
+                            <input type="text" id="inputBancoCodigo" placeholder="Ex: 001, 237">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputBancoNome">Nome do Banco</label>
+                            <input type="text" id="inputBancoNome" placeholder="Ex: Banco do Brasil">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputAgencia">Agência</label>
+                            <input type="text" id="inputAgencia" placeholder="0001">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputAgenciaDv">DV Agência</label>
+                            <input type="text" id="inputAgenciaDv" placeholder="0" maxlength="2">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputConta">Conta</label>
+                            <input type="text" id="inputConta" placeholder="00001234">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputContaDv">DV Conta</label>
+                            <input type="text" id="inputContaDv" placeholder="5" maxlength="2">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="selectTipoContaForm">Tipo de Conta</label>
+                            <select id="selectTipoContaForm">
+                                <option value="corrente">Conta Corrente</option>
+                                <option value="poupanca">Poupança</option>
+                                <option value="investimento">Investimento</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputSaldoInicial">Saldo Inicial</label>
+                            <input type="text" id="inputSaldoInicial" placeholder="0,00">
+                        </div>
+                    </div>
 
                     <div class="form-group">
-                        <label for="inputDescricao">Descrição <span class="required">*</span></label>
-                        <input type="text" id="inputDescricao" placeholder="Ex: Aluguel do imóvel" required>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="inputCodigo">Código</label>
-                            <input type="text" id="inputCodigo" placeholder="Ex: 001">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="selectEntidadeForm">Tipo <span class="required">*</span></label>
-                            <select id="selectEntidadeForm" required>
-                                <option value="">Selecione...</option>
-                                <option value="C">Conta a Receber (Cliente)</option>
-                                <option value="F">Conta a Pagar (Fornecedor)</option>
-                                <option value="T">Transportadora</option>
-                                <option value="U">Funcionário</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Campos de entidades (mostrados condicionalmente) -->
-                    <div id="divCliente" class="form-group" style="display: none;">
-                        <label for="selectCliente">Cliente <span class="required">*</span></label>
-                        <select id="selectCliente">
-                            <option value="">Selecione um cliente</option>
-                        </select>
-                    </div>
-
-                    <div id="divFornecedor" class="form-group" style="display: none;">
-                        <label for="selectFornecedor">Fornecedor <span class="required">*</span></label>
-                        <select id="selectFornecedor">
-                            <option value="">Selecione um fornecedor</option>
-                        </select>
-                    </div>
-
-                    <div id="divTransportadora" class="form-group" style="display: none;">
-                        <label for="selectTransportadora">Transportadora <span class="required">*</span></label>
-                        <select id="selectTransportadora">
-                            <option value="">Selecione uma transportadora</option>
-                        </select>
-                    </div>
-
-                    <div id="divFuncionario" class="form-group" style="display: none;">
-                        <label for="selectFuncionario">Funcionário <span class="required">*</span></label>
-                        <select id="selectFuncionario">
-                            <option value="">Selecione um funcionário</option>
-                        </select>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="inputValor">Valor <span class="required">*</span></label>
-                            <input type="number" id="inputValor" placeholder="0.00" step="0.01" min="0" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputJuros">Juros</label>
-                            <input type="number" id="inputJuros" placeholder="0.00" step="0.01" min="0" value="0">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputDesconto">Desconto</label>
-                            <input type="number" id="inputDesconto" placeholder="0.00" step="0.01" min="0" value="0">
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="inputTaxaBanco">Taxa Banco</label>
-                            <input type="number" id="inputTaxaBanco" placeholder="0.00" step="0.01" min="0" value="0">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputTaxaOperadora">Taxa Operadora</label>
-                            <input type="number" id="inputTaxaOperadora" placeholder="0.00" step="0.01" min="0" value="0">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputValorTotal">Valor Total <span class="required">*</span></label>
-                            <input type="number" id="inputValorTotal" placeholder="0.00" step="0.01" readonly>
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="selectPlanoContas">Plano de Contas</label>
-                            <select id="selectPlanoContas">
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="selectCentroCusto">Centro de Custo</label>
-                            <select id="selectCentroCusto">
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="selectContaBancaria">Conta Bancária</label>
-                            <select id="selectContaBancaria">
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="selectFormaPagamento">Forma de Pagamento</label>
-                            <select id="selectFormaPagamento">
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="inputDataVencimento">Data Vencimento <span class="required">*</span></label>
-                            <input type="date" id="inputDataVencimento" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputDataLiquidacao">Data Liquidação</label>
-                            <input type="date" id="inputDataLiquidacao">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inputDataCompetencia">Data Competência</label>
-                            <input type="date" id="inputDataCompetencia">
-                        </div>
+                        <label for="inputObservacoes">Observações</label>
+                        <textarea id="inputObservacoes" rows="3" placeholder="Observações adicionais"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="checkLiquidado">
-                            <span>Pagamento liquidado</span>
+                            <input type="checkbox" id="checkAtivo" checked>
+                            <span>Conta ativa</span>
                         </label>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputExternalId">ID Externo</label>
-                        <input type="text" id="inputExternalId" placeholder="ID do sistema externo">
                     </div>
                 </form>
             </div>
@@ -2212,43 +2180,160 @@
                 <h3>Confirmar Exclusão</h3>
             </div>
             <div class="modal-body">
-                <p>Tem certeza que deseja excluir este pagamento?</p>
+                <p>Tem certeza que deseja excluir esta conta bancária?</p>
                 <p style="color: var(--text-secondary); font-size: 14px;">Esta ação não pode ser desfeita.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="PagamentoManager.fecharModalConfirm()">Cancelar</button>
+                <button type="button" class="btn btn-secondary" onclick="ContasBancariasManager.fecharModalConfirm()">Cancelar</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Liquidação -->
-    <div class="modal" id="modalLiquidar">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h3>Liquidar Pagamento</h3>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="inputDataLiquidacaoModal">Data de Liquidação <span class="required">*</span></label>
-                    <input type="date" id="inputDataLiquidacaoModal" required>
-                </div>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">Esta ação marcará o pagamento como liquidado.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="PagamentoManager.fecharModalLiquidar()">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmLiquidar">Liquidar</button>
             </div>
         </div>
     </div>
 
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
-    <script src="js/theme.js"></script>
+    <script src="js/Utils.js"></script>
     <script src="js/sidebar.js"></script>
-    <script src="js/Pagamento.js"></script>
-    
+    <script src="js/ContasBancarias.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const htmlElement = document.documentElement;
+
+        // Carregar tema salvo do localStorage
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Event listener para o botão de tema
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Carregar tema ao iniciar
+        loadTheme();
+
+
+        const userInfoDropdown = document.getElementById('userInfoDropdown');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
+
+        userInfoDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userInfoDropdown.classList.toggle('open');
+            userDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            userInfoDropdown.classList.remove('open');
+            userDropdownMenu.classList.remove('show');
+        });
+
+        userDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        logoutBtnSidebar.addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                await AuthAPI.logout();
+            }
+        });
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('closed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+            }
+        });
+
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            document.querySelectorAll('.submenu').forEach(sm => {
+                sm.classList.remove('open');
+            });
+            document.querySelectorAll('.submenu-toggle').forEach(btn => {
+                btn.classList.remove('open');
+            });
+
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        // Initialize ContasBancarias on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check authentication
+            if (!AuthAPI.isAuthenticated()) {
+                window.location.href = './auth.html';
+                return;
+            }
+
+            // Initialize the bank accounts manager
+            ContasBancariasManager.init();
+        });
+    </script>
 </body>
 
 </html>
