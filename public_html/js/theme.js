@@ -1,164 +1,135 @@
 /**
- * Theme Toggle e User Dropdown
- * Funções compartilhadas entre todas as páginas
+ * ============================================================================
+ * THEME.JS - Sistema de Gerenciamento de Tema (Claro/Escuro)
+ * ============================================================================
+ *
+ * Este módulo gerencia o tema visual do sistema Ecletech.
+ * - Alterna entre tema claro e escuro
+ * - Salva preferência no localStorage
+ * - Atualiza ícone do botão de tema
+ * - Auto-inicialização no carregamento da página
+ *
+ * Autor: Sistema Ecletech
+ * Última atualização: 2025
+ * ============================================================================
  */
 
-// Inicialização do tema
-function initTheme() {
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle?.querySelector('i');
-    const htmlElement = document.documentElement;
+const ThemeManager = {
+    /**
+     * Elementos do DOM
+     */
+    elements: {
+        themeToggle: null,
+        themeIcon: null,
+        htmlElement: document.documentElement
+    },
 
-    // Carregar tema salvo do localStorage
-    function loadTheme() {
+    /**
+     * Estado atual
+     */
+    currentTheme: 'light',
+
+    /**
+     * Inicializa o gerenciador de tema
+     */
+    init() {
+        // Busca elementos do DOM
+        this.elements.themeToggle = document.getElementById('themeToggle');
+
+        if (!this.elements.themeToggle) {
+            console.warn('[ThemeManager] Botão de tema não encontrado. Tema não será gerenciado.');
+            return;
+        }
+
+        this.elements.themeIcon = this.elements.themeToggle.querySelector('i');
+
+        // Carrega tema salvo
+        this.loadTheme();
+
+        // Adiciona event listener
+        this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+
+        console.log('[ThemeManager] Inicializado com sucesso. Tema atual:', this.currentTheme);
+    },
+
+    /**
+     * Carrega o tema salvo do localStorage
+     */
+    loadTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-            htmlElement.setAttribute('data-theme', 'dark');
-            if (themeIcon) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
+        this.applyTheme(savedTheme);
+    },
+
+    /**
+     * Aplica um tema específico
+     * @param {string} theme - 'light' ou 'dark'
+     */
+    applyTheme(theme) {
+        this.currentTheme = theme;
+
+        if (theme === 'dark') {
+            this.elements.htmlElement.setAttribute('data-theme', 'dark');
+            if (this.elements.themeIcon) {
+                this.elements.themeIcon.classList.remove('fa-moon');
+                this.elements.themeIcon.classList.add('fa-sun');
             }
         } else {
-            htmlElement.setAttribute('data-theme', 'light');
-            if (themeIcon) {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
+            this.elements.htmlElement.setAttribute('data-theme', 'light');
+            if (this.elements.themeIcon) {
+                this.elements.themeIcon.classList.remove('fa-sun');
+                this.elements.themeIcon.classList.add('fa-moon');
             }
         }
-    }
+    },
 
-    // Alternar tema
-    function toggleTheme() {
-        const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    /**
+     * Alterna entre tema claro e escuro
+     */
+    toggleTheme() {
+        const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
 
-        htmlElement.setAttribute('data-theme', newTheme);
+        this.applyTheme(newTheme);
         localStorage.setItem('theme', newTheme);
 
-        if (themeIcon) {
-            if (newTheme === 'dark') {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
+        console.log('[ThemeManager] Tema alterado para:', newTheme);
+    },
+
+    /**
+     * Retorna o tema atual
+     * @returns {string} 'light' ou 'dark'
+     */
+    getCurrentTheme() {
+        return this.currentTheme;
+    },
+
+    /**
+     * Define o tema programaticamente
+     * @param {string} theme - 'light' ou 'dark'
+     */
+    setTheme(theme) {
+        if (theme !== 'light' && theme !== 'dark') {
+            console.error('[ThemeManager] Tema inválido:', theme);
+            return;
         }
+
+        this.applyTheme(theme);
+        localStorage.setItem('theme', theme);
     }
+};
 
-    // Event listener para o botão de tema
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-    }
-
-    // Carregar tema ao iniciar
-    loadTheme();
-}
-
-// Inicialização do dropdown do usuário
-function initUserDropdown() {
-    const userInfoDropdown = document.getElementById('userInfoDropdown');
-    const userDropdownMenu = document.getElementById('userDropdownMenu');
-    const logoutBtnSidebar = document.getElementById('logoutBtnSidebar');
-
-    if (userInfoDropdown && userDropdownMenu) {
-        userInfoDropdown.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userInfoDropdown.classList.toggle('open');
-            userDropdownMenu.classList.toggle('show');
-        });
-
-        document.addEventListener('click', () => {
-            userInfoDropdown.classList.remove('open');
-            userDropdownMenu.classList.remove('show');
-        });
-
-        userDropdownMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    if (logoutBtnSidebar) {
-        logoutBtnSidebar.addEventListener('click', async () => {
-            if (confirm('Tem certeza que deseja sair?')) {
-                await AuthAPI.logout();
-            }
-        });
-    }
-}
-
-// Inicialização do toggle do sidebar
-function initSidebarToggle() {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const menuToggle = document.getElementById('menuToggle');
-    const mainContent = document.getElementById('mainContent');
-
-    function toggleSidebar() {
-        const isMobile = window.innerWidth <= 768;
-
-        if (isMobile) {
-            sidebar?.classList.toggle('open');
-            sidebarOverlay?.classList.toggle('show');
-        } else {
-            sidebar?.classList.toggle('closed');
-            mainContent?.classList.toggle('expanded');
-        }
-    }
-
-    if (menuToggle) {
-        menuToggle.addEventListener('click', toggleSidebar);
-    }
-
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-    }
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-            sidebar?.classList.remove('open');
-            sidebarOverlay?.classList.remove('show');
-        }
+/**
+ * Auto-inicialização quando o DOM estiver pronto
+ */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        ThemeManager.init();
     });
+} else {
+    // DOM já está pronto
+    ThemeManager.init();
 }
 
-// Função para toggle de submenu
-function toggleSubmenu(submenuId, button) {
-    const submenu = document.getElementById(submenuId);
-    const isOpen = submenu?.classList.contains('open');
-
-    document.querySelectorAll('.submenu').forEach(sm => {
-        sm.classList.remove('open');
-    });
-    document.querySelectorAll('.submenu-toggle').forEach(btn => {
-        btn.classList.remove('open');
-    });
-
-    if (!isOpen && submenu) {
-        submenu.classList.add('open');
-        button.classList.add('open');
-    }
-}
-
-// Expor função globalmente
-window.toggleSubmenu = toggleSubmenu;
-
-// Inicialização automática quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    initUserDropdown();
-    initSidebarToggle();
-
-    // Auto-abrir submenu se houver link ativo
-    const activeLink = document.querySelector('.sidebar-nav a.active');
-    if (activeLink) {
-        const submenu = activeLink.closest('.submenu');
-        if (submenu) {
-            submenu.classList.add('open');
-            const toggleButton = submenu.previousElementSibling;
-            if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
-                toggleButton.classList.add('open');
-            }
-        }
-    }
-});
+/**
+ * Expõe globalmente para uso em outros scripts
+ */
+window.ThemeManager = ThemeManager;

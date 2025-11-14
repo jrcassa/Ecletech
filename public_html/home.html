@@ -385,49 +385,8 @@
 
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
+    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = themeToggle.querySelector('i');
-        const htmlElement = document.documentElement;
-
-        // Carregar tema salvo do localStorage
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            if (savedTheme === 'dark') {
-                htmlElement.setAttribute('data-theme', 'dark');
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                htmlElement.setAttribute('data-theme', 'light');
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
-        }
-
-        // Alternar tema
-        function toggleTheme() {
-            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-
-            if (newTheme === 'dark') {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
-            }
-        }
-
-        // Event listener para o botão de tema
-        themeToggle.addEventListener('click', toggleTheme);
-
-        // Carregar tema ao iniciar
-        loadTheme();
-    </script>
     <script>
         const loadingContainer = document.getElementById('loadingContainer');
         const errorContainer = document.getElementById('errorContainer');

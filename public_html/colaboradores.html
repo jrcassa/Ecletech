@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,164 +13,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <title>Colaboradores - Ecletech</title>
+    
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/modern-layout.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">E</div>
-            <h2>Ecletech</h2>
-        </div>
+    <!-- Sidebar será renderizado aqui pelo sidebar.js -->
+    <div id="sidebar-container"></div>
 
-        <div class="sidebar-scroll">
-            <nav class="sidebar-nav">
-                <!-- Principal -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Principal</div>
-                    <a href="./home.html">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-home"></i></span>
-                            <span>Home</span>
-                        </div>
-                    </a>
-                    <a href="./frotas.html" data-permission="frota.visualizar">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-car"></i></span>
-                            <span>Frotas</span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Cadastros -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Cadastros</div>
-
-                    <button class="submenu-toggle" onclick="toggleSubmenu('cadastros-submenu', this)">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-database"></i></span>
-                            <span>Cadastros Gerais</span>
-                        </div>
-                        <i class="fas fa-chevron-down submenu-arrow"></i>
-                    </button>
-                    <div class="submenu" id="cadastros-submenu">
-                        <a href="./estados.html" data-permission="estado.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-map"></i></span>
-                                <span>Estados</span>
-                            </div>
-                        </a>
-                        <a href="./cidades.html" data-permission="cidade.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-city"></i></span>
-                                <span>Cidades</span>
-                            </div>
-                        </a>
-                        <a href="./situacoes_vendas.html" data-permission="situacao_venda.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-chart-line"></i></span>
-                                <span>Situações de Vendas</span>
-                            </div>
-                        </a>
-                        <a href="./tipos_enderecos.html" data-permission="tipo_endereco.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-map-marker-alt"></i></span>
-                                <span>Tipos de Endereços</span>
-                            </div>
-                        </a>
-                        <a href="./tipos_contatos.html" data-permission="tipo_contato.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-phone"></i></span>
-                                <span>Tipos de Contatos</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Gestão -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Gestão</div>
-                    <a href="./colaboradores.html" class="active" data-permission="colaboradores.visualizar">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-users"></i></span>
-                            <span>Colaboradores</span>
-                        </div>
-                    </a>
-                    <a href="./colaborador_management.html" data-permission="permissoes.visualizar,roles.visualizar">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-user-shield"></i></span>
-                            <span>Gestão de Acessos</span>
-                        </div>
-                    </a>
-                    <a href="./loja.html" data-permission="loja.visualizar">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-store"></i></span>
-                            <span>Informações da Loja</span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Administração -->
-                <div class="nav-section">
-                    <div class="nav-section-title">Administração</div>
-
-                    <button class="submenu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
-                        <div class="menu-item-content">
-                            <span class="icon"><i class="fas fa-tools"></i></span>
-                            <span>Ferramentas</span>
-                        </div>
-                        <i class="fas fa-chevron-down submenu-arrow"></i>
-                    </button>
-                    <div class="submenu" id="admin-submenu">
-                        <a href="./brute_force.html" data-permission="config.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-shield-alt"></i></span>
-                                <span>Proteção Brute Force</span>
-                            </div>
-                        </a>
-                        <a href="./auditoria.html" data-permission="auditoria.visualizar">
-                            <div class="menu-item-content">
-                                <span class="icon"><i class="fas fa-clipboard-list"></i></span>
-                                <span>Auditoria</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </nav>
-        </div>
-
-        <div class="sidebar-footer">
-            <div class="user-info-sidebar" id="userInfoDropdown">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <div class="user-details">
-                    <div class="user-name" id="userNameSidebar">Carregando...</div>
-                    <div class="user-role" id="userRoleSidebar">Usuário</div>
-                </div>
-                <i class="fas fa-chevron-down user-dropdown-arrow"></i>
-
-                <div class="user-dropdown-menu" id="userDropdownMenu">
-                    <a href="./perfil.html" class="user-dropdown-item">
-                        <i class="fas fa-user"></i>
-                        <span>Meu Perfil</span>
-                    </a>
-                    <a href="./configuracoes.html" class="user-dropdown-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Configurações</span>
-                    </a>
-                    <div class="user-dropdown-item" style="border-top: 1px solid var(--border-light); margin-top: 4px; padding-top: 14px;"></div>
-                    <button class="user-dropdown-item danger" id="logoutBtnSidebar">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Sair da Conta</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <header class="header">
             <div class="header-left">
@@ -206,7 +58,7 @@
                     <div class="filters">
                         <div class="filter-group">
                             <label>Buscar</label>
-                            <input type="text" id="filtoBusca" placeholder="Nome ou email...">
+                            <input type="text" id="filtroBusca" placeholder="Nome ou email...">
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
@@ -319,76 +171,12 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/sidebar.js"></script>
     <script src="js/theme.js"></script>
-    <script>
-        // Sidebar toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const menuToggle = document.getElementById('menuToggle');
-        const mainContent = document.getElementById('mainContent');
-
-        function toggleSidebar() {
-            const isMobile = window.innerWidth <= 768;
-
-            if (isMobile) {
-                sidebar.classList.toggle('open');
-                sidebarOverlay.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('closed');
-                mainContent.classList.toggle('expanded');
-            }
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-
-        // Fecha sidebar ao redimensionar para desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('show');
-            }
-        });
-
-        // Toggle submenu
-        function toggleSubmenu(submenuId, button) {
-            const submenu = document.getElementById(submenuId);
-            const isOpen = submenu.classList.contains('open');
-
-            // Fecha todos os submenus
-            document.querySelectorAll('.submenu').forEach(sm => {
-                sm.classList.remove('open');
-            });
-            document.querySelectorAll('.submenu-toggle').forEach(btn => {
-                btn.classList.remove('open');
-            });
-
-            // Abre o submenu clicado se estava fechado
-            if (!isOpen) {
-                submenu.classList.add('open');
-                button.classList.add('open');
-            }
-        }
-
-        // Abre o submenu que contém o item ativo ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
-            const activeLink = document.querySelector('.sidebar-nav a.active');
-            if (activeLink) {
-                const submenu = activeLink.closest('.submenu');
-                if (submenu) {
-                    submenu.classList.add('open');
-                    const toggleButton = submenu.previousElementSibling;
-                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
-                        toggleButton.classList.add('open');
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="js/sidebar.js"></script>
     <script src="js/colaboradores.js"></script>
 </body>
 </html>
