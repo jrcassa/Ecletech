@@ -192,9 +192,7 @@ const RecebimentoManager = {
     },
 
     popularSelects() {
-        this.popularSelect('selectCliente', this.state.clientes, 'Selecione um cliente');
-        this.popularSelect('selectFornecedor', this.state.fornecedores, 'Selecione um fornecedor');
-        this.popularSelect('selectTransportadora', this.state.transportadoras, 'Selecione uma transportadora');
+        // Clientes, fornecedores e transportadoras usam autocomplete agora
         this.popularSelect('selectPlanoContas', this.state.planoContas, 'Selecione...');
         this.popularSelect('selectCentroCusto', this.state.centroCusto, 'Selecione...');
         this.popularSelect('selectContaBancaria', this.state.contasBancarias, 'Selecione...');
@@ -490,9 +488,9 @@ const RecebimentoManager = {
             'data_vencimento': 'inputDataVencimento',
             'data_liquidacao': 'inputDataLiquidacao',
             'data_competencia': 'inputDataCompetencia',
-            'cliente_id': 'selectCliente',
-            'fornecedor_id': 'selectFornecedor',
-            'transportadora_id': 'selectTransportadora',
+            'cliente_id': 'inputClienteBusca',
+            'fornecedor_id': 'inputFornecedorBusca',
+            'transportadora_id': 'inputTransportadoraBusca',
             'plano_contas_id': 'selectPlanoContas',
             'centro_custo_id': 'selectCentroCusto',
             'conta_bancaria_id': 'selectContaBancaria',
@@ -660,9 +658,21 @@ const RecebimentoManager = {
         form.querySelector('#selectEntidadeForm').value = pag.entidade || '';
         this.mostrarCamposEntidade(pag.entidade);
 
-        form.querySelector('#selectCliente').value = pag.cliente_id || '';
-        form.querySelector('#selectFornecedor').value = pag.fornecedor_id || '';
-        form.querySelector('#selectTransportadora').value = pag.transportadora_id || '';
+        // Preencher campos de autocomplete para entidades
+        const inputClienteId = form.querySelector('#inputClienteId');
+        const inputClienteBusca = form.querySelector('#inputClienteBusca');
+        if (inputClienteId) inputClienteId.value = pag.cliente_id || '';
+        if (inputClienteBusca) inputClienteBusca.value = pag.nome_cliente || '';
+
+        const inputFornecedorId = form.querySelector('#inputFornecedorId');
+        const inputFornecedorBusca = form.querySelector('#inputFornecedorBusca');
+        if (inputFornecedorId) inputFornecedorId.value = pag.fornecedor_id || '';
+        if (inputFornecedorBusca) inputFornecedorBusca.value = pag.nome_fornecedor || '';
+
+        const inputTransportadoraId = form.querySelector('#inputTransportadoraId');
+        const inputTransportadoraBusca = form.querySelector('#inputTransportadoraBusca');
+        if (inputTransportadoraId) inputTransportadoraId.value = pag.transportadora_id || '';
+        if (inputTransportadoraBusca) inputTransportadoraBusca.value = pag.nome_transportadora || '';
 
         form.querySelector('#inputValor').value = pag.valor || '0';
         form.querySelector('#inputJuros').value = pag.juros || '0';
@@ -693,9 +703,21 @@ const RecebimentoManager = {
         form.querySelector('#selectEntidadeForm').value = '';
         this.mostrarCamposEntidade('');
 
-        form.querySelector('#selectCliente').value = '';
-        form.querySelector('#selectFornecedor').value = '';
-        form.querySelector('#selectTransportadora').value = '';
+        // Limpar campos de autocomplete para entidades
+        const inputClienteBusca = form.querySelector('#inputClienteBusca');
+        const inputClienteId = form.querySelector('#inputClienteId');
+        if (inputClienteBusca) inputClienteBusca.value = '';
+        if (inputClienteId) inputClienteId.value = '';
+
+        const inputFornecedorBusca = form.querySelector('#inputFornecedorBusca');
+        const inputFornecedorId = form.querySelector('#inputFornecedorId');
+        if (inputFornecedorBusca) inputFornecedorBusca.value = '';
+        if (inputFornecedorId) inputFornecedorId.value = '';
+
+        const inputTransportadoraBusca = form.querySelector('#inputTransportadoraBusca');
+        const inputTransportadoraId = form.querySelector('#inputTransportadoraId');
+        if (inputTransportadoraBusca) inputTransportadoraBusca.value = '';
+        if (inputTransportadoraId) inputTransportadoraId.value = '';
 
         form.querySelector('#inputValor').value = '0';
         form.querySelector('#inputJuros').value = '0';
