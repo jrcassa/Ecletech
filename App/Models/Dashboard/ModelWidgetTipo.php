@@ -31,13 +31,13 @@ class ModelWidgetTipo
 
         // Decodifica JSON
         foreach ($widgets as &$widget) {
-            if ($widget['permissoes_requeridas']) {
+            if (!empty($widget['permissoes_requeridas'])) {
                 $widget['permissoes_requeridas'] = json_decode($widget['permissoes_requeridas'], true);
             }
-            if ($widget['config_schema']) {
+            if (isset($widget['config_schema']) && !empty($widget['config_schema'])) {
                 $widget['config_schema'] = json_decode($widget['config_schema'], true);
             }
-            if ($widget['config_padrao']) {
+            if (!empty($widget['config_padrao'])) {
                 $widget['config_padrao'] = json_decode($widget['config_padrao'], true);
             }
         }
@@ -58,13 +58,13 @@ class ModelWidgetTipo
         );
 
         foreach ($widgets as &$widget) {
-            if ($widget['permissoes_requeridas']) {
+            if (!empty($widget['permissoes_requeridas'])) {
                 $widget['permissoes_requeridas'] = json_decode($widget['permissoes_requeridas'], true);
             }
-            if ($widget['config_schema']) {
+            if (isset($widget['config_schema']) && !empty($widget['config_schema'])) {
                 $widget['config_schema'] = json_decode($widget['config_schema'], true);
             }
-            if ($widget['config_padrao']) {
+            if (!empty($widget['config_padrao'])) {
                 $widget['config_padrao'] = json_decode($widget['config_padrao'], true);
             }
         }
@@ -96,13 +96,13 @@ class ModelWidgetTipo
         );
 
         if ($widget) {
-            if ($widget['permissoes_requeridas']) {
+            if (!empty($widget['permissoes_requeridas'])) {
                 $widget['permissoes_requeridas'] = json_decode($widget['permissoes_requeridas'], true);
             }
-            if ($widget['config_schema']) {
+            if (isset($widget['config_schema']) && !empty($widget['config_schema'])) {
                 $widget['config_schema'] = json_decode($widget['config_schema'], true);
             }
-            if ($widget['config_padrao']) {
+            if (!empty($widget['config_padrao'])) {
                 $widget['config_padrao'] = json_decode($widget['config_padrao'], true);
             }
         }
@@ -121,13 +121,13 @@ class ModelWidgetTipo
         );
 
         if ($widget) {
-            if ($widget['permissoes_requeridas']) {
+            if (!empty($widget['permissoes_requeridas'])) {
                 $widget['permissoes_requeridas'] = json_decode($widget['permissoes_requeridas'], true);
             }
-            if ($widget['config_schema']) {
+            if (isset($widget['config_schema']) && !empty($widget['config_schema'])) {
                 $widget['config_schema'] = json_decode($widget['config_schema'], true);
             }
-            if ($widget['config_padrao']) {
+            if (!empty($widget['config_padrao'])) {
                 $widget['config_padrao'] = json_decode($widget['config_padrao'], true);
             }
         }
