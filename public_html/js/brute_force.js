@@ -74,7 +74,7 @@ const BruteForceManager = {
         }
 
         // Carrega dados iniciais
-        await this.carregarConfiguracoes();
+        // await this.carregarConfiguracoes(); // Rota ainda não implementada
         await this.carregarBloqueios();
     },
 
@@ -157,12 +157,12 @@ const BruteForceManager = {
     async carregarUsuario() {
         try {
             const user = await AuthAPI.getMe();
-            if (user && user.nome) {
+            if (user && user.nome && this.elements.userName) {
                 this.elements.userName.textContent = user.nome;
             }
         } catch (error) {
             console.error('Erro ao carregar usuário:', error);
-            window.location.href = 'auth.html';
+            // Não redireciona - deixa a verificação de permissões decidir o que mostrar
         }
     },
 
