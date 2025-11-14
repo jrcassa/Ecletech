@@ -77,19 +77,21 @@
                             <div class="error-message" id="errorMessageNiveis"></div>
                         </div>
 
-                        <div id="tableNiveisContainer" class="table-container" style="display: none;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nome</th>
-                                        <th>Descrição</th>
-                                        <th>Nível</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableNiveisBody"></tbody>
-                            </table>
+                        <table id="tableNiveis" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Nível</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBodyNiveis"></tbody>
+                        </table>
+
+                        <div id="noDataNiveis" class="no-data" style="display: none;">
+                            Nenhum nível de acesso encontrado.
                         </div>
                     </div>
                 </div>
@@ -112,19 +114,21 @@
                             <div class="error-message" id="errorMessageRoles"></div>
                         </div>
 
-                        <div id="tableRolesContainer" class="table-container" style="display: none;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nome</th>
-                                        <th>Descrição</th>
-                                        <th>Permissões</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableRolesBody"></tbody>
-                            </table>
+                        <table id="tableRoles" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Permissões</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBodyRoles"></tbody>
+                        </table>
+
+                        <div id="noDataRoles" class="no-data" style="display: none;">
+                            Nenhuma role encontrada.
                         </div>
                     </div>
                 </div>
@@ -166,20 +170,22 @@
                             <div class="error-message" id="errorMessagePermissions"></div>
                         </div>
 
-                        <div id="tablePermissionsContainer" class="table-container" style="display: none;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nome</th>
-                                        <th>Descrição</th>
-                                        <th>Recurso</th>
-                                        <th>Ação</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablePermissionsBody"></tbody>
-                            </table>
+                        <table id="tablePermissoes" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Recurso</th>
+                                    <th>Ação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBodyPermissoes"></tbody>
+                        </table>
+
+                        <div id="noDataPermissoes" class="no-data" style="display: none;">
+                            Nenhuma permissão encontrada.
                         </div>
                     </div>
                 </div>
@@ -337,6 +343,12 @@
     <script src="js/sidebar.js"></script>
 
     <script src="js/colaborador_management.js"></script>
+    <script>
+        // Inicializa o gerenciador quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            ManagementApp.init();
+        });
+    </script>
 </body>
 
 </html>
