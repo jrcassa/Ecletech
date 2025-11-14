@@ -49,7 +49,9 @@ class ControllerDashboard extends BaseController
             $dados = $this->obterDados();
 
             // Validação básica
-            if (!$this->validarCamposObrigatorios($dados, ['nome'])) {
+            if (!$this->validar($dados, [
+                'nome' => 'obrigatorio'
+            ])) {
                 return;
             }
 
@@ -287,7 +289,11 @@ class ControllerDashboard extends BaseController
             $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
-            if (!$this->validarCamposObrigatorios($dados, ['nome', 'template_codigo'])) {
+            // Valida dados obrigatórios
+            if (!$this->validar($dados, [
+                'nome' => 'obrigatorio',
+                'template_codigo' => 'obrigatorio'
+            ])) {
                 return;
             }
 
