@@ -104,6 +104,9 @@ const VendaFormManager = {
         // Tipo de entrega
         this.elements.tipoEntregaRetirar?.addEventListener('change', () => this.atualizarTipoEntrega());
         this.elements.tipoEntregaEntregar?.addEventListener('change', () => this.atualizarTipoEntrega());
+
+        // Autocomplete de cliente
+        this.configurarAutocompleteCliente();
     },
 
     /**
@@ -153,12 +156,7 @@ const VendaFormManager = {
                 this.popularSelect('situacaoVendaId', situacoes, 'id', 'nome');
             }
 
-            // Carrega clientes
-            const clientesResp = await API.get('/cliente?ativo=1&limite=1000');
-            if (clientesResp.sucesso) {
-                const clientes = clientesResp.dados?.itens || clientesResp.dados || [];
-                this.popularSelect('clienteId', clientes, 'id', 'nome');
-            }
+            // Clientes serão carregados via busca (autocomplete)
 
             // Carrega colaboradores (vendedores/técnicos)
             const colaboradoresResp = await API.get('/colaboradores?ativo=1&limite=1000');
@@ -207,6 +205,134 @@ const VendaFormManager = {
         } catch (error) {
             console.error('Erro ao carregar dados auxiliares:', error);
         }
+    },
+
+    /**
+     * Busca clientes por termo (para autocomplete)
+     */
+    async buscarClientes(termo) {
+        try {
+            if (!termo || termo.length < 2) {
+                return [];
+            }
+
+            const params = new URLSearchParams({
+                busca: termo,
+                ativo: 1,
+                por_pagina: 20
+            });
+
+            const response = await API.get(`/cliente?${params.toString()}`);
+
+            if (response.sucesso && response.dados) {
+                const itens = response.dados.itens || response.dados;
+                return Array.isArray(itens) ? itens : [];
+            }
+
+            return [];
+        } catch (erro) {
+            console.error('Erro ao buscar clientes:', erro);
+            return [];
+        }
+    },
+
+    /**
+     * Busca cliente por ID
+     */
+    async buscarClientePorId(id) {
+        try {
+            const response = await API.get(`/cliente/${id}`);
+            if (response.sucesso && response.dados) {
+                return response.dados;
+            }
+            return null;
+        } catch (erro) {
+            console.error('Erro ao buscar cliente por ID:', erro);
+            return null;
+        }
+    },
+
+    /**
+     * Configura autocomplete de cliente
+     */
+    configurarAutocompleteCliente() {
+        const inputNome = document.getElementById('clienteNome');
+        const inputId = document.getElementById('clienteId');
+        const listElement = document.getElementById('clienteAutocompleteList');
+
+        if (!inputNome || !inputId || !listElement) return;
+
+        let timeoutId = null;
+
+        // Evento de digitação
+        inputNome.addEventListener('input', async (e) => {
+            const termo = e.target.value.trim();
+
+            // Limpa timeout anterior
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            // Limpa ID quando o texto muda
+            if (inputId.value) {
+                inputId.value = '';
+            }
+
+            if (!termo || termo.length < 2) {
+                listElement.style.display = 'none';
+                listElement.innerHTML = '';
+                return;
+            }
+
+            // Debounce
+            timeoutId = setTimeout(async () => {
+                const clientes = await this.buscarClientes(termo);
+
+                if (clientes.length === 0) {
+                    listElement.innerHTML = '<div style="padding: 10px; color: var(--text-secondary);">Nenhum cliente encontrado</div>';
+                    listElement.style.display = 'block';
+                    return;
+                }
+
+                listElement.innerHTML = '';
+                clientes.forEach(cliente => {
+                    const item = document.createElement('div');
+                    item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border-light); transition: background 0.2s;';
+
+                    const cpfCnpj = cliente.cpf || cliente.cnpj || 'N/A';
+                    item.innerHTML = `
+                        <div style="font-weight: 600; color: var(--text-primary);">${cliente.nome}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">CPF/CNPJ: ${cpfCnpj}</div>
+                    `;
+
+                    item.addEventListener('mouseover', () => {
+                        item.style.background = 'var(--bg-hover)';
+                    });
+
+                    item.addEventListener('mouseout', () => {
+                        item.style.background = 'transparent';
+                    });
+
+                    item.addEventListener('click', () => {
+                        inputNome.value = cliente.nome;
+                        inputId.value = cliente.id;
+                        listElement.style.display = 'none';
+                        listElement.innerHTML = '';
+                    });
+
+                    listElement.appendChild(item);
+                });
+
+                listElement.style.display = 'block';
+            }, 300);
+        });
+
+        // Fecha a lista ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!inputNome.contains(e.target) && !listElement.contains(e.target)) {
+                listElement.style.display = 'none';
+            }
+        });
     },
 
     /**
@@ -336,7 +462,16 @@ const VendaFormManager = {
                 document.getElementById('codigo').value = venda.codigo || '';
                 document.getElementById('dataVenda').value = venda.data_venda || '';
                 document.getElementById('situacaoVendaId').value = venda.situacao_venda_id || '';
-                document.getElementById('clienteId').value = venda.cliente_id || '';
+
+                // Carrega nome do cliente
+                if (venda.cliente_id) {
+                    document.getElementById('clienteId').value = venda.cliente_id;
+                    const cliente = await this.buscarClientePorId(venda.cliente_id);
+                    if (cliente) {
+                        document.getElementById('clienteNome').value = cliente.nome || '';
+                    }
+                }
+
                 document.getElementById('vendedorId').value = venda.vendedor_id || '';
                 document.getElementById('tecnicoId').value = venda.tecnico_id || '';
                 document.getElementById('lojaId').value = venda.loja_id || '';
