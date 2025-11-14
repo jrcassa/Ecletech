@@ -128,6 +128,17 @@ const PagamentoManager = {
         this.elements.modalForm?.querySelector('.modal-backdrop')?.addEventListener('click', () => {
             this.fecharModal();
         });
+
+        // Limpar erro de validação quando o usuário começar a digitar
+        const formInputs = this.elements.formPagamento?.querySelectorAll('input, select, textarea');
+        formInputs?.forEach(input => {
+            input.addEventListener('input', function() {
+                this.style.borderColor = '';
+            });
+            input.addEventListener('change', function() {
+                this.style.borderColor = '';
+            });
+        });
     },
 
     async verificarPermissoes() {
@@ -458,52 +469,113 @@ const PagamentoManager = {
         }
     },
 
+    limparErrosValidacao() {
+        // Remove bordas vermelhas de todos os inputs
+        const form = this.elements.formPagamento;
+        if (!form) return;
+
+        form.querySelectorAll('input, select, textarea').forEach(input => {
+            input.style.borderColor = '';
+        });
+    },
+
+    destacarCampoComErro(fieldName) {
+        const fieldMap = {
+            'descricao': 'inputDescricao',
+            'codigo': 'inputCodigo',
+            'entidade': 'selectEntidadeForm',
+            'valor': 'inputValor',
+            'juros': 'inputJuros',
+            'desconto': 'inputDesconto',
+            'taxa_banco': 'inputTaxaBanco',
+            'taxa_operadora': 'inputTaxaOperadora',
+            'data_vencimento': 'inputDataVencimento',
+            'data_liquidacao': 'inputDataLiquidacao',
+            'data_competencia': 'inputDataCompetencia',
+            'cliente_id': 'selectCliente',
+            'fornecedor_id': 'selectFornecedor',
+            'transportadora_id': 'selectTransportadora',
+            'funcionario_id': 'selectFuncionario',
+            'plano_contas_id': 'selectPlanoContas',
+            'centro_custo_id': 'selectCentroCusto',
+            'conta_bancaria_id': 'selectContaBancaria',
+            'forma_pagamento_id': 'selectFormaPagamento'
+        };
+
+        const inputId = fieldMap[fieldName];
+        if (inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.style.borderColor = '#dc3545';
+                // Focar no primeiro campo com erro
+                if (!this._firstErrorFocused) {
+                    input.focus();
+                    this._firstErrorFocused = true;
+                }
+            }
+        }
+    },
+
     async salvar() {
         try {
+            // Limpar erros anteriores e reset flag de foco
+            this.limparErrosValidacao();
+            this._firstErrorFocused = false;
+
             const dados = this.obterDadosFormulario();
 
-            if (!dados.descricao) {
-                API.showError('Descrição é obrigatória');
+            // Validação básica no frontend
+            if (!dados.descricao || dados.descricao.trim().length < 3) {
+                API.showError('Descrição deve ter no mínimo 3 caracteres');
+                this.destacarCampoComErro('descricao');
                 return;
             }
 
             if (!dados.entidade) {
                 API.showError('Tipo é obrigatório');
+                this.destacarCampoComErro('entidade');
                 return;
             }
 
             if (!dados.valor || dados.valor <= 0) {
                 API.showError('Valor deve ser maior que zero');
+                this.destacarCampoComErro('valor');
                 return;
             }
 
             if (!dados.data_vencimento) {
                 API.showError('Data de vencimento é obrigatória');
+                this.destacarCampoComErro('data_vencimento');
                 return;
             }
 
+            // Validação de entidade específica
             switch (dados.entidade) {
                 case 'C':
                     if (!dados.cliente_id) {
                         API.showError('Cliente é obrigatório');
+                        this.destacarCampoComErro('cliente_id');
                         return;
                     }
                     break;
                 case 'F':
                     if (!dados.fornecedor_id) {
                         API.showError('Fornecedor é obrigatório');
+                        this.destacarCampoComErro('fornecedor_id');
                         return;
                     }
                     break;
                 case 'T':
                     if (!dados.transportadora_id) {
                         API.showError('Transportadora é obrigatória');
+                        this.destacarCampoComErro('transportadora_id');
                         return;
                     }
                     break;
                 case 'U':
                     if (!dados.funcionario_id) {
                         API.showError('Funcionário é obrigatório');
+                        this.destacarCampoComErro('funcionario_id');
                         return;
                     }
                     break;
@@ -516,16 +588,34 @@ const PagamentoManager = {
                 response = await API.post('/pagamento', dados);
             }
 
+            // Tratar resposta
             if (response.sucesso) {
                 API.showSuccess(this.state.editandoId ? 'Pagamento atualizado com sucesso' : 'Pagamento cadastrado com sucesso');
                 this.fecharModal();
                 this.carregarDados();
+            } else if (response.codigo === 422 && response.erros) {
+                // Tratar erros de validação do backend
+                this._firstErrorFocused = false;
+                Object.entries(response.erros).forEach(([field, messages]) => {
+                    this.destacarCampoComErro(field);
+                    const errorMessages = Array.isArray(messages) ? messages : [messages];
+                    errorMessages.forEach(msg => API.showError(msg));
+                });
             } else {
                 API.showError(response.mensagem || 'Erro ao salvar pagamento');
             }
         } catch (error) {
             console.error('Erro ao salvar:', error);
-            API.showError('Erro ao salvar pagamento');
+            if (error.data && error.data.erros) {
+                // Tratar erros de validação
+                this._firstErrorFocused = false;
+                Object.entries(error.data.erros).forEach(([field, messages]) => {
+                    this.destacarCampoComErro(field);
+                });
+                API.showValidationErrors(error.data.erros);
+            } else {
+                API.showError('Erro ao salvar pagamento');
+            }
         }
     },
 
