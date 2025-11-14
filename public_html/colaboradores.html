@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="css/modern-layout.css">
 </head>
 <body>
-        <!-- Sidebar -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">E</div>
@@ -89,7 +89,7 @@
                 <!-- Gestão -->
                 <div class="nav-section">
                     <div class="nav-section-title">Gestão</div>
-                    <a href="./colaboradores.html"class="active" data-permission="colaboradores.visualizar">
+                    <a href="./colaboradores.html" class="active" data-permission="colaboradores.visualizar">
                         <div class="menu-item-content">
                             <span class="icon"><i class="fas fa-users"></i></span>
                             <span>Colaboradores</span>
@@ -137,65 +137,6 @@
                 </div>
             </nav>
         </div>
-
-        <div class="sidebar-footer">
-            <div class="user-info-sidebar">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <div class="user-details">
-                    <div class="user-name" id="userNameSidebar">Carregando...</div>
-                    <div class="user-role" id="userRoleSidebar">Usuário</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-        <nav class="sidebar-nav">
-            <a href="./home.html">
-                <span class="icon">🏠</span>
-                <span>Home</span>
-            </a>
-            <a href="./frotas.html">
-                <span class="icon">🚗</span>
-                <span>Frotas</span>
-            </a>
-            <a href="./cidades.html">
-                <span class="icon">🌆</span>
-                <span>Cidades</span>
-            </a>
-            <a href="./situacoes_vendas.html">
-                <span class="icon">📊</span>
-                <span>Situações de Vendas</span>
-            </a>
-            <a href="./tipos_enderecos.html">
-            <a href="./tipos_contatos.html">
-                <span class="icon">📞</span>
-                <span>Tipos de Contatos</span>
-            </a>
-                <span class="icon">📍</span>
-                <span>Tipos de Endereços</span>
-            </a>
-            <a href="./colaboradores.html" class="active">
-                <span class="icon">👥</span>
-                <span>Colaboradores</span>
-            </a>
-            <a href="./colaborador_management.html">
-                <span class="icon">⚙️</span>
-                <span>Gestão de Acessos</span>
-            </a>
-            <a href="./loja.html">
-                <span class="icon">🏪</span>
-                <span>Informações da Loja</span>
-            </a>
-            <a href="./brute_force.html">
-                <span class="icon">🛡️</span>
-                <span>Proteção Brute Force</span>
-            </a>
-            <a href="./auditoria.html">
-                <span class="icon">📋</span>
-                <span>Auditoria</span>
-            </a>
-        </nav>
 
         <div class="sidebar-footer">
             <div class="user-info-sidebar" id="userInfoDropdown">
@@ -251,68 +192,69 @@
         </header>
 
         <div class="container">
-        <div id="permissionDenied" class="permission-denied" style="display: none;">
-            Você não tem permissão para acessar esta página.
-        </div>
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
 
-        <div id="pageContent" style="display: none;">
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0; border: none; padding: 0;">Colaboradores</h2>
-                    <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i> Novo Colaborador</button>
-                </div>
-
-                <div class="filters">
-                    <div class="filter-group">
-                        <label>Buscar</label>
-                        <input type="text" id="filtoBusca" placeholder="Nome ou email...">
-                    </div>
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select id="filtroAtivo">
-                            <option value="">Todos</option>
-                            <option value="1" selected>Ativos</option>
-                            <option value="0">Inativos</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>&nbsp;</label>
-                        <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
-                    </div>
-                </div>
-
-                <div id="loadingContainer" class="loading-container">
-                    <div class="spinner"></div>
-                </div>
-
-                <div id="errorContainer" style="display: none;">
-                    <div class="error-message" id="errorMessage"></div>
-                </div>
-
-                <div id="tableContainer" class="table-container" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Nível</th>
-                                <th>Status</th>
-                                <th>Criado em</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-
-                    <div id="noData" class="no-data" style="display: none;">
-                        Nenhum colaborador encontrado.
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;">Colaboradores</h2>
+                        <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i> Novo Colaborador</button>
                     </div>
 
-                    <div class="pagination" id="pagination">
-                        <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
-                        <span class="page-info" id="pageInfo"></span>
-                        <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="filtoBusca" placeholder="Nome ou email...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filtroAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Nível</th>
+                                    <th>Status</th>
+                                    <th>Criado em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            Nenhum colaborador encontrado.
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span class="page-info" id="pageInfo"></span>
+                            <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -371,7 +313,6 @@
             </form>
         </div>
     </div>
-    </div>
 
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
@@ -405,6 +346,41 @@
             if (window.innerWidth > 768) {
                 sidebar.classList.remove('open');
                 sidebarOverlay.classList.remove('show');
+            }
+        });
+
+        // Toggle submenu
+        function toggleSubmenu(submenuId, button) {
+            const submenu = document.getElementById(submenuId);
+            const isOpen = submenu.classList.contains('open');
+
+            // Fecha todos os submenus
+            document.querySelectorAll('.submenu').forEach(sm => {
+                sm.classList.remove('open');
+            });
+            document.querySelectorAll('.submenu-toggle').forEach(btn => {
+                btn.classList.remove('open');
+            });
+
+            // Abre o submenu clicado se estava fechado
+            if (!isOpen) {
+                submenu.classList.add('open');
+                button.classList.add('open');
+            }
+        }
+
+        // Abre o submenu que contém o item ativo ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.sidebar-nav a.active');
+            if (activeLink) {
+                const submenu = activeLink.closest('.submenu');
+                if (submenu) {
+                    submenu.classList.add('open');
+                    const toggleButton = submenu.previousElementSibling;
+                    if (toggleButton && toggleButton.classList.contains('submenu-toggle')) {
+                        toggleButton.classList.add('open');
+                    }
+                }
             }
         });
     </script>
