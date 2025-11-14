@@ -134,6 +134,67 @@ const BruteForceManager = {
     },
 
     /**
+     * Salva configurações de brute force
+     */
+    async salvarConfiguracoes() {
+        try {
+            const maxTentativas = document.getElementById('config-max-tentativas');
+            const tempoBloqueio = document.getElementById('config-tempo-bloqueio');
+            const janelaTempo = document.getElementById('config-janela-tempo');
+
+            // Validações
+            if (!maxTentativas || !maxTentativas.value) {
+                API.showError('Tentativas máximas é obrigatório');
+                return;
+            }
+
+            if (!tempoBloqueio || !tempoBloqueio.value) {
+                API.showError('Tempo de bloqueio é obrigatório');
+                return;
+            }
+
+            if (!janelaTempo || !janelaTempo.value) {
+                API.showError('Janela de tempo é obrigatória');
+                return;
+            }
+
+            const dados = {
+                max_tentativas: parseInt(maxTentativas.value),
+                tempo_bloqueio: parseInt(tempoBloqueio.value),
+                janela_tempo: parseInt(janelaTempo.value)
+            };
+
+            // Validações de valores
+            if (dados.max_tentativas < 1 || dados.max_tentativas > 100) {
+                API.showError('Tentativas máximas deve estar entre 1 e 100');
+                return;
+            }
+
+            if (dados.tempo_bloqueio < 1 || dados.tempo_bloqueio > 1440) {
+                API.showError('Tempo de bloqueio deve estar entre 1 e 1440 minutos');
+                return;
+            }
+
+            if (dados.janela_tempo < 1 || dados.janela_tempo > 60) {
+                API.showError('Janela de tempo deve estar entre 1 e 60 minutos');
+                return;
+            }
+
+            const response = await API.put('/configuracoes/brute-force', dados);
+
+            if (!response.sucesso) {
+                throw new Error(response.mensagem || 'Erro ao salvar configurações');
+            }
+
+            API.showSuccess('Configurações salvas com sucesso!');
+
+        } catch (error) {
+            console.error('Erro ao salvar configurações:', error);
+            API.showError(error.message || 'Erro ao salvar configurações');
+        }
+    },
+
+    /**
      * Carrega configurações de brute force (para uso futuro quando a rota existir)
      */
     async carregarConfiguracoes() {
@@ -718,6 +779,14 @@ document.addEventListener('click', (e) => {
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await BruteForceManager.init();
+
+    // Event listener para botão de salvar configurações
+    const btnSalvarConfig = document.getElementById('btnSalvarConfig');
+    if (btnSalvarConfig) {
+        btnSalvarConfig.addEventListener('click', () => {
+            BruteForceManager.salvarConfiguracoes();
+        });
+    }
 
     // Event listeners para botões de filtro
     const btnFiltrarBloqueios = document.getElementById('btnFiltrarBloqueios');
