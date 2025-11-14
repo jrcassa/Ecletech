@@ -38,6 +38,9 @@ class SidebarRenderer {
                 title: 'Ecletech'
             },
             sections: [
+                // ============================================
+                // SEÇÃO: PRINCIPAL
+                // ============================================
                 {
                     title: 'Principal',
                     items: [
@@ -47,24 +50,22 @@ class SidebarRenderer {
                             icon: 'fa-home',
                             href: './home.html',
                             permission: null
-                        },
-                        {
-                            type: 'link',
-                            label: 'Frotas',
-                            icon: 'fa-car',
-                            href: './frotas.html',
-                            permission: 'frota.visualizar'
                         }
                     ]
                 },
+
+                // ============================================
+                // SEÇÃO: CADASTROS
+                // ============================================
                 {
                     title: 'Cadastros',
                     items: [
+                        // Cadastros Básicos
                         {
                             type: 'submenu',
-                            label: 'Cadastros Gerais',
+                            label: 'Cadastros Básicos',
                             icon: 'fa-database',
-                            id: 'cadastros-submenu',
+                            id: 'cadastros-basicos-submenu',
                             items: [
                                 {
                                     label: 'Estados',
@@ -103,9 +104,160 @@ class SidebarRenderer {
                                     permission: 'grupos_produtos.visualizar'
                                 }
                             ]
+                        },
+                        // Cadastros Comerciais
+                        {
+                            type: 'submenu',
+                            label: 'Cadastros Comerciais',
+                            icon: 'fa-briefcase',
+                            id: 'cadastros-comerciais-submenu',
+                            items: [
+                                {
+                                    label: 'Clientes',
+                                    icon: 'fa-user-tie',
+                                    href: './clientes.html',
+                                    permission: 'cliente.visualizar'
+                                },
+                                {
+                                    label: 'Fornecedores',
+                                    icon: 'fa-truck',
+                                    href: './fornecedores.html',
+                                    permission: 'fornecedor.visualizar'
+                                },
+                                {
+                                    label: 'Transportadoras',
+                                    icon: 'fa-shipping-fast',
+                                    href: './transportadoras.html',
+                                    permission: 'transportadora.visualizar'
+                                },
+                                {
+                                    label: 'Produtos',
+                                    icon: 'fa-box',
+                                    href: './produtos.html',
+                                    permission: 'produto.visualizar'
+                                },
+                                {
+                                    label: 'Serviços',
+                                    icon: 'fa-concierge-bell',
+                                    href: './servicos.html',
+                                    permission: 'servico.visualizar'
+                                }
+                            ]
                         }
                     ]
                 },
+
+                // ============================================
+                // SEÇÃO: FROTAS
+                // ============================================
+                {
+                    title: 'Frotas',
+                    items: [
+                        {
+                            type: 'link',
+                            label: 'Frotas',
+                            icon: 'fa-car',
+                            href: './frotas.html',
+                            permission: 'frota.visualizar'
+                        },
+                        {
+                            type: 'submenu',
+                            label: 'Abastecimento',
+                            icon: 'fa-gas-pump',
+                            id: 'abastecimento-submenu',
+                            items: [
+                                {
+                                    label: 'Abastecimentos',
+                                    icon: 'fa-gas-pump',
+                                    href: './frota_abastecimento.html',
+                                    permission: 'frota_abastecimento.visualizar'
+                                },
+                                {
+                                    label: 'Abastecimento Motorista',
+                                    icon: 'fa-id-card',
+                                    href: './frota_abastecimento_motorista.html',
+                                    permission: 'frota_abastecimento.visualizar'
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                // ============================================
+                // SEÇÃO: VENDAS
+                // ============================================
+                {
+                    title: 'Vendas',
+                    items: [
+                        {
+                            type: 'link',
+                            label: 'Vendas',
+                            icon: 'fa-shopping-cart',
+                            href: './vendas.html',
+                            permission: 'venda.visualizar'
+                        },
+                        {
+                            type: 'link',
+                            label: 'Nova Venda',
+                            icon: 'fa-plus-circle',
+                            href: './venda-form.html',
+                            permission: 'venda.criar'
+                        }
+                    ]
+                },
+
+                // ============================================
+                // SEÇÃO: FINANCEIRO
+                // ============================================
+                {
+                    title: 'Financeiro',
+                    items: [
+                        {
+                            type: 'link',
+                            label: 'Pagamentos',
+                            icon: 'fa-money-bill-wave',
+                            href: './pagamentos.html',
+                            permission: 'pagamento.visualizar'
+                        },
+                        {
+                            type: 'link',
+                            label: 'Recebimentos',
+                            icon: 'fa-hand-holding-usd',
+                            href: './recebimentos.html',
+                            permission: 'recebimento.visualizar'
+                        },
+                        {
+                            type: 'submenu',
+                            label: 'Configurações',
+                            icon: 'fa-cogs',
+                            id: 'financeiro-config-submenu',
+                            items: [
+                                {
+                                    label: 'Plano de Contas',
+                                    icon: 'fa-list-alt',
+                                    href: './plano_de_contas.html',
+                                    permission: 'plano_contas.visualizar'
+                                },
+                                {
+                                    label: 'Centro de Custo',
+                                    icon: 'fa-chart-pie',
+                                    href: './centro_de_custo.html',
+                                    permission: 'centro_custo.visualizar'
+                                },
+                                {
+                                    label: 'Forma de Pagamento',
+                                    icon: 'fa-credit-card',
+                                    href: './forma_de_pagamento.html',
+                                    permission: 'forma_pagamento.visualizar'
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                // ============================================
+                // SEÇÃO: GESTÃO
+                // ============================================
                 {
                     title: 'Gestão',
                     items: [
@@ -139,6 +291,33 @@ class SidebarRenderer {
                         }
                     ]
                 },
+
+                // ============================================
+                // SEÇÃO: COMUNICAÇÃO
+                // ============================================
+                {
+                    title: 'Comunicação',
+                    items: [
+                        {
+                            type: 'link',
+                            label: 'Email',
+                            icon: 'fa-envelope',
+                            href: './email.html',
+                            permission: 'email.visualizar'
+                        },
+                        {
+                            type: 'link',
+                            label: 'WhatsApp',
+                            icon: 'fab fa-whatsapp',
+                            href: './whatsapp.html',
+                            permission: 'whatsapp.visualizar'
+                        }
+                    ]
+                },
+
+                // ============================================
+                // SEÇÃO: ADMINISTRAÇÃO
+                // ============================================
                 {
                     title: 'Administração',
                     items: [
