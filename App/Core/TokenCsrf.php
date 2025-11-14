@@ -22,9 +22,8 @@ class TokenCsrf
         $this->config = Configuracao::obterInstancia();
         $this->expiracao = $this->config->obter('seguranca.csrf_expiracao', 3600);
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        // Configurar sessão de forma robusta e consistente
+        $this->configurarSessao();
 
         // Tenta usar o banco de dados, mas usa sessão como fallback se houver erro
         try {
@@ -38,6 +37,56 @@ class TokenCsrf
                 'contexto' => ['classe' => 'TokenCsrf', 'acao' => 'construtor_fallback_sessao']
             ]);
             error_log("TokenCsrf: Não foi possível conectar ao banco de dados. Usando sessão como fallback. Erro: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Configura a sessão de forma robusta e consistente entre máquinas
+     */
+    private function configurarSessao(): void
+    {
+        // Só configurar se a sessão ainda não foi iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            // Configurações explícitas de segurança de sessão
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.use_only_cookies', '1');
+            ini_set('session.cookie_samesite', 'Lax');
+
+            // Define o caminho de salvamento de sessão para garantir permissões corretas
+            $sessionPath = sys_get_temp_dir() . '/ecletech_sessions';
+            if (!is_dir($sessionPath)) {
+                try {
+                    mkdir($sessionPath, 0700, true);
+                } catch (\Exception $e) {
+                    error_log("TokenCsrf: Não foi possível criar diretório de sessão: " . $e->getMessage());
+                    // Usa o path padrão do sistema
+                    $sessionPath = sys_get_temp_dir();
+                }
+            }
+
+            // Verifica se o diretório é gravável
+            if (is_writable($sessionPath)) {
+                ini_set('session.save_path', $sessionPath);
+            } else {
+                error_log("TokenCsrf: Diretório de sessão não é gravável: " . $sessionPath);
+            }
+
+            // Configurar cookie de sessão baseado no ambiente
+            $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
+            session_set_cookie_params([
+                'lifetime' => 0,  // Até fechar o navegador
+                'path' => '/',
+                'domain' => '',  // Domínio atual
+                'secure' => $isHttps,  // Só em HTTPS se disponível
+                'httponly' => true,  // Não acessível via JavaScript
+                'samesite' => 'Lax'  // Proteção CSRF
+            ]);
+
+            session_start();
+
+            // Log para debug
+            error_log("TokenCsrf: Sessão iniciada. ID: " . session_id() . ", Save Path: " . session_save_path());
         }
     }
 
