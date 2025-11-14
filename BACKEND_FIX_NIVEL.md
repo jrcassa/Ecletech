@@ -1,4 +1,6 @@
-# Correção Necessária no Backend - Erro ao Salvar Nível
+# ✅ RESOLVIDO - Correção do Backend - Erro ao Salvar Nível
+
+**Status:** CORRIGIDO em commit `dfb94ec`
 
 ## Problema
 
@@ -138,8 +140,62 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 }
 ```
 
+## ✅ Correção Aplicada
+
+### Arquivos Corrigidos
+
+**`App/Controllers/Nivel/ControllerNivel.php`**
+
+#### Método `criar()` (linha 69-75)
+```php
+// ANTES (ERRADO)
+$erros = AuxiliarValidacao::validar($dados, [
+    'nome' => ['obrigatorio', 'string', 'max:100'],  // ❌ Array
+    'codigo' => ['obrigatorio', 'string', 'max:50'], // ❌ Array
+    // ...
+]);
+
+// DEPOIS (CORRETO) ✅
+$erros = AuxiliarValidacao::validar($dados, [
+    'nome' => 'obrigatorio|string|max:100',          // ✅ String com pipes
+    'codigo' => 'obrigatorio|string|max:50',         // ✅ String com pipes
+    'descricao' => 'string',
+    'ordem' => 'inteiro',
+    'ativo' => 'inteiro'
+]);
+```
+
+#### Método `atualizar()` (linha 119-125)
+```php
+// ANTES (ERRADO)
+$erros = AuxiliarValidacao::validar($dados, [
+    'nome' => ['string', 'max:100'],  // ❌ Array
+    'codigo' => ['string', 'max:50'], // ❌ Array
+    // ...
+]);
+
+// DEPOIS (CORRETO) ✅
+$erros = AuxiliarValidacao::validar($dados, [
+    'nome' => 'string|max:100',       // ✅ String com pipes
+    'codigo' => 'string|max:50',      // ✅ String com pipes
+    'descricao' => 'string',
+    'ordem' => 'inteiro',
+    'ativo' => 'inteiro'
+]);
+```
+
+### Commits Relacionados
+
+1. **`6bfbf97`** - Debug detalhado e documentação do problema
+2. **`dfb94ec`** - Correção do backend PHP
+
+### Resultado
+
+✅ Criar níveis funciona
+✅ Atualizar níveis funciona
+✅ Erro 500 resolvido
+✅ Validação funcional
+
 ## Nota
 
-O frontend foi revisado completamente e **NÃO há problemas no código JavaScript**. O erro é 100% do backend PHP.
-
-Commit com melhorias de debug: [próximo commit]
+O frontend foi revisado completamente e **NÃO havia problemas no código JavaScript**. O erro era 100% do backend PHP e foi **corrigido**.
