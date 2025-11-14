@@ -587,10 +587,24 @@
 
                     <!-- Tab: Pagamentos -->
                     <div class="tab-content" id="tabPagamentos">
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label style="display: block; margin-bottom: 10px;">Tipo de Pagamento *</label>
+                            <div style="display: flex; gap: 20px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="tipoPagamento" id="tipoPagamentoAvista" value="avista" checked>
+                                    <span>À Vista</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="tipoPagamento" id="tipoPagamentoParcelado" value="parcelado">
+                                    <span>Parcelado</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="dynamic-list">
                             <div class="dynamic-list-header">
                                 <h4>Parcelas de Pagamento</h4>
-                                <button type="button" class="btn btn-success btn-small" id="btnAddPagamento">
+                                <button type="button" class="btn btn-success btn-small" id="btnAddPagamento" style="display: none;">
                                     <i class="fas fa-plus"></i> Adicionar Parcela
                                 </button>
                             </div>
@@ -602,35 +616,51 @@
 
                     <!-- Tab: Endereço -->
                     <div class="tab-content" id="tabEndereco">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="enderecoCep">CEP</label>
-                                <input type="text" id="enderecoCep" placeholder="00000-000">
-                            </div>
-                            <div class="form-group">
-                                <label for="enderecoLogradouro">Logradouro</label>
-                                <input type="text" id="enderecoLogradouro">
-                            </div>
-                            <div class="form-group">
-                                <label for="enderecoNumero">Número</label>
-                                <input type="text" id="enderecoNumero">
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label style="display: block; margin-bottom: 10px;">Tipo de Entrega *</label>
+                            <div style="display: flex; gap: 20px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="tipoEntrega" id="tipoEntregaRetirar" value="retirar" checked>
+                                    <span>Retirar na Loja</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                    <input type="radio" name="tipoEntrega" id="tipoEntregaEntregar" value="entrega">
+                                    <span>Entrega</span>
+                                </label>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="enderecoComplemento">Complemento</label>
-                                <input type="text" id="enderecoComplemento">
+                        <div id="enderecoContainer" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="enderecoCep">CEP</label>
+                                    <input type="text" id="enderecoCep" placeholder="00000-000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="enderecoLogradouro">Logradouro</label>
+                                    <input type="text" id="enderecoLogradouro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="enderecoNumero">Número</label>
+                                    <input type="text" id="enderecoNumero">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="enderecoBairro">Bairro</label>
-                                <input type="text" id="enderecoBairro">
-                            </div>
-                            <div class="form-group">
-                                <label for="enderecoCidadeId">Cidade</label>
-                                <select id="enderecoCidadeId">
-                                    <option value="">Selecione...</option>
-                                </select>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="enderecoComplemento">Complemento</label>
+                                    <input type="text" id="enderecoComplemento">
+                                </div>
+                                <div class="form-group">
+                                    <label for="enderecoBairro">Bairro</label>
+                                    <input type="text" id="enderecoBairro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="enderecoCidadeId">Cidade</label>
+                                    <select id="enderecoCidadeId">
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
