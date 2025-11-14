@@ -12,3 +12,331 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/colaborador_management.css">
 
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Gestão de Acessos</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
+
+            <div id="pageContent" style="display: none;">
+                <!-- Tabs de Navegação -->
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="niveis">
+                        <i class="fas fa-layer-group"></i> Níveis de Acesso
+                    </button>
+                    <button class="tab-button" data-tab="roles">
+                        <i class="fas fa-user-tag"></i> Roles
+                    </button>
+                    <button class="tab-button" data-tab="permissions">
+                        <i class="fas fa-shield-alt"></i> Permissões
+                    </button>
+                </div>
+
+                <!-- Tab: Níveis de Acesso -->
+                <div class="tab-content active" id="tabNiveis">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="margin: 0; border: none; padding: 0;">Níveis de Acesso</h2>
+                            <button class="btn btn-success" id="btnNovoNivel" style="display: none;">
+                                <i class="fas fa-plus"></i> Novo Nível
+                            </button>
+                        </div>
+
+                        <div id="loadingNiveis" class="loading-container">
+                            <div class="spinner"></div>
+                        </div>
+
+                        <div id="errorNiveis" style="display: none;">
+                            <div class="error-message" id="errorMessageNiveis"></div>
+                        </div>
+
+                        <div id="tableNiveisContainer" class="table-container" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>Descrição</th>
+                                        <th>Nível</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableNiveisBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Roles -->
+                <div class="tab-content" id="tabRoles">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="margin: 0; border: none; padding: 0;">Roles (Funções)</h2>
+                            <button class="btn btn-success" id="btnNovaRole" style="display: none;">
+                                <i class="fas fa-plus"></i> Nova Role
+                            </button>
+                        </div>
+
+                        <div id="loadingRoles" class="loading-container">
+                            <div class="spinner"></div>
+                        </div>
+
+                        <div id="errorRoles" style="display: none;">
+                            <div class="error-message" id="errorMessageRoles"></div>
+                        </div>
+
+                        <div id="tableRolesContainer" class="table-container" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>Descrição</th>
+                                        <th>Permissões</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableRolesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Permissões -->
+                <div class="tab-content" id="tabPermissions">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="margin: 0; border: none; padding: 0;">Permissões do Sistema</h2>
+                            <button class="btn btn-success" id="btnNovaPermissao" style="display: none;">
+                                <i class="fas fa-plus"></i> Nova Permissão
+                            </button>
+                        </div>
+
+                        <div class="filters">
+                            <div class="filter-group">
+                                <label>Buscar</label>
+                                <input type="text" id="filtroPermissaoBusca" placeholder="Nome ou recurso...">
+                            </div>
+                            <div class="filter-group">
+                                <label>Recurso</label>
+                                <select id="filtroPermissaoRecurso">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>&nbsp;</label>
+                                <button class="btn" id="btnFiltrarPermissoes">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="loadingPermissions" class="loading-container">
+                            <div class="spinner"></div>
+                        </div>
+
+                        <div id="errorPermissions" style="display: none;">
+                            <div class="error-message" id="errorMessagePermissions"></div>
+                        </div>
+
+                        <div id="tablePermissionsContainer" class="table-container" style="display: none;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>Descrição</th>
+                                        <th>Recurso</th>
+                                        <th>Ação</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablePermissionsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Nível -->
+    <div id="modalNivel" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalNivelTitle">Novo Nível de Acesso</h3>
+                <button class="close" id="closeModalNivel">&times;</button>
+            </div>
+
+            <div id="modalNivelError" style="display: none;">
+                <div class="error-message" id="modalNivelErrorMessage"></div>
+            </div>
+
+            <form id="formNivel">
+                <input type="hidden" id="nivelId">
+
+                <div class="form-group">
+                    <label for="nivelNome">Nome *</label>
+                    <input type="text" id="nivelNome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nivelDescricao">Descrição</label>
+                    <textarea id="nivelDescricao" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="nivelLevel">Nível de Hierarquia *</label>
+                    <input type="number" id="nivelLevel" required min="1" max="100">
+                    <small>Quanto maior o número, maior o nível de acesso</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarNivel">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSalvarNivel">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Role -->
+    <div id="modalRole" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalRoleTitle">Nova Role</h3>
+                <button class="close" id="closeModalRole">&times;</button>
+            </div>
+
+            <div id="modalRoleError" style="display: none;">
+                <div class="error-message" id="modalRoleErrorMessage"></div>
+            </div>
+
+            <form id="formRole">
+                <input type="hidden" id="roleId">
+
+                <div class="form-group">
+                    <label for="roleName">Nome *</label>
+                    <input type="text" id="roleName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="roleDescricao">Descrição</label>
+                    <textarea id="roleDescricao" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Permissões</label>
+                    <div id="rolePermissionsContainer" class="permissions-checklist">
+                        <!-- Permissões serão carregadas aqui -->
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarRole">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSalvarRole">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Permissão -->
+    <div id="modalPermissao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalPermissaoTitle">Nova Permissão</h3>
+                <button class="close" id="closeModalPermissao">&times;</button>
+            </div>
+
+            <div id="modalPermissaoError" style="display: none;">
+                <div class="error-message" id="modalPermissaoErrorMessage"></div>
+            </div>
+
+            <form id="formPermissao">
+                <input type="hidden" id="permissaoId">
+
+                <div class="form-group">
+                    <label for="permissaoNome">Nome *</label>
+                    <input type="text" id="permissaoNome" required placeholder="ex: colaboradores.view">
+                </div>
+
+                <div class="form-group">
+                    <label for="permissaoDescricao">Descrição</label>
+                    <textarea id="permissaoDescricao" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="permissaoRecurso">Recurso *</label>
+                        <input type="text" id="permissaoRecurso" required placeholder="ex: colaboradores">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="permissaoAcao">Ação *</label>
+                        <select id="permissaoAcao" required>
+                            <option value="">Selecione...</option>
+                            <option value="view">Visualizar</option>
+                            <option value="create">Criar</option>
+                            <option value="edit">Editar</option>
+                            <option value="delete">Deletar</option>
+                            <option value="manage">Gerenciar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarPermissao">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSalvarPermissao">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+
+    <script src="js/colaborador_management.js"></script>
+</body>
+
+</html>

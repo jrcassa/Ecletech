@@ -1,3 +1,87 @@
 /* CSS específico para a página Fornecedores (fornecedores.html) */
 
-/* Personalizações específicas desta página */
+/* Estilos para abas (tabs) */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    bottom: -2px;
+}
+
+.tab-button:hover {
+    color: #ee670d;
+}
+
+.tab-button.active {
+    color: #ee670d;
+    border-bottom-color: #ee670d;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Estilos para listas dinâmicas */
+.dynamic-list {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: var(--bg-tertiary);
+}
+
+.dynamic-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.dynamic-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dynamic-list-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.dynamic-list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Campos condicionais (PF/PJ) */
+.campo-condicional {
+    display: none;
+}
+
+.campo-condicional.campo-pf,
+.campo-condicional.campo-pj {
+    display: block;
+}

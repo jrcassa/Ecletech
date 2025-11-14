@@ -12,3 +12,231 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/contas_bancarias.css">
 
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+</head>
+
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="sidebar-container"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Contas Bancárias</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
+
+            <div id="pageContent" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; border: none; padding: 0;">Gestão de Contas Bancárias</h2>
+                        <button class="btn btn-success" id="btnNovo" style="display: none;"><i class="fas fa-plus"></i>
+                            Nova Conta Bancária</button>
+                    </div>
+
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Buscar</label>
+                            <input type="text" id="filtroBusca" placeholder="Banco, agência, conta...">
+                        </div>
+                        <div class="filter-group">
+                            <label>Tipo de Conta</label>
+                            <select id="filtroTipoConta">
+                                <option value="">Todos</option>
+                                <option value="corrente">Conta Corrente</option>
+                                <option value="poupanca">Conta Poupança</option>
+                                <option value="pagamento">Conta Pagamento</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filtroAtivo">
+                                <option value="">Todos</option>
+                                <option value="1" selected>Ativos</option>
+                                <option value="0">Inativos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>&nbsp;</label>
+                            <button class="btn" id="btnFiltrar"><i class="fas fa-filter"></i> Filtrar</button>
+                        </div>
+                    </div>
+
+                    <div id="loadingContainer" class="loading-container">
+                        <div class="spinner"></div>
+                    </div>
+
+                    <div id="errorContainer" style="display: none;">
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+
+                    <div id="tableContainer" class="table-container" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Banco</th>
+                                    <th>Agência</th>
+                                    <th>Conta</th>
+                                    <th>Tipo</th>
+                                    <th>Titular</th>
+                                    <th>Saldo</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+
+                        <div id="noData" class="no-data" style="display: none;">
+                            Nenhuma conta bancária encontrada.
+                        </div>
+
+                        <div class="pagination" id="pagination">
+                            <button id="btnPrevious"><i class="fas fa-chevron-left"></i> Anterior</button>
+                            <span class="page-info" id="pageInfo"></span>
+                            <button id="btnNext">Próximo <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar -->
+    <div id="modalForm" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nova Conta Bancária</h3>
+                <button class="close" id="closeModal">&times;</button>
+            </div>
+
+            <div id="modalError" style="display: none;">
+                <div class="error-message" id="modalErrorMessage"></div>
+            </div>
+
+            <form id="formContaBancaria">
+                <input type="hidden" id="contaId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="banco">Banco *</label>
+                        <input type="text" id="banco" required placeholder="Nome do banco">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="codigoBanco">Código do Banco</label>
+                        <input type="text" id="codigoBanco" placeholder="000" maxlength="3">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="agencia">Agência *</label>
+                        <input type="text" id="agencia" required placeholder="0000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="agenciaDigito">Dígito da Agência</label>
+                        <input type="text" id="agenciaDigito" placeholder="0" maxlength="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="conta">Conta *</label>
+                        <input type="text" id="conta" required placeholder="00000000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contaDigito">Dígito da Conta</label>
+                        <input type="text" id="contaDigito" placeholder="0" maxlength="2">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipoConta">Tipo de Conta *</label>
+                        <select id="tipoConta" required>
+                            <option value="">Selecione...</option>
+                            <option value="corrente">Conta Corrente</option>
+                            <option value="poupanca">Conta Poupança</option>
+                            <option value="pagamento">Conta Pagamento</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="titular">Titular *</label>
+                        <input type="text" id="titular" required placeholder="Nome do titular">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="documento">CPF/CNPJ do Titular *</label>
+                        <input type="text" id="documento" required placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="saldo">Saldo Inicial</label>
+                        <input type="number" id="saldo" step="0.01" value="0.00" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dataAbertura">Data de Abertura</label>
+                        <input type="date" id="dataAbertura">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ativo">Status *</label>
+                        <select id="ativo" required>
+                            <option value="1">Ativo</option>
+                            <option value="0">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="observacoes">Observações</label>
+                    <textarea id="observacoes" rows="3" placeholder="Informações adicionais sobre a conta..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar"><i class="fas fa-times"></i>
+                        Cancelar</button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar"><i class="fas fa-save"></i>
+                        Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+
+    <script src="js/ContasBancarias.js"></script>
+</body>
+
+</html>
