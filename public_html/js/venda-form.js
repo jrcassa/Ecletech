@@ -1172,6 +1172,15 @@ const VendaFormManager = {
             }
 
             // Monta dados da venda
+            // Calcula valor total dos itens
+            const valorItens = this.state.itens.reduce((total, item) => {
+                return total + (parseFloat(item.valor_total) || 0);
+            }, 0);
+
+            const valorFrete = parseFloat(document.getElementById('valorFrete').value) || 0;
+            const descontoValor = parseFloat(document.getElementById('descontoValor').value) || 0;
+            const valorTotal = valorItens + valorFrete - descontoValor;
+
             const dados = {
                 codigo: document.getElementById('codigo').value,
                 data_venda: document.getElementById('dataVenda').value,
@@ -1182,8 +1191,9 @@ const VendaFormManager = {
                 loja_id: document.getElementById('lojaId').value || null,
                 canal_venda: document.getElementById('canalVenda').value || null,
                 prazo_entrega: document.getElementById('prazoEntrega').value || null,
-                valor_frete: parseFloat(document.getElementById('valorFrete').value) || 0,
-                desconto_valor: parseFloat(document.getElementById('descontoValor').value) || 0,
+                valor_frete: valorFrete,
+                desconto_valor: descontoValor,
+                valor_total: valorTotal,
                 ativo: parseInt(document.getElementById('ativo').value),
                 introducao: document.getElementById('introducao').value || null,
                 observacoes: document.getElementById('observacoes').value || null,
