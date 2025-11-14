@@ -207,6 +207,8 @@
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
 
         function showError(message) {
             errorMessage.textContent = message;
@@ -225,19 +227,143 @@
             successMessage.style.display = 'none';
         }
 
+        function disableForm(message) {
+            emailInput.disabled = true;
+            senhaInput.disabled = true;
+            submitBtn.disabled = true;
+            showError(message);
+        }
+
+        function enableForm() {
+            emailInput.disabled = false;
+            senhaInput.disabled = false;
+            submitBtn.disabled = false;
+        }
+
+        /**
+         * Obtém IP do cliente (simplificado para o frontend)
+         */
+        async function obterIpCliente() {
+            try {
+                // Tenta obter do servidor através de um endpoint
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip || null;
+            } catch (error) {
+                console.error('Erro ao obter IP:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Verifica se o email ou IP está bloqueado
+         */
+        async function verificarBloqueio(email, ipAddress) {
+            try {
+                const params = new URLSearchParams();
+                if (email) params.append('email', email);
+                if (ipAddress) params.append('ip_address', ipAddress);
+
+                const response = await API.get(`/login-bloqueios/verificar?${params.toString()}`);
+
+                if (response.sucesso && response.dados) {
+                    const { email_bloqueado, ip_bloqueado, info_email, info_ip } = response.dados;
+
+                    if (email_bloqueado || ip_bloqueado) {
+                        let mensagem = 'Acesso bloqueado. ';
+
+                        if (email_bloqueado && info_email) {
+                            const bloqueadoAte = new Date(info_email.bloqueado_ate);
+                            if (info_email.bloqueado_permanente == 1) {
+                                mensagem += 'Esta conta foi bloqueada permanentemente. Entre em contato com o suporte.';
+                            } else {
+                                mensagem += `Você está temporariamente bloqueado até ${bloqueadoAte.toLocaleString('pt-BR')}. `;
+                                mensagem += `Motivo: ${info_email.motivo || 'Múltiplas tentativas de login falhadas'}`;
+                            }
+                        } else if (ip_bloqueado && info_ip) {
+                            const bloqueadoAte = new Date(info_ip.bloqueado_ate);
+                            if (info_ip.bloqueado_permanente == 1) {
+                                mensagem += 'Seu IP foi bloqueado permanentemente. Entre em contato com o suporte.';
+                            } else {
+                                mensagem += `Seu IP está temporariamente bloqueado até ${bloqueadoAte.toLocaleString('pt-BR')}. `;
+                                mensagem += `Motivo: ${info_ip.motivo || 'Múltiplas tentativas de login falhadas'}`;
+                            }
+                        }
+
+                        return { bloqueado: true, mensagem };
+                    }
+                }
+
+                return { bloqueado: false };
+            } catch (error) {
+                console.error('Erro ao verificar bloqueio:', error);
+                // Em caso de erro na verificação, permite tentar o login
+                // O backend fará a verificação definitiva
+                return { bloqueado: false };
+            }
+        }
+
+        /**
+         * Verifica bloqueio ao alterar o email
+         */
+        let verificacaoTimeout;
+        emailInput.addEventListener('blur', async () => {
+            const email = emailInput.value.trim();
+            if (!email) return;
+
+            // Debounce para evitar muitas requisições
+            clearTimeout(verificacaoTimeout);
+            verificacaoTimeout = setTimeout(async () => {
+                const ipAddress = await obterIpCliente();
+                const resultado = await verificarBloqueio(email, ipAddress);
+
+                if (resultado.bloqueado) {
+                    disableForm(resultado.mensagem);
+                } else {
+                    enableForm();
+                    hideMessages();
+                }
+            }, 500);
+        });
+
+        /**
+         * Verifica bloqueio ao carregar a página (por IP)
+         */
+        async function verificarBloqueioInicial() {
+            const ipAddress = await obterIpCliente();
+            if (ipAddress) {
+                const resultado = await verificarBloqueio(null, ipAddress);
+                if (resultado.bloqueado) {
+                    disableForm(resultado.mensagem);
+                }
+            }
+        }
+
         // Sobrescrever os métodos de API para usar as mensagens da página
         API.showError = showError;
         API.showSuccess = showSuccess;
+
+        // Verifica bloqueio ao carregar
+        verificarBloqueioInicial();
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideMessages();
 
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value;
+            const email = emailInput.value.trim();
+            const senha = senhaInput.value;
 
             if (!email || !senha) {
                 showError('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            // Verifica bloqueio antes de tentar login
+            const ipAddress = await obterIpCliente();
+            const bloqueioStatus = await verificarBloqueio(email, ipAddress);
+
+            if (bloqueioStatus.bloqueado) {
+                disableForm(bloqueioStatus.mensagem);
                 return;
             }
 
@@ -255,10 +381,26 @@
 
             } catch (error) {
                 console.error('Erro no login:', error);
+
+                // Se o erro foi de bloqueio, verifica novamente e desabilita o formulário
+                if (error.data && error.data.erro) {
+                    const mensagemErro = error.data.erro.toLowerCase();
+                    if (mensagemErro.includes('bloqueado') || mensagemErro.includes('bloqueada')) {
+                        // Aguarda um pouco e verifica o bloqueio novamente
+                        setTimeout(async () => {
+                            const resultado = await verificarBloqueio(email, ipAddress);
+                            if (resultado.bloqueado) {
+                                disableForm(resultado.mensagem);
+                            }
+                        }, 1000);
+                    }
+                }
                 // Mensagem já foi exibida pelo AuthAPI
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Entrar';
+                if (!emailInput.disabled) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Entrar';
+                }
             }
         });
     </script>
