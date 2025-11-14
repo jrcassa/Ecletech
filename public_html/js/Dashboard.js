@@ -34,7 +34,7 @@ const Dashboard = {
 
         } catch (error) {
             console.error('Erro ao inicializar dashboard:', error);
-            Utils.mostrarToast('Erro ao carregar dashboard', 'error');
+            API.showError('Erro ao carregar dashboard');
         }
     },
 
@@ -120,7 +120,7 @@ const Dashboard = {
 
         } catch (error) {
             console.error('Erro ao carregar dashboard:', error);
-            Utils.mostrarToast('Erro ao carregar dashboard', 'error');
+            API.showError('Erro ao carregar dashboard');
         }
     },
 
@@ -563,7 +563,7 @@ const Dashboard = {
      */
     async atualizarWidget(widgetId) {
         await this.carregarDadosWidget(widgetId);
-        Utils.mostrarToast('Widget atualizado', 'success');
+        API.showSuccess('Widget atualizado');
     },
 
     /**
@@ -588,12 +588,12 @@ const Dashboard = {
                 // Remove do Map
                 this.widgets.delete(widgetId);
 
-                Utils.mostrarToast('Widget removido', 'success');
+                API.showSuccess('Widget removido');
             }
 
         } catch (error) {
             console.error('Erro ao remover widget:', error);
-            Utils.mostrarToast('Erro ao remover widget', 'error');
+            API.showError('Erro ao remover widget');
         }
     },
 
@@ -723,7 +723,7 @@ const Dashboard = {
      */
     async adicionarNovoWidget(widgetTipo) {
         if (!this.dashboardAtual) {
-            Utils.mostrarToast('Selecione um dashboard primeiro', 'warning');
+            API.showWarning('Selecione um dashboard primeiro');
             return;
         }
 
@@ -746,12 +746,12 @@ const Dashboard = {
                 // Fecha catálogo
                 document.getElementById('catalogo-widgets').classList.add('hidden');
 
-                Utils.mostrarToast('Widget adicionado', 'success');
+                API.showSuccess('Widget adicionado');
             }
 
         } catch (error) {
             console.error('Erro ao adicionar widget:', error);
-            Utils.mostrarToast('Erro ao adicionar widget', 'error');
+            API.showError('Erro ao adicionar widget');
         }
     },
 
@@ -780,7 +780,7 @@ const Dashboard = {
                 // Carrega novo dashboard
                 await this.carregarDashboard(response.dados);
 
-                Utils.mostrarToast('Dashboard criado com sucesso', 'success');
+                API.showSuccess('Dashboard criado com sucesso');
 
                 // Fecha modal
                 document.getElementById('modal-novo-dashboard').classList.add('hidden');
@@ -788,7 +788,7 @@ const Dashboard = {
 
         } catch (error) {
             console.error('Erro ao criar dashboard:', error);
-            Utils.mostrarToast('Erro ao criar dashboard', 'error');
+            API.showError('Erro ao criar dashboard');
         }
     },
 
@@ -804,7 +804,7 @@ const Dashboard = {
             const response = await API.delete(`/dashboard/${this.dashboardAtual.id}`);
 
             if (response.sucesso) {
-                Utils.mostrarToast('Dashboard excluído', 'success');
+                API.showSuccess('Dashboard excluído');
 
                 // Recarrega dashboards e carrega o padrão
                 await this.carregarDashboards();
@@ -813,7 +813,7 @@ const Dashboard = {
 
         } catch (error) {
             console.error('Erro ao deletar dashboard:', error);
-            Utils.mostrarToast('Erro ao deletar dashboard', 'error');
+            API.showError('Erro ao deletar dashboard');
         }
     },
 
@@ -827,13 +827,13 @@ const Dashboard = {
             const response = await API.post(`/dashboard/${this.dashboardAtual.id}/padrao`);
 
             if (response.sucesso) {
-                Utils.mostrarToast('Dashboard definido como padrão', 'success');
+                API.showSuccess('Dashboard definido como padrão');
                 await this.carregarDashboards();
             }
 
         } catch (error) {
             console.error('Erro ao definir padrão:', error);
-            Utils.mostrarToast('Erro ao definir como padrão', 'error');
+            API.showError('Erro ao definir como padrão');
         }
     },
 
@@ -852,14 +852,14 @@ const Dashboard = {
             });
 
             if (response.sucesso) {
-                Utils.mostrarToast('Dashboard duplicado', 'success');
+                API.showSuccess('Dashboard duplicado');
                 await this.carregarDashboards();
                 await this.carregarDashboard(response.dados);
             }
 
         } catch (error) {
             console.error('Erro ao duplicar dashboard:', error);
-            Utils.mostrarToast('Erro ao duplicar dashboard', 'error');
+            API.showError('Erro ao duplicar dashboard');
         }
     },
 
@@ -946,12 +946,12 @@ const Dashboard = {
                 const templateSelecionado = document.querySelector('.template-card.selected');
 
                 if (!nome) {
-                    Utils.mostrarToast('Digite um nome para o dashboard', 'warning');
+                    API.showWarning('Digite um nome para o dashboard');
                     return;
                 }
 
                 if (!templateSelecionado) {
-                    Utils.mostrarToast('Selecione um template', 'warning');
+                    API.showWarning('Selecione um template');
                     return;
                 }
 
@@ -995,7 +995,7 @@ const Dashboard = {
             this.dashboardAtual.widgets.forEach(widget => {
                 this.carregarDadosWidget(widget.id);
             });
-            Utils.mostrarToast('Todos os widgets atualizados', 'success');
+            API.showSuccess('Todos os widgets atualizados');
         });
     }
 };
