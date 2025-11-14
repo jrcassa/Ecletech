@@ -3,9 +3,9 @@
 -- Data: 2025-01-14
 
 CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    dashboard_id INT NOT NULL,
-    widget_tipo_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    dashboard_id INT UNSIGNED NOT NULL,
+    widget_tipo_id INT UNSIGNED NOT NULL,
     titulo VARCHAR(100) NULL,
     config JSON NULL,
     posicao_x INT NOT NULL DEFAULT 0,

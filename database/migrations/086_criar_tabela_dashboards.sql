@@ -3,8 +3,8 @@
 -- Data: 2025-01-14
 
 CREATE TABLE IF NOT EXISTS dashboards (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    colaborador_id INT NOT NULL,
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    colaborador_id INT UNSIGNED NOT NULL,
     nome VARCHAR(100) NOT NULL,
     descricao TEXT NULL,
     icone VARCHAR(50) NULL DEFAULT 'fa-chart-line',
