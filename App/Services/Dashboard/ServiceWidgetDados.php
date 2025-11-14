@@ -416,7 +416,7 @@ class ServiceWidgetDados
     private function clientes_total(int $colaboradorId, array $config): array
     {
         $resultado = $this->db->buscarUm(
-            "SELECT COUNT(*) as total FROM clientes WHERE status = 'ativo' AND deletado_em IS NULL"
+            "SELECT COUNT(*) as total FROM clientes WHERE ativo = 1 AND deletado_em IS NULL"
         );
 
         return [
