@@ -36,7 +36,7 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Verifica propriedade do dashboard
             if (!$this->modelDashboard->validarPropriedade((int) $dashboardId, $colaboradorId)) {
@@ -62,7 +62,7 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             // Verifica propriedade do dashboard
@@ -103,7 +103,7 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             // Busca widget
@@ -142,7 +142,7 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Busca widget
             $widget = $this->model->buscarPorId((int) $widgetId);
@@ -179,7 +179,7 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             // Verifica propriedade do dashboard
@@ -208,14 +208,14 @@ class ControllerDashboardWidget extends BaseController
     /**
      * Obtém dados do widget
      */
-    public function obterDados(string $widgetId): void
+    public function obterDadosWidget(string $widgetId): void
     {
         try {
             if (!$this->validarId($widgetId, 'Widget')) {
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Busca widget
             $widget = $this->model->buscarPorId((int) $widgetId);

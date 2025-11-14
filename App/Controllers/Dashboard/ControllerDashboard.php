@@ -29,7 +29,7 @@ class ControllerDashboard extends BaseController
     public function listar(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             $dashboards = $this->model->listarPorColaborador($colaboradorId);
 
@@ -45,7 +45,7 @@ class ControllerDashboard extends BaseController
     public function criar(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             // Validação básica
@@ -91,7 +91,7 @@ class ControllerDashboard extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             $dashboard = $this->model->buscarPorId((int) $id, $colaboradorId);
 
@@ -114,7 +114,7 @@ class ControllerDashboard extends BaseController
     public function obterPadrao(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Garante que tenha pelo menos um dashboard
             $dashboard = $this->service->garantirDashboardPadrao($colaboradorId);
@@ -138,7 +138,7 @@ class ControllerDashboard extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             // Verifica se dashboard existe e pertence ao colaborador
@@ -178,7 +178,7 @@ class ControllerDashboard extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Verifica se dashboard existe e pertence ao colaborador
             if (!$this->model->validarPropriedade((int) $id, $colaboradorId)) {
@@ -214,7 +214,7 @@ class ControllerDashboard extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
 
             // Verifica se dashboard existe e pertence ao colaborador
             if (!$this->model->validarPropriedade((int) $id, $colaboradorId)) {
@@ -244,7 +244,7 @@ class ControllerDashboard extends BaseController
                 return;
             }
 
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             if (!isset($dados['nome']) || empty($dados['nome'])) {
@@ -284,7 +284,7 @@ class ControllerDashboard extends BaseController
     public function criarDeTemplate(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $dados = $this->obterDados();
 
             if (!$this->validarCamposObrigatorios($dados, ['nome', 'template_codigo'])) {

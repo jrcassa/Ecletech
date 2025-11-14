@@ -17,7 +17,7 @@ class ControllerWidgetTipo extends BaseController
     public function listar(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $widgets = $this->model->listarDisponiveis($colaboradorId);
             $this->sucesso($widgets, 'Tipos de widgets listados');
         } catch (\Exception $e) {

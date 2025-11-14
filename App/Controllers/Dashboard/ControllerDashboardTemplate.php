@@ -17,7 +17,7 @@ class ControllerDashboardTemplate extends BaseController
     public function listar(): void
     {
         try {
-            $colaboradorId = $this->obterColaboradorIdAutenticado();
+            $colaboradorId = $this->obterIdUsuarioAutenticado();
             $templates = $this->model->listar($colaboradorId);
             $this->sucesso($templates, 'Templates listados');
         } catch (\Exception $e) {
