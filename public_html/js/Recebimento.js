@@ -9,7 +9,6 @@ const RecebimentoManager = {
         clientes: [],
         fornecedores: [],
         transportadoras: [],
-        colaboradores: [],
         planoContas: [],
         centroCusto: [],
         contasBancarias: [],
@@ -64,8 +63,7 @@ const RecebimentoManager = {
         selectEntidadeForm: document.getElementById('selectEntidadeForm'),
         divCliente: document.getElementById('divCliente'),
         divFornecedor: document.getElementById('divFornecedor'),
-        divTransportadora: document.getElementById('divTransportadora'),
-        divFuncionario: document.getElementById('divFuncionario')
+        divTransportadora: document.getElementById('divTransportadora')
     },
 
     async init() {
@@ -169,11 +167,10 @@ const RecebimentoManager = {
 
     async carregarDadosRelacionados() {
         try {
-            const [clientes, fornecedores, transportadoras, colaboradores, planoContas, centroCusto, contasBancarias, formasRecebimento] = await Promise.all([
+            const [clientes, fornecedores, transportadoras, planoContas, centroCusto, contasBancarias, formasRecebimento] = await Promise.all([
                 API.get('/cliente?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/fornecedor?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/transportadora?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
-                API.get('/colaboradores?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/plano-de-contas?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/centro-de-custo?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/conta-bancaria?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
@@ -183,7 +180,6 @@ const RecebimentoManager = {
             this.state.clientes = clientes.dados?.itens || [];
             this.state.fornecedores = fornecedores.dados?.itens || [];
             this.state.transportadoras = transportadoras.dados?.itens || [];
-            this.state.colaboradores = colaboradores.dados?.itens || [];
             this.state.planoContas = planoContas.dados?.itens || [];
             this.state.centroCusto = centroCusto.dados?.itens || [];
             this.state.contasBancarias = contasBancarias.dados?.itens || [];
@@ -199,7 +195,6 @@ const RecebimentoManager = {
         this.popularSelect('selectCliente', this.state.clientes, 'Selecione um cliente');
         this.popularSelect('selectFornecedor', this.state.fornecedores, 'Selecione um fornecedor');
         this.popularSelect('selectTransportadora', this.state.transportadoras, 'Selecione uma transportadora');
-        this.popularSelect('selectFuncionario', this.state.colaboradores, 'Selecione um funcionário');
         this.popularSelect('selectPlanoContas', this.state.planoContas, 'Selecione...');
         this.popularSelect('selectCentroCusto', this.state.centroCusto, 'Selecione...');
         this.popularSelect('selectContaBancaria', this.state.contasBancarias, 'Selecione...');
@@ -223,7 +218,6 @@ const RecebimentoManager = {
         this.elements.divCliente.style.display = entidade === 'C' ? 'block' : 'none';
         this.elements.divFornecedor.style.display = entidade === 'F' ? 'block' : 'none';
         this.elements.divTransportadora.style.display = entidade === 'T' ? 'block' : 'none';
-        this.elements.divFuncionario.style.display = entidade === 'U' ? 'block' : 'none';
     },
 
     calcularValorTotal() {
@@ -322,7 +316,6 @@ const RecebimentoManager = {
             case 'C': return pag.nome_cliente || '-';
             case 'F': return pag.nome_fornecedor || '-';
             case 'T': return pag.nome_transportadora || '-';
-            case 'U': return pag.nome_funcionario || '-';
             default: return '-';
         }
     },
@@ -500,7 +493,6 @@ const RecebimentoManager = {
             'cliente_id': 'selectCliente',
             'fornecedor_id': 'selectFornecedor',
             'transportadora_id': 'selectTransportadora',
-            'funcionario_id': 'selectFuncionario',
             'plano_contas_id': 'selectPlanoContas',
             'centro_custo_id': 'selectCentroCusto',
             'conta_bancaria_id': 'selectContaBancaria',
@@ -574,13 +566,6 @@ const RecebimentoManager = {
                     if (!dados.transportadora_id) {
                         API.showError('Transportadora é obrigatória');
                         this.destacarCampoComErro('transportadora_id');
-                        return;
-                    }
-                    break;
-                case 'U':
-                    if (!dados.funcionario_id) {
-                        API.showError('Funcionário é obrigatório');
-                        this.destacarCampoComErro('funcionario_id');
                         return;
                     }
                     break;
@@ -678,7 +663,6 @@ const RecebimentoManager = {
         form.querySelector('#selectCliente').value = pag.cliente_id || '';
         form.querySelector('#selectFornecedor').value = pag.fornecedor_id || '';
         form.querySelector('#selectTransportadora').value = pag.transportadora_id || '';
-        form.querySelector('#selectFuncionario').value = pag.funcionario_id || '';
 
         form.querySelector('#inputValor').value = pag.valor || '0';
         form.querySelector('#inputJuros').value = pag.juros || '0';
@@ -712,7 +696,6 @@ const RecebimentoManager = {
         form.querySelector('#selectCliente').value = '';
         form.querySelector('#selectFornecedor').value = '';
         form.querySelector('#selectTransportadora').value = '';
-        form.querySelector('#selectFuncionario').value = '';
 
         form.querySelector('#inputValor').value = '0';
         form.querySelector('#inputJuros').value = '0';
