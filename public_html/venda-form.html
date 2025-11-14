@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venda - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <style>
+        .dynamic-list {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: var(--bg-tertiary);
+        }
+
+        .dynamic-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dynamic-list-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dynamic-list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .dynamic-list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn-remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ee670d;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-light);
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: #ee670d;
+        }
+
+        .tab-button.active {
+            color: #ee670d;
+            border-bottom-color: #ee670d;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .total-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .total-box h4 {
+            color: #065f46;
+            margin: 0 0 5px 0;
+            font-size: 14px;
+        }
+
+        .total-box .valor {
+            color: #065f46;
+            font-size: 24px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Include Sidebar -->
+    <div id="sidebar-container"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">Nova Venda</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a href="vendas.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="permissionDenied" class="permission-denied" style="display: none;">
+                Você não tem permissão para acessar esta página.
+            </div>
+
+            <div id="loadingContainer" class="loading-container" style="display: flex;">
+                <div class="spinner"></div>
+            </div>
+
+            <div id="formContainer" class="card" style="display: none;">
+                <div id="errorContainer" style="display: none;">
+                    <div class="error-message" id="errorMessage"></div>
+                </div>
+
+                <form id="formVenda">
+                    <input type="hidden" id="vendaId">
+
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button type="button" class="tab-button active" data-tab="geral">
+                            <i class="fas fa-info-circle"></i> Informações Gerais
+                        </button>
+                        <button type="button" class="tab-button" data-tab="itens">
+                            <i class="fas fa-shopping-cart"></i> Itens
+                        </button>
+                        <button type="button" class="tab-button" data-tab="pagamentos">
+                            <i class="fas fa-money-bill"></i> Pagamentos
+                        </button>
+                        <button type="button" class="tab-button" data-tab="endereco">
+                            <i class="fas fa-map-marker-alt"></i> Endereço de Entrega
+                        </button>
+                        <button type="button" class="tab-button" data-tab="observacoes">
+                            <i class="fas fa-sticky-note"></i> Observações
+                        </button>
+                    </div>
+
+                    <!-- Tab: Informações Gerais -->
+                    <div class="tab-content active" id="tabGeral">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dataVenda">Data da Venda *</label>
+                                <input type="date" id="dataVenda" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="codigo">Código *</label>
+                                <input type="text" id="codigo" required placeholder="Ex: VD001">
+                            </div>
+                            <div class="form-group">
+                                <label for="situacaoVendaId">Situação *</label>
+                                <select id="situacaoVendaId" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="clienteId">Cliente</label>
+                                <select id="clienteId">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vendedorId">Vendedor</label>
+                                <select id="vendedorId">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tecnicoId">Técnico</label>
+                                <select id="tecnicoId">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lojaId">Loja</label>
+                                <select id="lojaId">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="canalVenda">Canal de Venda</label>
+                                <input type="text" id="canalVenda" placeholder="Presencial, WhatsApp, Site...">
+                            </div>
+                            <div class="form-group">
+                                <label for="prazoEntrega">Prazo de Entrega</label>
+                                <input type="date" id="prazoEntrega">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="valorFrete">Valor do Frete</label>
+                                <input type="number" id="valorFrete" step="0.01" value="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="descontoValor">Desconto (R$)</label>
+                                <input type="number" id="descontoValor" step="0.01" value="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="ativo">Status</label>
+                                <select id="ativo">
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Itens -->
+                    <div class="tab-content" id="tabItens">
+                        <div class="dynamic-list">
+                            <div class="dynamic-list-header">
+                                <h4>Itens da Venda</h4>
+                                <button type="button" class="btn btn-success btn-small" id="btnAddItem">
+                                    <i class="fas fa-plus"></i> Adicionar Item
+                                </button>
+                            </div>
+                            <div class="dynamic-list-items" id="listaItens">
+                                <p style="text-align: center; color: var(--text-secondary);">Nenhum item adicionado</p>
+                            </div>
+                        </div>
+
+                        <div class="total-box">
+                            <h4>Total dos Itens</h4>
+                            <div class="valor" id="totalItens">R$ 0,00</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Pagamentos -->
+                    <div class="tab-content" id="tabPagamentos">
+                        <div class="dynamic-list">
+                            <div class="dynamic-list-header">
+                                <h4>Parcelas de Pagamento</h4>
+                                <button type="button" class="btn btn-success btn-small" id="btnAddPagamento">
+                                    <i class="fas fa-plus"></i> Adicionar Parcela
+                                </button>
+                            </div>
+                            <div class="dynamic-list-items" id="listaPagamentos">
+                                <p style="text-align: center; color: var(--text-secondary);">Nenhum pagamento adicionado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Endereço -->
+                    <div class="tab-content" id="tabEndereco">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="enderecoCep">CEP</label>
+                                <input type="text" id="enderecoCep" placeholder="00000-000">
+                            </div>
+                            <div class="form-group">
+                                <label for="enderecoLogradouro">Logradouro</label>
+                                <input type="text" id="enderecoLogradouro">
+                            </div>
+                            <div class="form-group">
+                                <label for="enderecoNumero">Número</label>
+                                <input type="text" id="enderecoNumero">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="enderecoComplemento">Complemento</label>
+                                <input type="text" id="enderecoComplemento">
+                            </div>
+                            <div class="form-group">
+                                <label for="enderecoBairro">Bairro</label>
+                                <input type="text" id="enderecoBairro">
+                            </div>
+                            <div class="form-group">
+                                <label for="enderecoCidadeId">Cidade</label>
+                                <select id="enderecoCidadeId">
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Observações -->
+                    <div class="tab-content" id="tabObservacoes">
+                        <div class="form-group">
+                            <label for="introducao">Introdução</label>
+                            <textarea id="introducao" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observacoes">Observações (para o cliente)</label>
+                            <textarea id="observacoes" rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observacoesInterna">Observações Internas</label>
+                            <textarea id="observacoesInterna" rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="aosCuidadosDe">Aos Cuidados De</label>
+                            <input type="text" id="aosCuidadosDe">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="vendas.html" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Salvar Venda
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/venda-form.js"></script>
+</body>
+</html>
