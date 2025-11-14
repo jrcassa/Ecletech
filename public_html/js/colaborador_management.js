@@ -237,26 +237,41 @@ const ManagementApp = {
             nome: document.getElementById('nivelNome').value,
             codigo: document.getElementById('nivelCodigo').value,
             descricao: document.getElementById('nivelDescricao').value,
-            ordem: parseInt(document.getElementById('nivelOrdem').value),
+            ordem: parseInt(document.getElementById('nivelOrdem').value) || 0,
             ativo: parseInt(document.getElementById('nivelAtivo').value)
         };
+
+        console.log('🔍 DEBUG - Salvando Nível');
+        console.log('ID:', id, 'Tipo:', typeof id);
+        console.log('Dados:', JSON.stringify(dados, null, 2));
 
         try {
             let response;
             if (id) {
+                console.log(`📤 PUT /niveis/${id}`);
                 response = await API.put(`/niveis/${id}`, dados);
             } else {
+                console.log('📤 POST /niveis');
                 response = await API.post('/niveis', dados);
             }
+
+            console.log('✅ Resposta:', response);
 
             if (response.sucesso) {
                 Utils.Notificacao.sucesso(response.mensagem || 'Nível salvo com sucesso!');
                 this.fecharModalNivel();
                 this.carregarNiveis();
+            } else {
+                Utils.Notificacao.erro(response.mensagem || 'Erro ao salvar nível');
             }
         } catch (error) {
+            console.error('❌ Erro ao salvar nível:', error);
+            console.error('📋 Detalhes do erro:', {
+                mensagem: error.data?.mensagem,
+                erros: error.data?.erros,
+                dados: error.data
+            });
             Utils.Notificacao.erro(error.data?.mensagem || 'Erro ao salvar nível');
-            console.error('Erro ao salvar nível:', error);
         }
     },
 
