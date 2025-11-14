@@ -168,21 +168,28 @@ const VendaFormManager = {
                 this.popularSelect('tecnicoId', colaboradores, 'id', 'nome');
             }
 
-            // Carrega lojas
-            const lojasResp = await API.get('/lojas?ativo=1&limite=100');
-            if (lojasResp.sucesso) {
-                const lojas = lojasResp.dados?.itens || lojasResp.dados || [];
-                this.popularSelect('lojaId', lojas, 'id', 'nome');
+            // Carrega lojas (singleton - retorna apenas 1 registro)
+            const lojasResp = await API.get('/loja');
+            if (lojasResp.sucesso && lojasResp.dados) {
+                // Loja é singleton, vem apenas 1 objeto, não array
+                const loja = lojasResp.dados;
+                const lojaSelect = document.getElementById('lojaId');
+                if (lojaSelect) {
+                    lojaSelect.innerHTML = `
+                        <option value="">Selecione...</option>
+                        <option value="${loja.id}">${loja.nome_fantasia || loja.nome || 'Loja Principal'}</option>
+                    `;
+                }
             }
 
             // Carrega produtos
-            const produtosResp = await API.get('/produto?ativo=1&limite=1000');
+            const produtosResp = await API.get('/produtos?ativo=1&limite=1000');
             if (produtosResp.sucesso) {
                 this.state.produtos = produtosResp.dados?.itens || produtosResp.dados || [];
             }
 
             // Carrega serviços
-            const servicosResp = await API.get('/servico?ativo=1&limite=1000');
+            const servicosResp = await API.get('/servicos?ativo=1&limite=1000');
             if (servicosResp.sucesso) {
                 this.state.servicos = servicosResp.dados?.itens || servicosResp.dados || [];
             }

@@ -766,6 +766,39 @@
                 }
             });
         });
+
+        // Menu Toggle (sidebar)
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const menuToggle = document.getElementById('menuToggle');
+        const mainContent = document.getElementById('mainContent');
+
+        function toggleSidebar() {
+            const isMobile = window.innerWidth <= 768;
+
+            if (isMobile) {
+                if (sidebar) sidebar.classList.toggle('open');
+                if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
+            } else {
+                if (sidebar) sidebar.classList.toggle('closed');
+                if (mainContent) mainContent.classList.toggle('expanded');
+            }
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                if (sidebar) sidebar.classList.remove('open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+            }
+        });
     </script>
     <script src="js/venda-form.js"></script>
 </body>
