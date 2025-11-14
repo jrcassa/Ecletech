@@ -42,7 +42,8 @@ try {
     // Lista de arquivos de migration
     $migrations = [
         '082_criar_tabela_recebimentos.sql',
-        '083_inserir_permissoes_recebimentos.sql'
+        '083_inserir_permissoes_recebimentos.sql',
+        '084_ajustar_recebimentos_apenas_cliente.sql'
     ];
 
     $totalSucesso = 0;

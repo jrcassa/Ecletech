@@ -626,13 +626,10 @@ const RecebimentoManager = {
         const dados = {
             descricao: form.querySelector('#inputDescricao')?.value,
             codigo: form.querySelector('#inputCodigo')?.value || null,
-            entidade: form.querySelector('#selectEntidadeForm')?.value,
+            entidade: form.querySelector('#inputEntidade')?.value || 'C', // Sempre Cliente
             valor: parseFloat(form.querySelector('#inputValor')?.value) || 0,
             juros: parseFloat(form.querySelector('#inputJuros')?.value) || 0,
             desconto: parseFloat(form.querySelector('#inputDesconto')?.value) || 0,
-            taxa_banco: parseFloat(form.querySelector('#inputTaxaBanco')?.value) || 0,
-            taxa_operadora: parseFloat(form.querySelector('#inputTaxaOperadora')?.value) || 0,
-            valor_total: parseFloat(form.querySelector('#inputValorTotal')?.value) || 0,
             data_vencimento: form.querySelector('#inputDataVencimento')?.value,
             data_liquidacao: form.querySelector('#inputDataLiquidacao')?.value || null,
             data_competencia: form.querySelector('#inputDataCompetencia')?.value || null,
@@ -640,25 +637,20 @@ const RecebimentoManager = {
             external_id: form.querySelector('#inputExternalId')?.value || null
         };
 
-        const clienteId = form.querySelector('#selectCliente')?.value;
-        const fornecedorId = form.querySelector('#selectFornecedor')?.value;
-        const transportadoraId = form.querySelector('#selectTransportadora')?.value;
-        const funcionarioId = form.querySelector('#selectFuncionario')?.value;
+        // Cliente (obrigatório - recebimentos são apenas de clientes)
+        const clienteId = form.querySelector('#inputClienteId')?.value;
+        if (clienteId) dados.cliente_id = parseInt(clienteId);
 
-        if (clienteId) dados.cliente_id = clienteId;
-        if (fornecedorId) dados.fornecedor_id = fornecedorId;
-        if (transportadoraId) dados.transportadora_id = transportadoraId;
-        if (funcionarioId) dados.funcionario_id = funcionarioId;
-
+        // Campos obrigatórios
         const planoContasId = form.querySelector('#selectPlanoContas')?.value;
         const centroCustoId = form.querySelector('#selectCentroCusto')?.value;
         const contaBancariaId = form.querySelector('#selectContaBancaria')?.value;
-        const formaRecebimentoId = form.querySelector('#selectFormaRecebimento')?.value;
+        const formaPagamentoId = form.querySelector('#selectFormaPagamento')?.value;
 
-        if (planoContasId) dados.plano_contas_id = planoContasId;
-        if (centroCustoId) dados.centro_custo_id = centroCustoId;
-        if (contaBancariaId) dados.conta_bancaria_id = contaBancariaId;
-        if (formaRecebimentoId) dados.forma_recebimento_id = formaRecebimentoId;
+        if (planoContasId) dados.plano_contas_id = parseInt(planoContasId);
+        if (centroCustoId) dados.centro_custo_id = parseInt(centroCustoId);
+        if (contaBancariaId) dados.conta_bancaria_id = parseInt(contaBancariaId);
+        if (formaPagamentoId) dados.forma_pagamento_id = parseInt(formaPagamentoId);
 
         return dados;
     },
