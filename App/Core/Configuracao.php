@@ -95,9 +95,16 @@ class Configuracao
 
     /**
      * Obtém uma configuração
+     * Se a chave não contém ponto, busca diretamente no .env
      */
     public function obter(string $chave, mixed $valorPadrao = null): mixed
     {
+        // Se a chave não tem ponto, busca diretamente do .env
+        if (strpos($chave, '.') === false) {
+            return $this->carregadorEnv->obter($chave, $valorPadrao);
+        }
+
+        // Caso contrário, busca do array interno
         $partes = explode('.', $chave);
         $valor = $this->configuracoes;
 
@@ -113,9 +120,18 @@ class Configuracao
 
     /**
      * Define uma configuração
+     * Se a chave não contém ponto, salva diretamente no .env
      */
     public function definir(string $chave, mixed $valor): void
     {
+        // Se a chave não tem ponto, é uma variável direta do .env
+        if (strpos($chave, '.') === false) {
+            // Salva no .env
+            $this->carregadorEnv->definir($chave, $valor);
+            return;
+        }
+
+        // Caso contrário, atualiza apenas em memória
         $partes = explode('.', $chave);
         $config = &$this->configuracoes;
 
