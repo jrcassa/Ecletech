@@ -162,6 +162,14 @@ class BancoDados
     }
 
     /**
+     * Obtém o último ID inserido
+     */
+    public function obterUltimoId(): string|int
+    {
+        return $this->conexao->lastInsertId();
+    }
+
+    /**
      * Inicia uma transação
      */
     public function iniciarTransacao(): bool
