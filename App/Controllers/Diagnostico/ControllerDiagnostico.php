@@ -64,9 +64,9 @@ class ControllerDiagnostico extends BaseController
 
             // Verificar se a migration 012 foi executada (coluna colaborador_id)
             try {
-                $db = \App\Core\Database::obterConexao();
-                $stmt = $db->query("SHOW COLUMNS FROM csrf_tokens LIKE 'colaborador_id'");
-                $colunaExiste = $stmt->fetch() !== false;
+                $db = \App\Core\BancoDados::obterInstancia();
+                $resultado = $db->buscarTodos("SHOW COLUMNS FROM csrf_tokens LIKE 'colaborador_id'");
+                $colunaExiste = !empty($resultado);
                 $diagnostico['banco_dados']['migration_012_executada'] = $colunaExiste;
             } catch (\Exception $e) {
                 $diagnostico['banco_dados']['migration_012_executada'] = 'erro: ' . $e->getMessage();
@@ -143,7 +143,7 @@ class ControllerDiagnostico extends BaseController
 
         // Verifica conexão com banco de dados
         try {
-            $db = \App\Core\Database::obterConexao();
+            $db = \App\Core\BancoDados::obterInstancia();
             $health['database'] = 'connected';
         } catch (\Exception $e) {
             $health['database'] = 'disconnected';
