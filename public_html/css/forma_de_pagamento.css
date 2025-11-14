@@ -1,0 +1,8 @@
+/* CSS específico para a página de forma de pagamento (forma_de_pagamento.html) */
+
+/* Personalizações específicas desta página */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
