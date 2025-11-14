@@ -15,6 +15,12 @@ const BruteForceManager = {
             page: 1,
             perPage: 20,
             filters: {}
+        },
+        permissoes: {
+            visualizar: false,
+            editar: false,
+            criar: false,
+            excluir: false
         }
     },
 
@@ -23,19 +29,8 @@ const BruteForceManager = {
         userName: document.getElementById('userName'),
         sidebar: document.getElementById('sidebar'),
         mainContent: document.getElementById('mainContent'),
-        // Estatísticas
-        statTentativas: document.getElementById('stat-tentativas'),
-        statSucesso: document.getElementById('stat-sucesso'),
-        statFalhas: document.getElementById('stat-falhas'),
-        statBloqueios: document.getElementById('stat-bloqueios'),
-        statIps: document.getElementById('stat-ips'),
-        statEmails: document.getElementById('stat-emails'),
-        statTaxa: document.getElementById('stat-taxa'),
-        topIpsList: document.getElementById('topIpsList'),
-        topEmailsList: document.getElementById('topEmailsList'),
-        // Tentativas
-        tentativasTableBody: document.getElementById('tentativasTableBody'),
-        tentativasPagination: document.getElementById('tentativasPagination'),
+        permissionDenied: document.getElementById('permissionDenied'),
+        pageContent: document.getElementById('pageContent'),
         // Bloqueios
         bloqueiosTableBody: document.getElementById('bloqueiosTableBody'),
         bloqueiosPagination: document.getElementById('bloqueiosPagination'),
@@ -56,8 +51,104 @@ const BruteForceManager = {
         // Carrega dados do usuário
         await this.carregarUsuario();
 
-        // Carrega estatísticas iniciais
-        await this.carregarEstatisticas();
+        // Verifica permissões do usuário
+        await this.verificarPermissoes();
+
+        // Se não tem permissão de visualizar, exibe mensagem
+        if (!this.state.permissoes.visualizar) {
+            if (this.elements.permissionDenied) {
+                this.elements.permissionDenied.style.display = 'block';
+            }
+            if (this.elements.pageContent) {
+                this.elements.pageContent.style.display = 'none';
+            }
+            return;
+        }
+
+        // Tem permissão - mostra conteúdo
+        if (this.elements.permissionDenied) {
+            this.elements.permissionDenied.style.display = 'none';
+        }
+        if (this.elements.pageContent) {
+            this.elements.pageContent.style.display = 'block';
+        }
+
+        // Carrega dados iniciais
+        await this.carregarConfiguracoes();
+        await this.carregarBloqueios();
+    },
+
+    /**
+     * Verifica permissões do usuário
+     */
+    async verificarPermissoes() {
+        try {
+            // Aguarda as permissões serem carregadas pelo SidebarManager
+            const permissoes = await aguardarPermissoes();
+
+            // Verifica cada tipo de permissão
+            this.state.permissoes.visualizar = permissoes.includes('config.visualizar');
+            this.state.permissoes.editar = permissoes.includes('config.editar');
+            this.state.permissoes.criar = permissoes.includes('config.criar');
+            this.state.permissoes.excluir = permissoes.includes('config.excluir');
+
+            // Atualiza botões de acordo com permissões
+            if (this.state.permissoes.editar) {
+                const btnSalvar = document.getElementById('btnSalvarConfig');
+                if (btnSalvar) btnSalvar.style.display = 'inline-flex';
+            }
+
+            if (this.state.permissoes.criar) {
+                const btnNovo = document.getElementById('btnNovoBloqueio');
+                if (btnNovo) btnNovo.style.display = 'inline-flex';
+            }
+
+        } catch (error) {
+            console.error('Erro ao verificar permissões:', error);
+            // Em caso de erro, assume sem permissões
+            this.state.permissoes.visualizar = false;
+        }
+    },
+
+    /**
+     * Carrega configurações de brute force
+     */
+    async carregarConfiguracoes() {
+        try {
+            const loadingConfig = document.getElementById('loadingConfig');
+            const configContent = document.getElementById('configContent');
+
+            // Mostra loading
+            if (loadingConfig) loadingConfig.style.display = 'block';
+            if (configContent) configContent.style.display = 'none';
+
+            const response = await API.get('/configuracoes/brute-force');
+
+            if (response.sucesso && response.dados) {
+                const config = response.dados;
+
+                // Preenche os campos
+                const maxTentativas = document.getElementById('config-max-tentativas');
+                const tempoBloqueio = document.getElementById('config-tempo-bloqueio');
+                const janelaTempo = document.getElementById('config-janela-tempo');
+
+                if (maxTentativas) maxTentativas.value = config.max_tentativas || 5;
+                if (tempoBloqueio) tempoBloqueio.value = config.tempo_bloqueio || 30;
+                if (janelaTempo) janelaTempo.value = config.janela_tempo || 15;
+            }
+
+            // Esconde loading e mostra conteúdo
+            if (loadingConfig) loadingConfig.style.display = 'none';
+            if (configContent) configContent.style.display = 'block';
+
+        } catch (error) {
+            console.error('Erro ao carregar configurações:', error);
+            const loadingConfig = document.getElementById('loadingConfig');
+            const configContent = document.getElementById('configContent');
+
+            if (loadingConfig) loadingConfig.style.display = 'none';
+            if (configContent) configContent.style.display = 'block';
+        }
     },
 
     /**
