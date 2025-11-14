@@ -71,7 +71,10 @@ class ControllerDashboardWidget extends BaseController
                 return;
             }
 
-            if (!$this->validarCamposObrigatorios($dados, ['widget_tipo_id'])) {
+            // Valida dados obrigatórios
+            if (!$this->validar($dados, [
+                'widget_tipo_id' => 'obrigatorio'
+            ])) {
                 return;
             }
 
