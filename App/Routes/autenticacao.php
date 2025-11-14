@@ -21,6 +21,7 @@ return function($router) {
     ], function($router) {
         $router->post('/logout', [ControllerAutenticacao::class, 'logout']);
         $router->get('/me', [ControllerAutenticacao::class, 'me']);
+        $router->put('/perfil', [ControllerAutenticacao::class, 'atualizarPerfil']);
         $router->post('/alterar-senha', [ControllerAutenticacao::class, 'alterarSenha']);
     });
 };

@@ -112,7 +112,7 @@ class GerenciadorUsuario
     public function buscarPorId(int $id): ?array
     {
         return $this->db->buscarUm(
-            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE id = ?",
+            "SELECT id, nome, email, celular, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE id = ?",
             [$id]
         );
     }
@@ -123,7 +123,7 @@ class GerenciadorUsuario
     public function buscarPorEmail(string $email): ?array
     {
         return $this->db->buscarUm(
-            "SELECT id, nome, email, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE email = ?",
+            "SELECT id, nome, email, celular, nivel_id, ativo, criado_em, ultimo_login FROM colaboradores WHERE email = ?",
             [$email]
         );
     }
@@ -166,6 +166,55 @@ class GerenciadorUsuario
         }
 
         return $this->db->buscarTodos($sql, $parametros);
+    }
+
+    /**
+     * Atualiza o perfil do próprio usuário (apenas nome, email e celular)
+     */
+    public function atualizarPerfil(int $id, array $dados): bool
+    {
+        // Verifica se o usuário existe
+        $usuario = $this->buscarPorId($id);
+        if (!$usuario) {
+            throw new \RuntimeException("Usuário não encontrado");
+        }
+
+        // Prepara os dados para atualização
+        $dadosAtualizacao = [];
+
+        if (isset($dados['nome'])) {
+            if (strlen($dados['nome']) < 3) {
+                throw new \InvalidArgumentException("Nome deve ter no mínimo 3 caracteres");
+            }
+            $dadosAtualizacao['nome'] = $dados['nome'];
+        }
+
+        if (isset($dados['email'])) {
+            if (!filter_var($dados['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new \InvalidArgumentException("Email inválido");
+            }
+            // Verifica se o novo email já existe (exceto para o próprio usuário)
+            if ($dados['email'] !== $usuario['email'] && $this->emailExiste($dados['email'])) {
+                throw new \RuntimeException("Email já cadastrado");
+            }
+            $dadosAtualizacao['email'] = $dados['email'];
+        }
+
+        if (isset($dados['celular'])) {
+            $dadosAtualizacao['celular'] = $dados['celular'];
+        }
+
+        if (!empty($dadosAtualizacao)) {
+            $dadosAtualizacao['atualizado_em'] = date('Y-m-d H:i:s');
+            return $this->db->atualizar(
+                'colaboradores',
+                $dadosAtualizacao,
+                'id = ?',
+                [$id]
+            ) > 0;
+        }
+
+        return true;
     }
 
     /**

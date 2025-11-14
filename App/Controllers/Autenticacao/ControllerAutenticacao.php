@@ -119,6 +119,53 @@ class ControllerAutenticacao extends BaseController
     }
 
     /**
+     * Atualiza o perfil do usuário autenticado
+     */
+    public function atualizarPerfil(): void
+    {
+        $dados = $this->obterDados();
+
+        // Validação
+        $erros = AuxiliarValidacao::validar($dados, [
+            'nome' => 'obrigatorio|min:3|max:150',
+            'email' => 'obrigatorio|email|max:150',
+            'celular' => 'max:20'
+        ]);
+
+        if (!empty($erros)) {
+            $this->validacao($erros);
+            return;
+        }
+
+        try {
+            $usuario = $this->auth->obterUsuarioAutenticado();
+
+            if (!$usuario) {
+                $this->naoAutorizado();
+                return;
+            }
+
+            // Apenas permite atualizar nome, email e celular
+            // Não permite alterar nivel_id, ativo, senha, etc
+            $dadosAtualizacao = [
+                'nome' => $dados['nome'],
+                'email' => $dados['email'],
+                'celular' => $dados['celular'] ?? ''
+            ];
+
+            $this->gerenciadorUsuario->atualizarPerfil($usuario['id'], $dadosAtualizacao);
+
+            // Retorna o usuário atualizado
+            $usuarioAtualizado = $this->gerenciadorUsuario->buscarPorId($usuario['id']);
+            $usuarioAtualizado = $this->removerCamposSensiveis($usuarioAtualizado);
+
+            $this->sucesso($usuarioAtualizado, 'Perfil atualizado com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    /**
      * Altera a senha do usuário autenticado
      */
     public function alterarSenha(): void
