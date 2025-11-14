@@ -427,9 +427,6 @@
             font-weight: 700;
         }
     </style>
-
-    <!-- CSS Centralizado -->
-    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body>
     <div class="toast-container" id="toastContainer"></div>
@@ -707,7 +704,6 @@
     <script src="js/API.js"></script>
     <script src="js/Auth.js"></script>
     <script src="js/Utils.js"></script>
-    <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
     <script>
         // Sistema de tema claro/escuro
