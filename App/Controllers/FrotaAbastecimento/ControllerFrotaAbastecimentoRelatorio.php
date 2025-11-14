@@ -352,4 +352,145 @@ class ControllerFrotaAbastecimentoRelatorio extends BaseController
             $this->erro($e->getMessage(), 400);
         }
     }
+
+    // ========== CRUD COMPLETO - CONFIGURAÇÕES (ADMIN) ==========
+
+    /**
+     * Lista TODAS as configurações (Admin)
+     */
+    public function listarConfiguracoes(): void
+    {
+        try {
+            $filtros = [
+                'ativo' => $_GET['ativo'] ?? null,
+                'tipo_relatorio' => $_GET['tipo_relatorio'] ?? null
+            ];
+
+            $filtros = array_filter($filtros, fn($valor) => $valor !== null && $valor !== '');
+
+            $configuracoes = $this->modelConfiguracao->listar($filtros);
+
+            $this->sucesso($configuracoes, 'Configurações listadas com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Busca configuração específica por ID (Admin)
+     */
+    public function buscarConfiguracao(string $id): void
+    {
+        try {
+            if (!$this->validarId($id)) { return; }
+
+            $config = $this->modelConfiguracao->buscarPorId((int) $id);
+
+            if (!$config) {
+                $this->naoEncontrado('Configuração não encontrada');
+                return;
+            }
+
+            $this->sucesso($config, 'Configuração encontrada');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Ativa configuração (Admin)
+     */
+    public function ativarConfiguracao(string $id): void
+    {
+        try {
+            if (!$this->validarId($id)) { return; }
+
+            $usuarioLogado = $this->obterUsuarioAutenticado();
+
+            $config = $this->modelConfiguracao->buscarPorId((int) $id);
+            if (!$config) {
+                $this->naoEncontrado('Configuração não encontrada');
+                return;
+            }
+
+            $this->modelConfiguracao->atualizar((int) $id, [
+                'ativo' => true,
+                'atualizado_por' => $usuarioLogado['id']
+            ]);
+
+            $this->sucesso(['id' => (int) $id], 'Configuração ativada com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Deleta configuração (Admin)
+     */
+    public function deletarConfiguracao(string $id): void
+    {
+        try {
+            if (!$this->validarId($id)) { return; }
+
+            $config = $this->modelConfiguracao->buscarPorId((int) $id);
+            if (!$config) {
+                $this->naoEncontrado('Configuração não encontrada');
+                return;
+            }
+
+            $this->modelConfiguracao->deletar((int) $id);
+
+            $this->sucesso(['id' => (int) $id], 'Configuração deletada com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    // ========== CRUD COMPLETO - LOGS (ADMIN) ==========
+
+    /**
+     * Deleta log (Admin)
+     */
+    public function deletarLog(string $id): void
+    {
+        try {
+            if (!$this->validarId($id)) { return; }
+
+            $log = $this->modelLog->buscarPorId((int) $id);
+            if (!$log) {
+                $this->naoEncontrado('Log não encontrado');
+                return;
+            }
+
+            $this->modelLog->deletar((int) $id);
+
+            $this->sucesso(['id' => (int) $id], 'Log deletado com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
+
+    // ========== CRUD COMPLETO - SNAPSHOTS (ADMIN) ==========
+
+    /**
+     * Deleta snapshot (Admin)
+     */
+    public function deletarSnapshot(string $id): void
+    {
+        try {
+            if (!$this->validarId($id)) { return; }
+
+            $snapshot = $this->modelSnapshot->buscarPorId((int) $id);
+            if (!$snapshot) {
+                $this->naoEncontrado('Snapshot não encontrado');
+                return;
+            }
+
+            $this->modelSnapshot->deletar((int) $id);
+
+            $this->sucesso(['id' => (int) $id], 'Snapshot deletado com sucesso');
+        } catch (\Exception $e) {
+            $this->erro($e->getMessage(), 400);
+        }
+    }
 }

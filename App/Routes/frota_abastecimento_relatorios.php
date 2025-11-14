@@ -15,17 +15,33 @@ return function($router) {
 
         // ========== CONFIGURAÇÕES ==========
 
+        // GET /frota-abastecimento-relatorios/configuracoes - Lista TODAS as configurações (Admin)
+        $router->get('/configuracoes', [ControllerFrotaAbastecimentoRelatorio::class, 'listarConfiguracoes'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.visualizar'));
+
         // GET /frota-abastecimento-relatorios/minhas-configuracoes - Configurações do usuário logado
         $router->get('/minhas-configuracoes', [ControllerFrotaAbastecimentoRelatorio::class, 'minhasConfiguracoes'])
             ->middleware(MiddlewareAcl::requer('frota_abastecimento.receber_relatorio'));
+
+        // GET /frota-abastecimento-relatorios/configuracao/{id} - Buscar configuração específica (Admin)
+        $router->get('/configuracao/{id}', [ControllerFrotaAbastecimentoRelatorio::class, 'buscarConfiguracao'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.visualizar'));
 
         // POST /frota-abastecimento-relatorios/configurar - Criar/atualizar configuração
         $router->post('/configurar', [ControllerFrotaAbastecimentoRelatorio::class, 'configurar'])
             ->middleware(MiddlewareAcl::requer('frota_abastecimento.receber_relatorio'));
 
+        // PATCH /frota-abastecimento-relatorios/configuracao/{id}/ativar - Ativar configuração (Admin)
+        $router->patch('/configuracao/{id}/ativar', [ControllerFrotaAbastecimentoRelatorio::class, 'ativarConfiguracao'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.editar'));
+
         // PATCH /frota-abastecimento-relatorios/configuracao/{id}/desativar - Desativar configuração
         $router->patch('/configuracao/{id}/desativar', [ControllerFrotaAbastecimentoRelatorio::class, 'desativarConfiguracao'])
             ->middleware(MiddlewareAcl::requer('frota_abastecimento.receber_relatorio'));
+
+        // DELETE /frota-abastecimento-relatorios/configuracao/{id} - Deletar configuração (Admin)
+        $router->delete('/configuracao/{id}', [ControllerFrotaAbastecimentoRelatorio::class, 'deletarConfiguracao'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.deletar'));
 
         // ========== HISTÓRICO ==========
 
@@ -36,6 +52,10 @@ return function($router) {
         // GET /frota-abastecimento-relatorios/log/{id} - Buscar log específico
         $router->get('/log/{id}', [ControllerFrotaAbastecimentoRelatorio::class, 'buscarLog'])
             ->middleware(MiddlewareAcl::requer('frota_abastecimento.receber_relatorio'));
+
+        // DELETE /frota-abastecimento-relatorios/log/{id} - Deletar log (Admin)
+        $router->delete('/log/{id}', [ControllerFrotaAbastecimentoRelatorio::class, 'deletarLog'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.deletar'));
 
         // ========== GERAÇÃO MANUAL ==========
 
@@ -60,5 +80,9 @@ return function($router) {
         // POST /frota-abastecimento-relatorios/recalcular-snapshot - Força recálculo (Admin)
         $router->post('/recalcular-snapshot', [ControllerFrotaAbastecimentoRelatorio::class, 'recalcularSnapshot'])
             ->middleware(MiddlewareAcl::requer('frota_abastecimento.visualizar'));
+
+        // DELETE /frota-abastecimento-relatorios/snapshot/{id} - Deletar snapshot (Admin)
+        $router->delete('/snapshot/{id}', [ControllerFrotaAbastecimentoRelatorio::class, 'deletarSnapshot'])
+            ->middleware(MiddlewareAcl::requer('frota_abastecimento.deletar'));
     });
 };

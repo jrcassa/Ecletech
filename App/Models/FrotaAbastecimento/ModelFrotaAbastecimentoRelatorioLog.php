@@ -256,4 +256,14 @@ class ModelFrotaAbastecimentoRelatorioLog
 
         return $this->db->buscarUm($sql, [$colaborador_id, $tipo_relatorio]);
     }
+
+    /**
+     * Deleta log
+     */
+    public function deletar(int $id): bool
+    {
+        $sql = "DELETE FROM frotas_abastecimentos_relatorios_logs WHERE id = ?";
+        $this->db->executar($sql, [$id]);
+        return true;
+    }
 }
