@@ -233,7 +233,7 @@ class ServiceFrotaAbastecimentoRelatorio
             'dados_relatorio' => $relatorio['dados'],
             'status_envio' => 'pendente',
             'tamanho_mensagem' => strlen($relatorio['mensagem']),
-            'tempo_processamento' => $relatorio['dados']['tempo_calculo']
+            'tempo_processamento' => $relatorio['dados']['tempo_calculo'] ?? null
         ]);
 
         // Envia via WhatsApp (modo direto para ter controle imediato do resultado)
