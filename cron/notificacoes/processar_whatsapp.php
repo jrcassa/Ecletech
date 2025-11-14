@@ -6,10 +6,10 @@
  * Processa mensagens pendentes na fila do WhatsApp
  *
  * Configuração do crontab (executar a cada 1 minuto):
- * * * * * * php /caminho/para/cron/processar_whatsapp.php >> /var/log/whatsapp_cron.log 2>&1
+ * * * * * php /caminho/para/cron/processar_whatsapp.php >> /var/log/whatsapp_cron.log 2>&1
  *
  * Ou a cada 5 minutos:
- * */5 * * * * php /caminho/para/cron/processar_whatsapp.php >> /var/log/whatsapp_cron.log 2>&1
+ * *\/5 * * * * php /caminho/para/cron/processar_whatsapp.php >> /var/log/whatsapp_cron.log 2>&1
  */
 
 // Garante execução apenas via CLI
