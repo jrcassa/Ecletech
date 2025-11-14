@@ -43,14 +43,15 @@ class MiddlewareCsrf
         // Remove query string para obter apenas o path
         $path = parse_url($requestUri, PHP_URL_PATH);
 
-        // Remove tudo até /public_html/api (inclusive) usando regex
-        // Funciona independente do que vier antes:
-        // - /ecletech_v2/public_html/api/auth/login → /auth/login
-        // - /qualquer/coisa/public_html/api/auth/login → /auth/login
-        // - /public_html/api/auth/login → /auth/login
-        $path = preg_replace('#^.*?/public_html/api#', '', $path);
+        // Remove tudo até /api (inclusive), com ou sem /public_html antes
+        // Funciona em qualquer ambiente:
+        // Desenvolvimento: /ecletech_v2/public_html/api/auth/login → /auth/login
+        // Desenvolvimento: /public_html/api/auth/login → /auth/login
+        // Produção: /api/auth/login → /auth/login
+        // Subdiretório produção: /projeto/api/auth/login → /auth/login
+        $path = preg_replace('#^.*?/(public_html/)?api#', '', $path);
 
-        // Se ainda não começar com /, adiciona (para casos onde não há /public_html/api)
+        // Se ainda não começar com /, adiciona
         if (!str_starts_with($path, '/')) {
             $path = '/' . $path;
         }
