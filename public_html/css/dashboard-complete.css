@@ -1,0 +1,221 @@
+/* ====================================
+   ESTILOS COMPLEMENTARES DASHBOARD
+   Adiciona estilos de botões e formulários que estavam faltando
+   ==================================== */
+
+/* Botões */
+.btn-primary,
+.btn-secondary,
+.btn-icon {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-icon {
+    padding: 0.5rem;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #95a5a6;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* Formulários */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.form-control,
+.form-select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    background: white;
+    color: #333;
+}
+
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+input[type="color"].form-control {
+    height: 42px;
+    padding: 0.25rem;
+}
+
+/* Estados */
+.hidden {
+    display: none !important;
+}
+
+.text-danger {
+    color: #e74c3c !important;
+}
+
+/* GridStack Items */
+.grid-stack-item-content {
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+/* Ajustes de Layout */
+.main-content {
+    margin-left: 0;
+    min-height: 100vh;
+    background: #f5f5f5;
+    transition: margin-left 0.3s;
+}
+
+@media (min-width: 769px) {
+    .main-content {
+        margin-left: 260px;
+    }
+}
+
+/* Loading State */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #95a5a6;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: #7f8c8d;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Ajustes CSS Variables Fallback */
+:root {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #fafafa;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border-color: #e0e0e0;
+    --primary-color: #3498db;
+    --danger-color: #e74c3c;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+}
+
+/* Dark Theme Support */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #242424;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #808080;
+    --border-color: #3d3d3d;
+}
+
+/* Melhorias de Acessibilidade */
+*:focus-visible {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Smooth Transitions */
+* {
+    box-sizing: border-box;
+}
+
+/* Fix para GridStack */
+.grid-stack > .grid-stack-item {
+    min-width: 8.33%;
+}
+
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+    inset: 0;
+}
