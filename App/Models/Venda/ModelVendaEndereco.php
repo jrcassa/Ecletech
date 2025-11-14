@@ -53,7 +53,7 @@ class ModelVendaEndereco
                 e.nome as nome_estado
             FROM vendas_enderecos ve
             LEFT JOIN cidades c ON ve.cidade_id = c.id
-            LEFT JOIN estados e ON ve.estado = e.uf
+            LEFT JOIN estados e ON ve.estado = e.sigla
             WHERE ve.venda_id = ?",
             [$vendaId]
         );
@@ -71,7 +71,7 @@ class ModelVendaEndereco
                 e.nome as nome_estado
             FROM vendas_enderecos ve
             LEFT JOIN cidades c ON ve.cidade_id = c.id
-            LEFT JOIN estados e ON ve.estado = e.uf
+            LEFT JOIN estados e ON ve.estado = e.sigla
             WHERE ve.venda_id = ?
             ORDER BY ve.id",
             [$vendaId]

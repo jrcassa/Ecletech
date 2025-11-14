@@ -24,7 +24,7 @@ return function($router) {
 
         // PUT /venda/{id} - Atualizar venda
         $router->put('/{id}', [ControllerVenda::class, 'atualizar'])
-            ->middleware(MiddlewareAcl::requer('venda.atualizar'));
+            ->middleware(MiddlewareAcl::requer('venda.editar'));
 
         // DELETE /venda/{id} - Deletar venda (soft delete)
         $router->delete('/{id}', [ControllerVenda::class, 'deletar'])
@@ -32,6 +32,6 @@ return function($router) {
 
         // POST /venda/{id}/situacao-financeira - Atualizar situação financeira
         $router->post('/{id}/situacao-financeira', [ControllerVenda::class, 'atualizarSituacaoFinanceira'])
-            ->middleware(MiddlewareAcl::requer('venda.atualizar'));
+            ->middleware(MiddlewareAcl::requer('venda.editar'));
     });
 };
