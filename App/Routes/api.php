@@ -127,6 +127,10 @@ $router->grupo([
     $rotasPagamento = require __DIR__ . '/pagamento.php';
     $rotasPagamento($router);
 
+    // Inclui rotas de recebimentos
+    $rotasRecebimento = require __DIR__ . '/recebimento.php';
+    $rotasRecebimento($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
