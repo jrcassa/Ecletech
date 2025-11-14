@@ -135,8 +135,8 @@ CREATE TABLE IF NOT EXISTS vendas (
     CONSTRAINT fk_vendas_tecnico FOREIGN KEY (tecnico_id) REFERENCES colaboradores(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_situacao FOREIGN KEY (situacao_venda_id) REFERENCES situacoes_vendas(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_transportadora FOREIGN KEY (transportadora_id) REFERENCES transportadoras(id) ON DELETE SET NULL,
-    CONSTRAINT fk_vendas_centro_custo FOREIGN KEY (centro_custo_id) REFERENCES centro_custo(id) ON DELETE SET NULL,
+    CONSTRAINT fk_vendas_centro_custo FOREIGN KEY (centro_custo_id) REFERENCES centro_de_custo(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE SET NULL,
-    CONSTRAINT fk_vendas_forma_pagamento FOREIGN KEY (forma_pagamento_id) REFERENCES formas_pagamento(id) ON DELETE SET NULL
+    CONSTRAINT fk_vendas_forma_pagamento FOREIGN KEY (forma_pagamento_id) REFERENCES forma_de_pagamento(id) ON DELETE SET NULL
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabela principal de vendas/pedidos';
