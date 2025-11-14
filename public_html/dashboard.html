@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboards - Ecletech</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/_template_base.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <!-- GridStack CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.1.0/dist/gridstack.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header com Controles do Dashboard -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>
+                    <i class="fas fa-chart-line"></i>
+                    <span id="dashboard-nome">Dashboard</span>
+                </h1>
+
+                <!-- Seletor de Dashboard -->
+                <div class="dashboard-selector">
+                    <select id="select-dashboard" class="form-select">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button id="btn-adicionar-widget" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Adicionar Widget
+                </button>
+                <button id="btn-novo-dashboard" class="btn-primary">
+                    <i class="fas fa-plus-square"></i>
+                    Novo Dashboard
+                </button>
+                <div class="dropdown">
+                    <button id="btn-opcoes" class="btn-secondary">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div id="dropdown-opcoes" class="dropdown-menu hidden">
+                        <a href="#" id="opt-definir-padrao"><i class="fas fa-star"></i> Definir como Padrão</a>
+                        <a href="#" id="opt-duplicar"><i class="fas fa-copy"></i> Duplicar</a>
+                        <hr>
+                        <a href="#" id="opt-deletar" class="text-danger"><i class="fas fa-trash"></i> Excluir</a>
+                    </div>
+                </div>
+                <button id="btn-atualizar-todos" class="btn-secondary" title="Atualizar todos os widgets">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Container GridStack -->
+        <div class="grid-stack" id="dashboard-grid">
+            <!-- Widgets inseridos aqui via JS -->
+        </div>
+
+        <!-- Sidebar Catálogo de Widgets (slide-in) -->
+        <aside id="catalogo-widgets" class="catalogo-sidebar hidden">
+            <div class="catalogo-header">
+                <h3><i class="fas fa-cubes"></i> Adicionar Widget</h3>
+                <button id="btn-fechar-catalogo" class="btn-icon">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="catalogo-busca">
+                <input type="text" id="input-busca-widget" placeholder="Buscar widgets..." class="form-control">
+            </div>
+
+            <div class="catalogo-filtros">
+                <button class="filtro-categoria active" data-categoria="todas">
+                    <i class="fas fa-th"></i> Todas
+                </button>
+                <button class="filtro-categoria" data-categoria="vendas">
+                    <i class="fas fa-shopping-cart"></i> Vendas
+                </button>
+                <button class="filtro-categoria" data-categoria="financeiro">
+                    <i class="fas fa-dollar-sign"></i> Financeiro
+                </button>
+                <button class="filtro-categoria" data-categoria="frota">
+                    <i class="fas fa-truck"></i> Frota
+                </button>
+                <button class="filtro-categoria" data-categoria="clientes">
+                    <i class="fas fa-users"></i> Clientes
+                </button>
+                <button class="filtro-categoria" data-categoria="produtos">
+                    <i class="fas fa-box"></i> Produtos
+                </button>
+                <button class="filtro-categoria" data-categoria="geral">
+                    <i class="fas fa-chart-bar"></i> Geral
+                </button>
+            </div>
+
+            <div id="lista-widgets" class="catalogo-lista">
+                <!-- Widgets disponíveis listados aqui via JS -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- Modal: Novo Dashboard -->
+    <div id="modal-novo-dashboard" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-square"></i> Novo Dashboard</h2>
+                <button class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Abas -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="em-branco">
+                        <i class="fas fa-file"></i> Em Branco
+                    </button>
+                    <button class="tab-btn" data-tab="template">
+                        <i class="fas fa-th-large"></i> Usar Template
+                    </button>
+                </div>
+
+                <!-- Conteúdo Aba: Em Branco -->
+                <div id="tab-em-branco" class="tab-content active">
+                    <form id="form-dashboard-branco">
+                        <div class="form-group">
+                            <label>Nome do Dashboard *</label>
+                            <input type="text" name="nome" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <textarea name="descricao" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ícone</label>
+                                <select name="icone" class="form-control">
+                                    <option value="fa-chart-line">📈 Gráfico</option>
+                                    <option value="fa-shopping-cart">🛒 Vendas</option>
+                                    <option value="fa-dollar-sign">💰 Financeiro</option>
+                                    <option value="fa-truck">🚚 Frota</option>
+                                    <option value="fa-users">👥 Clientes</option>
+                                    <option value="fa-box">📦 Produtos</option>
+                                    <option value="fa-star">⭐ Favorito</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cor</label>
+                                <input type="color" name="cor" class="form-control" value="#3498db">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Conteúdo Aba: Template -->
+                <div id="tab-template" class="tab-content hidden">
+                    <div class="form-group">
+                        <label>Nome do Dashboard *</label>
+                        <input type="text" id="nome-dashboard-template" class="form-control" required>
+                    </div>
+
+                    <div class="templates-grid" id="templates-grid">
+                        <!-- Templates carregados via JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" id="btn-criar-dashboard" class="btn-primary">
+                    <i class="fas fa-check"></i> Criar Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <!-- GridStack -->
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.0/dist/gridstack-all.js"></script>
+
+    <!-- Day.js -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/pt-br.js"></script>
+
+    <!-- App JS -->
+    <script src="js/Utils.js"></script>
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+
+    <!-- Dashboard Modules -->
+    <script src="js/Dashboard.js"></script>
+
+    <script>
+        // Configuração do Day.js
+        dayjs.locale('pt-br');
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.estaAutenticado()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            Dashboard.inicializar();
+        });
+    </script>
+</body>
+</html>
