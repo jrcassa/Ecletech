@@ -43,17 +43,32 @@ class MiddlewareCsrf
         // Remove query string para obter apenas o path
         $path = parse_url($requestUri, PHP_URL_PATH);
 
-        // Remove o prefixo /public_html/api se existir
-        $path = preg_replace('#^/public_html/api#', '', $path);
+        // Remove tudo até /api (inclusive), com ou sem /public_html antes
+        // Funciona em qualquer ambiente:
+        // Desenvolvimento: /ecletech_v2/public_html/api/auth/login → /auth/login
+        // Desenvolvimento: /public_html/api/auth/login → /auth/login
+        // Produção: /api/auth/login → /auth/login
+        // Subdiretório produção: /projeto/api/auth/login → /auth/login
+        $path = preg_replace('#^.*?/(public_html/)?api#', '', $path);
+
+        // Se ainda não começar com /, adiciona
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
 
         // Normaliza path removendo trailing slash (exceto para root)
         if ($path !== '/' && str_ends_with($path, '/')) {
             $path = rtrim($path, '/');
         }
 
+        // Log para debug
+        error_log("MiddlewareCsrf: URI original: " . $requestUri);
+        error_log("MiddlewareCsrf: Path normalizado: " . $path);
+
         // Verifica cada padrão de rota excluída usando regex exato
         foreach ($this->rotasExcluidas as $padraoExcluido) {
             if (preg_match('#' . $padraoExcluido . '#', $path)) {
+                error_log("MiddlewareCsrf: Rota excluída da validação CSRF: " . $path);
                 return true;
             }
         }
