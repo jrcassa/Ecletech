@@ -95,7 +95,7 @@ class ModelDashboardWidget
                 wt.tipo_visual,
                 wt.categoria,
                 wt.icone,
-                wt.intervalo_atualizacao
+                wt.intervalo_atualizacao_padrao as intervalo_atualizacao
              FROM dashboard_widgets dw
              INNER JOIN widget_tipos wt ON dw.widget_tipo_id = wt.id
              WHERE dw.id = ?",
