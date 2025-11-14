@@ -133,8 +133,9 @@ try {
     $status = $serviceWhatsapp->verificarConfiguracao();
 
     echo "   Configurado: " . ($status['configurado'] ? 'SIM' : 'NÃO') . "\n";
-    echo "   API URL: " . ($status['api_url_configurada'] ? 'OK' : 'NÃO CONFIGURADA') . "\n";
-    echo "   Token: " . ($status['token_configurado'] ? 'OK' : 'NÃO CONFIGURADO') . "\n";
+    echo "   API URL: " . (($status['api_base_url_configurada'] ?? false) ? 'OK' : 'NÃO CONFIGURADA') . "\n";
+    echo "   Instância Token: " . (($status['instancia_token_configurado'] ?? false) ? 'OK' : 'NÃO CONFIGURADO') . "\n";
+    echo "   Secure Token: " . (($status['secure_token_configurado'] ?? false) ? 'OK' : 'NÃO CONFIGURADO') . "\n";
 
     if (!$status['configurado']) {
         echo "   ⚠ ATENÇÃO: WhatsApp não está configurado!\n";

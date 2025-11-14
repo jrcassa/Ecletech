@@ -32,22 +32,22 @@ class ServiceFrotaAbastecimentoRelatorioBuilder
         $mensagem .= "💵 Custo/litro: *R$ " . number_format($dados['custo_medio_por_litro'], 3, ',', '.') . "*\n\n";
 
         // Variações
-        if ($dados['variacao_consumo_vs_anterior'] !== null) {
+        if (isset($dados['variacao_consumo_vs_anterior']) && $dados['variacao_consumo_vs_anterior'] !== null) {
             $sinal = $dados['variacao_consumo_vs_anterior'] > 0 ? '📈' : '📉';
             $mensagem .= "*{$sinal} COMPARATIVO*\n";
             $mensagem .= "Variação consumo: *" . number_format($dados['variacao_consumo_vs_anterior'], 2, ',', '.') . "%*\n";
 
-            if ($dados['economia_vs_anterior'] !== null) {
+            if (isset($dados['economia_vs_anterior']) && $dados['economia_vs_anterior'] !== null) {
                 $economia = $dados['economia_vs_anterior'] > 0 ? '✅ Economia' : '⚠️ Aumento';
                 $mensagem .= "{$economia}: *R$ " . number_format(abs($dados['economia_vs_anterior']), 2, ',', '.') . "*\n\n";
             }
         }
 
         // Alertas
-        if ($dados['total_alertas'] > 0) {
+        if (isset($dados['total_alertas']) && $dados['total_alertas'] > 0) {
             $mensagem .= "*⚠️ ALERTAS*\n";
             $mensagem .= "Total: *{$dados['total_alertas']}*";
-            if ($dados['alertas_criticos'] > 0) {
+            if (isset($dados['alertas_criticos']) && $dados['alertas_criticos'] > 0) {
                 $mensagem .= " (🔴 {$dados['alertas_criticos']} críticos)";
             }
             $mensagem .= "\n";
