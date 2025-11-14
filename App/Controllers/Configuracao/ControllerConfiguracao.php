@@ -43,7 +43,7 @@ class ControllerConfiguracao extends BaseController
     public function atualizarBruteForce(): void
     {
         try {
-            $dados = $this->obterCorpoRequisicao();
+            $dados = $this->obterDados();
 
             // Validações
             $erros = [];
@@ -67,7 +67,7 @@ class ControllerConfiguracao extends BaseController
             }
 
             if (!empty($erros)) {
-                $this->erroValidacao($erros);
+                $this->validacao($erros);
                 return;
             }
 
