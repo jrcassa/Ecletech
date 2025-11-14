@@ -932,6 +932,27 @@ const Dashboard = {
      * Configura event listeners
      */
     configurarEventos() {
+        // Menu toggle (ícone hamburguer)
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        if (menuToggleBtn) {
+            menuToggleBtn.addEventListener('click', () => {
+                const sidebar = document.querySelector('.sidebar');
+                const mainContent = document.querySelector('.main-content');
+                const overlay = document.querySelector('.sidebar-overlay');
+
+                if (sidebar) {
+                    sidebar.classList.toggle('closed');
+                    sidebar.classList.toggle('open');
+                }
+                if (mainContent) {
+                    mainContent.classList.toggle('expanded');
+                }
+                if (overlay) {
+                    overlay.classList.toggle('show');
+                }
+            });
+        }
+
         // Seletor de dashboard
         document.getElementById('select-dashboard').addEventListener('change', async (e) => {
             const dashboardId = e.target.value;
