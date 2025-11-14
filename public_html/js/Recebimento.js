@@ -139,6 +139,11 @@ const RecebimentoManager = {
                 this.style.borderColor = '';
             });
         });
+
+        // Setup de autocomplete para os 3 tipos de entidades
+        this.setupClienteAutocomplete();
+        this.setupFornecedorAutocomplete();
+        this.setupTransportadoraAutocomplete();
     },
 
     async verificarPermissoes() {
@@ -769,5 +774,124 @@ const RecebimentoManager = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    // ============= AUTOCOMPLETE =============
+
+    autocompleteTimeouts: {},
+
+    setupAutocomplete(config) {
+        const inputBusca = document.getElementById(config.inputBuscaId);
+        const inputId = document.getElementById(config.inputIdId);
+        const divSugestoes = document.getElementById(config.suggestoesId);
+
+        if (!inputBusca) return;
+
+        inputBusca.addEventListener('input', async function() {
+            const termo = this.value.trim();
+
+            // Limpa timeout anterior
+            if (RecebimentoManager.autocompleteTimeouts[config.tipo]) {
+                clearTimeout(RecebimentoManager.autocompleteTimeouts[config.tipo]);
+            }
+
+            // Limpa ID se campo foi apagado
+            if (!termo) {
+                inputId.value = '';
+                divSugestoes.style.display = 'none';
+                return;
+            }
+
+            // Aguarda 300ms após usuário parar de digitar
+            RecebimentoManager.autocompleteTimeouts[config.tipo] = setTimeout(async () => {
+                try {
+                    divSugestoes.innerHTML = '<div class="autocomplete-loading">Buscando...</div>';
+                    divSugestoes.style.display = 'block';
+
+                    const response = await API.get(`${config.endpoint}?busca=${encodeURIComponent(termo)}&ativo=1&por_pagina=10`);
+
+                    if (response.sucesso && response.dados?.itens?.length > 0) {
+                        divSugestoes.innerHTML = response.dados.itens.map(item => {
+                            const info = config.formatInfo(item);
+                            return `
+                                <div class="autocomplete-item" data-id="${item.id}" data-nome="${RecebimentoManager.escapeHtml(item.nome)}">
+                                    <strong>${RecebimentoManager.escapeHtml(item.nome)}</strong>
+                                    ${info ? `<small>${info}</small>` : ''}
+                                </div>
+                            `;
+                        }).join('');
+
+                        // Adiciona evento de clique
+                        divSugestoes.querySelectorAll('.autocomplete-item').forEach(itemDiv => {
+                            itemDiv.addEventListener('click', function() {
+                                inputBusca.value = this.dataset.nome;
+                                inputId.value = this.dataset.id;
+                                divSugestoes.style.display = 'none';
+                            });
+                        });
+                    } else {
+                        divSugestoes.innerHTML = `<div class="autocomplete-no-results">Nenhum ${config.tipo} encontrado</div>`;
+                    }
+                } catch (error) {
+                    divSugestoes.innerHTML = `<div class="autocomplete-no-results">Erro ao buscar ${config.tipo}s</div>`;
+                    console.error(`Erro ao buscar ${config.tipo}s:`, error);
+                }
+            }, 300);
+        });
+
+        // Fecha sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!inputBusca.contains(e.target) && !divSugestoes.contains(e.target)) {
+                divSugestoes.style.display = 'none';
+            }
+        });
+    },
+
+    setupClienteAutocomplete() {
+        this.setupAutocomplete({
+            tipo: 'cliente',
+            inputBuscaId: 'inputClienteBusca',
+            inputIdId: 'inputClienteId',
+            suggestoesId: 'clienteSugestoes',
+            endpoint: '/cliente',
+            formatInfo: (item) => {
+                const parts = [];
+                if (item.cpf_cnpj) parts.push(item.cpf_cnpj);
+                if (item.email) parts.push(item.email);
+                return parts.join(' • ');
+            }
+        });
+    },
+
+    setupFornecedorAutocomplete() {
+        this.setupAutocomplete({
+            tipo: 'fornecedor',
+            inputBuscaId: 'inputFornecedorBusca',
+            inputIdId: 'inputFornecedorId',
+            suggestoesId: 'fornecedorSugestoes',
+            endpoint: '/fornecedor',
+            formatInfo: (item) => {
+                const parts = [];
+                if (item.cnpj) parts.push(item.cnpj);
+                if (item.email) parts.push(item.email);
+                return parts.join(' • ');
+            }
+        });
+    },
+
+    setupTransportadoraAutocomplete() {
+        this.setupAutocomplete({
+            tipo: 'transportadora',
+            inputBuscaId: 'inputTransportadoraBusca',
+            inputIdId: 'inputTransportadoraId',
+            suggestoesId: 'transportadoraSugestoes',
+            endpoint: '/transportadora',
+            formatInfo: (item) => {
+                const parts = [];
+                if (item.cnpj) parts.push(item.cnpj);
+                if (item.telefone) parts.push(item.telefone);
+                return parts.join(' • ');
+            }
+        });
     }
 };
