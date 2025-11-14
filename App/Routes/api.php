@@ -123,6 +123,10 @@ $router->grupo([
     $rotasFormaDePagamento = require __DIR__ . '/forma_de_pagamento.php';
     $rotasFormaDePagamento($router);
 
+    // Inclui rotas de pagamentos
+    $rotasPagamento = require __DIR__ . '/pagamento.php';
+    $rotasPagamento($router);
+
     // Inclui rotas de situações de vendas
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
