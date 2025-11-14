@@ -48,6 +48,15 @@ const ManagementApp = {
             }
         });
 
+        // Tabs
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                this.switchTab(tabName);
+            });
+        });
+
         // Modals - Níveis
         document.getElementById('btnNovoNivel')?.addEventListener('click', () => this.abrirModalNivel());
         document.getElementById('closeModalNivel')?.addEventListener('click', () => this.fecharModalNivel());
@@ -55,7 +64,7 @@ const ManagementApp = {
         document.getElementById('formNivel')?.addEventListener('submit', (e) => this.salvarNivel(e));
 
         // Modals - Roles
-        document.getElementById('btnNovoRole')?.addEventListener('click', () => this.abrirModalRole());
+        document.getElementById('btnNovaRole')?.addEventListener('click', () => this.abrirModalRole());
         document.getElementById('closeModalRole')?.addEventListener('click', () => this.fecharModalRole());
         document.getElementById('btnCancelarRole')?.addEventListener('click', () => this.fecharModalRole());
         document.getElementById('formRole')?.addEventListener('submit', (e) => this.salvarRole(e));
@@ -70,6 +79,19 @@ const ManagementApp = {
         document.getElementById('closeModalRolePermissoes')?.addEventListener('click', () => this.fecharModalRolePermissoes());
         document.getElementById('btnCancelarRolePermissoes')?.addEventListener('click', () => this.fecharModalRolePermissoes());
         document.getElementById('btnSalvarRolePermissoes')?.addEventListener('click', () => this.salvarRolePermissoes());
+    },
+
+    switchTab(tabName) {
+        // Remove active de todos os botões e conteúdos
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // Adiciona active ao botão e conteúdo selecionado
+        const activeButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+        const activeContent = document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+
+        if (activeButton) activeButton.classList.add('active');
+        if (activeContent) activeContent.classList.add('active');
     },
 
     async verificarPermissoes() {

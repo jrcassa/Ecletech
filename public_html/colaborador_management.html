@@ -210,18 +210,33 @@
 
                 <div class="form-group">
                     <label for="nivelNome">Nome *</label>
-                    <input type="text" id="nivelNome" required>
+                    <input type="text" id="nivelNome" required placeholder="Nome do nível">
+                </div>
+
+                <div class="form-group">
+                    <label for="nivelCodigo">Código *</label>
+                    <input type="text" id="nivelCodigo" required placeholder="ex: admin, gerente, vendedor">
                 </div>
 
                 <div class="form-group">
                     <label for="nivelDescricao">Descrição</label>
-                    <textarea id="nivelDescricao" rows="3"></textarea>
+                    <textarea id="nivelDescricao" rows="3" placeholder="Descrição do nível de acesso"></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label for="nivelLevel">Nível de Hierarquia *</label>
-                    <input type="number" id="nivelLevel" required min="1" max="100">
-                    <small>Quanto maior o número, maior o nível de acesso</small>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nivelOrdem">Ordem/Hierarquia *</label>
+                        <input type="number" id="nivelOrdem" required min="0" max="100" placeholder="0-100">
+                        <small>Quanto maior o número, maior o nível de acesso</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nivelAtivo">Status</label>
+                        <select id="nivelAtivo">
+                            <option value="1">Ativo</option>
+                            <option value="0">Inativo</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -252,19 +267,35 @@
                 <input type="hidden" id="roleId">
 
                 <div class="form-group">
-                    <label for="roleName">Nome *</label>
-                    <input type="text" id="roleName" required>
+                    <label for="roleNome">Nome *</label>
+                    <input type="text" id="roleNome" required placeholder="Nome da role">
+                </div>
+
+                <div class="form-group">
+                    <label for="roleCodigo">Código *</label>
+                    <input type="text" id="roleCodigo" required placeholder="ex: gerente-vendas, operador">
                 </div>
 
                 <div class="form-group">
                     <label for="roleDescricao">Descrição</label>
-                    <textarea id="roleDescricao" rows="3"></textarea>
+                    <textarea id="roleDescricao" rows="3" placeholder="Descrição da role"></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Permissões</label>
-                    <div id="rolePermissionsContainer" class="permissions-checklist">
-                        <!-- Permissões serão carregadas aqui -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="roleNivelId">Nível de Acesso *</label>
+                        <select id="roleNivelId" required>
+                            <option value="">Selecione um nível...</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roleAtivo">Status</label>
+                        <select id="roleAtivo">
+                            <option value="1">Ativo</option>
+                            <option value="0">Inativo</option>
+                        </select>
                     </div>
                 </div>
 
