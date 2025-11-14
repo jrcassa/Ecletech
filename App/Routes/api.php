@@ -180,6 +180,10 @@ $router->grupo([
         $router->get('/me', [\App\Controllers\Autenticacao\ControllerAutenticacao::class, 'me']);
     });
 
+    // Inclui rotas de dashboard
+    $rotasDashboard = require __DIR__ . '/dashboard.php';
+    $rotasDashboard($router);
+
     // Rota de health check
     $router->get('/health', function() {
         return [
