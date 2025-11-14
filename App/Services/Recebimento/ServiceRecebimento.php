@@ -167,14 +167,30 @@ class ServiceRecebimento
                 }
             }
 
-            // Validação de entidade (recebimentos são sempre de Clientes)
-            if (!isset($dados['entidade']) || $dados['entidade'] !== 'C') {
-                throw new \Exception('Entidade deve ser C (Cliente) - Recebimentos são apenas contas a receber');
+            // Validação de entidade obrigatória
+            if (!isset($dados['entidade']) || !in_array($dados['entidade'], ['C', 'F', 'T'])) {
+                throw new \Exception('Entidade inválida. Deve ser C (Cliente), F (Fornecedor) ou T (Transportadora)');
             }
 
-            // Validação de cliente obrigatório
-            if (empty($dados['cliente_id'])) {
-                throw new \Exception('Cliente é obrigatório');
+            // Validação de acordo com a entidade
+            switch ($dados['entidade']) {
+                case 'C': // Cliente
+                    if (empty($dados['cliente_id'])) {
+                        throw new \Exception('Cliente é obrigatório quando entidade=C');
+                    }
+                    break;
+
+                case 'F': // Fornecedor
+                    if (empty($dados['fornecedor_id'])) {
+                        throw new \Exception('Fornecedor é obrigatório quando entidade=F');
+                    }
+                    break;
+
+                case 'T': // Transportadora
+                    if (empty($dados['transportadora_id'])) {
+                        throw new \Exception('Transportadora é obrigatória quando entidade=T');
+                    }
+                    break;
             }
 
             // Validação de campos obrigatórios

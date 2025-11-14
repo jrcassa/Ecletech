@@ -626,7 +626,7 @@ const RecebimentoManager = {
         const dados = {
             descricao: form.querySelector('#inputDescricao')?.value,
             codigo: form.querySelector('#inputCodigo')?.value || null,
-            entidade: form.querySelector('#inputEntidade')?.value || 'C', // Sempre Cliente
+            entidade: form.querySelector('#selectEntidadeForm')?.value,
             valor: parseFloat(form.querySelector('#inputValor')?.value) || 0,
             juros: parseFloat(form.querySelector('#inputJuros')?.value) || 0,
             desconto: parseFloat(form.querySelector('#inputDesconto')?.value) || 0,
@@ -637,9 +637,14 @@ const RecebimentoManager = {
             external_id: form.querySelector('#inputExternalId')?.value || null
         };
 
-        // Cliente (obrigatório - recebimentos são apenas de clientes)
+        // Entidades (conforme seleção)
         const clienteId = form.querySelector('#inputClienteId')?.value;
+        const fornecedorId = form.querySelector('#inputFornecedorId')?.value;
+        const transportadoraId = form.querySelector('#inputTransportadoraId')?.value;
+
         if (clienteId) dados.cliente_id = parseInt(clienteId);
+        if (fornecedorId) dados.fornecedor_id = parseInt(fornecedorId);
+        if (transportadoraId) dados.transportadora_id = parseInt(transportadoraId);
 
         // Campos obrigatórios
         const planoContasId = form.querySelector('#selectPlanoContas')?.value;

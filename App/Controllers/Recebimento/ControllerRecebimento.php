@@ -120,15 +120,29 @@ class ControllerRecebimento extends BaseController
                 return;
             }
 
-            // Recebimentos são sempre de Clientes (entidade C)
-            if (($dados['entidade'] ?? '') !== 'C') {
-                $this->validacao(['entidade' => 'Entidade deve ser C (Cliente) - Recebimentos são apenas contas a receber']);
-                return;
-            }
-
-            if (empty($dados['cliente_id'])) {
-                $this->validacao(['cliente_id' => 'Cliente é obrigatório']);
-                return;
+            // Validação de entidade específica
+            switch ($dados['entidade'] ?? '') {
+                case 'C':
+                    if (empty($dados['cliente_id'])) {
+                        $this->validacao(['cliente_id' => 'Cliente é obrigatório']);
+                        return;
+                    }
+                    break;
+                case 'F':
+                    if (empty($dados['fornecedor_id'])) {
+                        $this->validacao(['fornecedor_id' => 'Fornecedor é obrigatório']);
+                        return;
+                    }
+                    break;
+                case 'T':
+                    if (empty($dados['transportadora_id'])) {
+                        $this->validacao(['transportadora_id' => 'Transportadora é obrigatória']);
+                        return;
+                    }
+                    break;
+                default:
+                    $this->validacao(['entidade' => 'Entidade inválida. Deve ser C, F ou T']);
+                    return;
             }
 
             // Delega para o Service (validações de negócio + criação)
