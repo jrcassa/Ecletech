@@ -146,9 +146,11 @@ const TransportadorasManager = {
                 };
             }
 
-            // Esconde botão novo se não tem permissão de criar
+            // Controla visibilidade do botão novo baseado em permissões
             if (!this.state.permissoes.criar && this.elements.btnNovo) {
                 this.elements.btnNovo.style.display = 'none';
+            } else if (this.elements.btnNovo) {
+                this.elements.btnNovo.style.display = 'inline-flex';
             }
         } catch (error) {
             console.error('Erro ao verificar permissões:', error);
