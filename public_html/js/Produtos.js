@@ -262,7 +262,7 @@ const ProdutosManager = {
      * Renderiza a tabela de produtos
      */
     renderizarTabela() {
-        if (this.state.produto.length === 0) {
+        if (this.state.produtos.length === 0) {
             this.elements.tableContainer.style.display = 'none';
             this.elements.noData.style.display = 'block';
             return;
@@ -271,7 +271,7 @@ const ProdutosManager = {
         this.elements.tableContainer.style.display = 'block';
         this.elements.noData.style.display = 'none';
 
-        this.elements.tableBody.innerHTML = this.state.produto.map(produto => `
+        this.elements.tableBody.innerHTML = this.state.produtos.map(produto => `
             <tr>
                 <td>${this.escaparHtml(produto.id)}</td>
                 <td>${this.escaparHtml(produto.codigo_interno || '-')}</td>
@@ -468,13 +468,13 @@ const ProdutosManager = {
      * Abre modal para adicionar fornecedores
      */
     abrirModalFornecedores() {
-        if (this.state.fornecedor.length === 0) {
+        if (this.state.fornecedores.length === 0) {
             alert('Nenhum fornecedor cadastrado no sistema');
             return;
         }
 
         // Cria um modal simples com lista de fornecedores
-        const fornecedoresDisponiveis = this.state.fornecedor.filter(f =>
+        const fornecedoresDisponiveis = this.state.fornecedores.filter(f =>
             !this.state.fornecedoresSelecionados.find(fs => fs.fornecedor_id == f.id)
         );
 
@@ -488,7 +488,7 @@ const ProdutosManager = {
         );
 
         if (fornecedorId) {
-            const fornecedor = this.state.fornecedor.find(f => f.id == fornecedorId);
+            const fornecedor = this.state.fornecedores.find(f => f.id == fornecedorId);
             if (fornecedor) {
                 this.state.fornecedoresSelecionados.push({
                     fornecedor_id: fornecedor.id,
