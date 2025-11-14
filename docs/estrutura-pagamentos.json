@@ -1,0 +1,498 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Estrutura de Dados - Pagamentos (Contas a Pagar/Receber)",
+  "description": "Estrutura completa para criação e listagem de pagamentos no sistema Ecletech",
+
+  "definitions": {
+    "Pagamento": {
+      "type": "object",
+      "description": "Representa um pagamento (conta a pagar ou a receber)",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID interno do pagamento no sistema"
+        },
+        "external_id": {
+          "type": "string",
+          "description": "ID do pagamento em sistema externo (ex: Bling, Omie)"
+        },
+        "codigo": {
+          "type": "string",
+          "description": "Código sequencial ou identificador único do pagamento"
+        },
+        "descricao": {
+          "type": "string",
+          "description": "Descrição detalhada do pagamento",
+          "minLength": 3,
+          "maxLength": 500
+        },
+
+        "_comment_valores": "=== VALORES E CÁLCULOS ===",
+        "valor": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Valor original do pagamento (formato decimal: 0000.00)"
+        },
+        "juros": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Valor de juros aplicado (formato decimal: 0.00)"
+        },
+        "desconto": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Valor de desconto aplicado (formato decimal: 0.00)"
+        },
+        "taxa_banco": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Taxa bancária cobrada (formato decimal: 0.00)"
+        },
+        "taxa_operadora": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Taxa da operadora de cartão/pagamento (formato decimal: 0.00)"
+        },
+        "valor_total": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d{2}$",
+          "description": "Valor final: valor + juros - desconto - taxa_banco - taxa_operadora"
+        },
+
+        "_comment_datas": "=== DATAS ===",
+        "data_vencimento": {
+          "type": "string",
+          "format": "date",
+          "description": "Data de vencimento do pagamento (YYYY-MM-DD)"
+        },
+        "data_liquidacao": {
+          "type": "string",
+          "format": "date",
+          "description": "Data em que o pagamento foi liquidado/pago (YYYY-MM-DD)"
+        },
+        "data_competencia": {
+          "type": "string",
+          "format": "date",
+          "description": "Data de competência contábil (YYYY-MM-DD)"
+        },
+        "cadastrado_em": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e hora de cadastro no sistema (YYYY-MM-DD HH:MM:SS)"
+        },
+        "modificado_em": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e hora da última modificação (YYYY-MM-DD HH:MM:SS)"
+        },
+
+        "_comment_plano_contas": "=== PLANO DE CONTAS ===",
+        "plano_contas_id": {
+          "type": "string",
+          "description": "ID do plano de contas (FK: plano_de_contas.id)"
+        },
+        "plano_contas_external_id": {
+          "type": "string",
+          "description": "External ID do plano de contas (plano_de_contas.external_id)"
+        },
+        "nome_plano_conta": {
+          "type": "string",
+          "description": "Nome da conta contábil (ex: Vendas de produtos, Aluguel)"
+        },
+
+        "_comment_centro_custo": "=== CENTRO DE CUSTO ===",
+        "centro_custo_id": {
+          "type": "string",
+          "description": "ID do centro de custo (FK: centros_custo.id)"
+        },
+        "centro_custo_external_id": {
+          "type": "string",
+          "description": "External ID do centro de custo"
+        },
+        "nome_centro_custo": {
+          "type": "string",
+          "description": "Nome do centro de custo (ex: Centro de Custo 01)"
+        },
+
+        "_comment_conta_bancaria": "=== CONTA BANCÁRIA ===",
+        "conta_bancaria_id": {
+          "type": "string",
+          "description": "ID da conta bancária (FK: contas_bancarias.id)"
+        },
+        "conta_bancaria_external_id": {
+          "type": "string",
+          "description": "External ID da conta bancária"
+        },
+        "nome_conta_bancaria": {
+          "type": "string",
+          "description": "Nome da conta bancária (ex: Conta Itaú, Conta padrão)"
+        },
+
+        "_comment_forma_pagamento": "=== FORMA DE PAGAMENTO ===",
+        "forma_pagamento_id": {
+          "type": "string",
+          "description": "ID da forma de pagamento (FK: forma_de_pagamento.id)"
+        },
+        "forma_pagamento_external_id": {
+          "type": "string",
+          "description": "External ID da forma de pagamento"
+        },
+        "nome_forma_pagamento": {
+          "type": "string",
+          "description": "Nome da forma de pagamento (ex: Dinheiro à Vista, PIX, Boleto)"
+        },
+
+        "_comment_entidade": "=== ENTIDADE RELACIONADA ===",
+        "entidade": {
+          "type": "string",
+          "enum": ["C", "F", "T", "U"],
+          "description": "Tipo de entidade: C=Cliente, F=Fornecedor, T=Transportadora, U=Funcionário"
+        },
+
+        "_comment_cliente": "=== CLIENTE (quando entidade = C) ===",
+        "cliente_id": {
+          "type": "string",
+          "description": "ID do cliente (FK: clientes.id) - usado quando entidade=C"
+        },
+        "cliente_external_id": {
+          "type": "string",
+          "description": "External ID do cliente"
+        },
+        "nome_cliente": {
+          "type": "string",
+          "description": "Nome do cliente (ex: Jarvis Stark)"
+        },
+
+        "_comment_fornecedor": "=== FORNECEDOR (quando entidade = F) ===",
+        "fornecedor_id": {
+          "type": "string",
+          "description": "ID do fornecedor (FK: fornecedores.id) - usado quando entidade=F"
+        },
+        "fornecedor_external_id": {
+          "type": "string",
+          "description": "External ID do fornecedor"
+        },
+        "nome_fornecedor": {
+          "type": "string",
+          "description": "Nome do fornecedor (ex: AUREA LUCIA DA SILVA RODRIGUES)"
+        },
+
+        "_comment_transportadora": "=== TRANSPORTADORA (quando entidade = T) ===",
+        "transportadora_id": {
+          "type": "string",
+          "description": "ID da transportadora (FK: transportadoras.id) - usado quando entidade=T"
+        },
+        "transportadora_external_id": {
+          "type": "string",
+          "description": "External ID da transportadora"
+        },
+        "nome_transportadora": {
+          "type": "string",
+          "description": "Nome da transportadora"
+        },
+
+        "_comment_funcionario": "=== FUNCIONÁRIO (quando entidade = U) ===",
+        "funcionario_id": {
+          "type": "string",
+          "description": "ID do funcionário (FK: colaboradores.id) - usado quando entidade=U"
+        },
+        "funcionario_external_id": {
+          "type": "string",
+          "description": "External ID do funcionário"
+        },
+        "nome_funcionario": {
+          "type": "string",
+          "description": "Nome do funcionário"
+        },
+
+        "_comment_status": "=== STATUS E LIQUIDAÇÃO ===",
+        "liquidado": {
+          "type": "string",
+          "enum": ["0", "1"],
+          "description": "Indica se o pagamento foi liquidado: 0=Não, 1=Sim"
+        },
+
+        "_comment_usuario": "=== USUÁRIO RESPONSÁVEL ===",
+        "usuario_id": {
+          "type": "string",
+          "description": "ID do usuário que cadastrou/modificou (FK: colaboradores.id)"
+        },
+        "usuario_external_id": {
+          "type": "string",
+          "description": "External ID do usuário"
+        },
+        "nome_usuario": {
+          "type": "string",
+          "description": "Nome do usuário (ex: Adiel Hebo)"
+        },
+
+        "_comment_loja": "=== LOJA/FILIAL ===",
+        "loja_id": {
+          "type": "string",
+          "description": "ID da loja/filial (FK: lojas.id)"
+        },
+        "loja_external_id": {
+          "type": "string",
+          "description": "External ID da loja"
+        },
+        "nome_loja": {
+          "type": "string",
+          "description": "Nome da loja (ex: Matriz, Filial 01)"
+        },
+
+        "_comment_atributos": "=== ATRIBUTOS CUSTOMIZADOS ===",
+        "atributos": {
+          "type": "array",
+          "description": "Lista de atributos customizados do pagamento",
+          "items": {
+            "type": "object",
+            "properties": {
+              "chave": {
+                "type": "string",
+                "description": "Nome do atributo customizado"
+              },
+              "valor": {
+                "type": "string",
+                "description": "Valor do atributo customizado"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "descricao",
+        "data_vencimento",
+        "valor",
+        "valor_total",
+        "entidade",
+        "liquidado"
+      ]
+    }
+  },
+
+  "examples": {
+    "criacao_conta_receber": {
+      "description": "Exemplo de criação de uma conta a receber (venda para cliente)",
+      "data": {
+        "descricao": "Compra de TV 33",
+        "data_vencimento": "2020-01-25",
+        "valor": "1599.99",
+        "juros": "2.00",
+        "desconto": "1.00",
+        "taxa_banco": "0.00",
+        "taxa_operadora": "0.00",
+        "valor_total": "1600.99",
+        "centro_custo_id": "1",
+        "centro_custo_external_id": "CC001",
+        "nome_centro_custo": "Centro de Custo 01",
+        "conta_bancaria_id": "1",
+        "conta_bancaria_external_id": "CB001",
+        "nome_conta_bancaria": "Conta padrão",
+        "forma_pagamento_id": "640517",
+        "forma_pagamento_external_id": "FP001",
+        "nome_forma_pagamento": "Dinheiro à Vista",
+        "entidade": "C",
+        "cliente_id": "6",
+        "cliente_external_id": "CLI006",
+        "nome_cliente": "Jarvis Stark",
+        "liquidado": "1",
+        "data_liquidacao": "2020-01-25",
+        "data_competencia": "2020-01-25",
+        "plano_contas_id": "2512",
+        "plano_contas_external_id": "PC2512",
+        "nome_plano_conta": "Vendas de produtos"
+      }
+    },
+
+    "criacao_conta_pagar": {
+      "description": "Exemplo de criação de uma conta a pagar (despesa com fornecedor)",
+      "data": {
+        "codigo": "37602",
+        "descricao": "ALUGUEL IMOVEL - RUA FIRMINO SOARES 151 - (ATE MES 04-2027 - VER OBS)",
+        "valor": "3000.00",
+        "juros": "0.00",
+        "desconto": "68.56",
+        "taxa_banco": "0.00",
+        "taxa_operadora": "0.00",
+        "valor_total": "2931.44",
+        "plano_contas_id": "10896691",
+        "plano_contas_external_id": "PC10896691",
+        "nome_plano_conta": "Aluguel",
+        "centro_custo_id": "",
+        "centro_custo_external_id": "",
+        "nome_centro_custo": "",
+        "conta_bancaria_id": "237504",
+        "conta_bancaria_external_id": "CB237504",
+        "nome_conta_bancaria": "Conta Itaú",
+        "forma_pagamento_id": "1752825",
+        "forma_pagamento_external_id": "FP1752825",
+        "nome_forma_pagamento": "Transferencia bancaria",
+        "entidade": "F",
+        "fornecedor_id": "1107555",
+        "fornecedor_external_id": "FOR1107555",
+        "nome_fornecedor": "AUREA LUCIA DA SILVA RODRIGUES",
+        "cliente_id": "",
+        "cliente_external_id": "",
+        "nome_cliente": "",
+        "transportadora_id": "",
+        "transportadora_external_id": "",
+        "nome_transportadora": "",
+        "funcionario_id": "",
+        "funcionario_external_id": "",
+        "nome_funcionario": "",
+        "liquidado": "1",
+        "data_vencimento": "2025-11-01",
+        "data_liquidacao": "2025-11-03",
+        "data_competencia": "2025-11-01",
+        "usuario_id": "326109",
+        "usuario_external_id": "USR326109",
+        "nome_usuario": "Adiel Hebo",
+        "loja_id": "178114",
+        "loja_external_id": "LJ178114",
+        "nome_loja": "Matriz",
+        "atributos": []
+      }
+    },
+
+    "listagem_resposta": {
+      "description": "Exemplo de resposta ao listar pagamentos",
+      "data": {
+        "sucesso": true,
+        "dados": [
+          {
+            "id": "484696308",
+            "external_id": "PAG484696308",
+            "codigo": "37602",
+            "descricao": "ALUGUEL IMOVEL - RUA FIRMINO SOARES 151",
+            "valor": "3000.00",
+            "juros": "0.00",
+            "desconto": "68.56",
+            "taxa_banco": "0.00",
+            "taxa_operadora": "0.00",
+            "valor_total": "2931.44",
+            "plano_contas_id": "10896691",
+            "plano_contas_external_id": "PC10896691",
+            "nome_plano_conta": "Aluguel",
+            "conta_bancaria_id": "237504",
+            "conta_bancaria_external_id": "CB237504",
+            "nome_conta_bancaria": "Conta Itaú",
+            "forma_pagamento_id": "1752825",
+            "forma_pagamento_external_id": "FP1752825",
+            "nome_forma_pagamento": "Transferencia bancaria",
+            "entidade": "F",
+            "fornecedor_id": "1107555",
+            "fornecedor_external_id": "FOR1107555",
+            "nome_fornecedor": "AUREA LUCIA DA SILVA RODRIGUES",
+            "liquidado": "1",
+            "data_vencimento": "2025-11-01",
+            "data_liquidacao": "2025-11-03",
+            "data_competencia": "2025-11-01",
+            "usuario_id": "326109",
+            "usuario_external_id": "USR326109",
+            "nome_usuario": "Adiel Hebo",
+            "loja_id": "178114",
+            "loja_external_id": "LJ178114",
+            "nome_loja": "Matriz",
+            "cadastrado_em": "2025-10-01 00:32:06",
+            "modificado_em": "2025-11-03 14:27:20",
+            "atributos": []
+          }
+        ],
+        "paginacao": {
+          "pagina_atual": 1,
+          "por_pagina": 20,
+          "total_registros": 1,
+          "total_paginas": 1
+        }
+      }
+    }
+  },
+
+  "regras_de_negocio": {
+    "calculo_valor_total": "valor_total = valor + juros - desconto - taxa_banco - taxa_operadora",
+    "entidade": {
+      "C": "Cliente - usado para contas a receber (receitas)",
+      "F": "Fornecedor - usado para contas a pagar (despesas)",
+      "T": "Transportadora - usado para pagamentos de frete",
+      "U": "Funcionário - usado para folha de pagamento ou reembolsos"
+    },
+    "liquidado": {
+      "0": "Pendente - pagamento não realizado",
+      "1": "Liquidado - pagamento realizado (data_liquidacao deve estar preenchida)"
+    },
+    "campos_obrigatorios_por_entidade": {
+      "C": ["cliente_id", "cliente_external_id", "nome_cliente"],
+      "F": ["fornecedor_id", "fornecedor_external_id", "nome_fornecedor"],
+      "T": ["transportadora_id", "transportadora_external_id", "nome_transportadora"],
+      "U": ["funcionario_id", "funcionario_external_id", "nome_funcionario"]
+    },
+    "external_id_pattern": "Todos os campos _id devem ter um campo correspondente _external_id para sincronização com sistemas externos",
+    "soft_delete": "Ao deletar um pagamento, usar soft delete (deletado_em) para manter integridade referencial"
+  },
+
+  "mapeamento_campos_id_external_id": {
+    "description": "Mapeamento completo de todos os campos ID e seus correspondentes External ID",
+    "campos": [
+      {
+        "id_campo": "plano_contas_id",
+        "external_id_campo": "plano_contas_external_id",
+        "tabela_referencia": "plano_de_contas",
+        "descricao": "Plano de contas contábil"
+      },
+      {
+        "id_campo": "centro_custo_id",
+        "external_id_campo": "centro_custo_external_id",
+        "tabela_referencia": "centros_custo",
+        "descricao": "Centro de custo"
+      },
+      {
+        "id_campo": "conta_bancaria_id",
+        "external_id_campo": "conta_bancaria_external_id",
+        "tabela_referencia": "contas_bancarias",
+        "descricao": "Conta bancária"
+      },
+      {
+        "id_campo": "forma_pagamento_id",
+        "external_id_campo": "forma_pagamento_external_id",
+        "tabela_referencia": "forma_de_pagamento",
+        "descricao": "Forma de pagamento"
+      },
+      {
+        "id_campo": "cliente_id",
+        "external_id_campo": "cliente_external_id",
+        "tabela_referencia": "clientes",
+        "descricao": "Cliente (quando entidade=C)"
+      },
+      {
+        "id_campo": "fornecedor_id",
+        "external_id_campo": "fornecedor_external_id",
+        "tabela_referencia": "fornecedores",
+        "descricao": "Fornecedor (quando entidade=F)"
+      },
+      {
+        "id_campo": "transportadora_id",
+        "external_id_campo": "transportadora_external_id",
+        "tabela_referencia": "transportadoras",
+        "descricao": "Transportadora (quando entidade=T)"
+      },
+      {
+        "id_campo": "funcionario_id",
+        "external_id_campo": "funcionario_external_id",
+        "tabela_referencia": "colaboradores",
+        "descricao": "Funcionário (quando entidade=U)"
+      },
+      {
+        "id_campo": "usuario_id",
+        "external_id_campo": "usuario_external_id",
+        "tabela_referencia": "colaboradores",
+        "descricao": "Usuário responsável pelo cadastro"
+      },
+      {
+        "id_campo": "loja_id",
+        "external_id_campo": "loja_external_id",
+        "tabela_referencia": "lojas",
+        "descricao": "Loja/Filial"
+      }
+    ]
+  }
+}
