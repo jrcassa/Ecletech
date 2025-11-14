@@ -638,7 +638,7 @@ const RecebimentoManager = {
         const planoContasId = form.querySelector('#selectPlanoContas')?.value;
         const centroCustoId = form.querySelector('#selectCentroCusto')?.value;
         const contaBancariaId = form.querySelector('#selectContaBancaria')?.value;
-        const formaPagamentoId = form.querySelector('#selectFormaPagamento')?.value;
+        const formaPagamentoId = form.querySelector('#selectFormaRecebimento')?.value;
 
         if (planoContasId) dados.plano_contas_id = parseInt(planoContasId);
         if (centroCustoId) dados.centro_custo_id = parseInt(centroCustoId);
