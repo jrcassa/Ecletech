@@ -1039,19 +1039,77 @@ const VendaFormManager = {
     },
 
     /**
+     * Valida campos obrigatórios e navega para aba com erro
+     */
+    validarCamposObrigatorios() {
+        // Mapeia campos obrigatórios para suas respectivas abas
+        const camposPorAba = {
+            'geral': ['dataVenda', 'codigo', 'situacaoVendaId'],
+            'itens': [],  // Validação especial para itens
+            'pagamentos': [],  // Validação especial para pagamentos
+            'endereco': [],  // Campos de endereço são condicionais
+            'observacoes': []
+        };
+
+        // Verifica cada aba
+        for (const [aba, campos] of Object.entries(camposPorAba)) {
+            for (const campoId of campos) {
+                const campo = document.getElementById(campoId);
+                if (campo && campo.hasAttribute('required') && !campo.value.trim()) {
+                    // Navega para a aba com erro
+                    this.navegarParaAba(aba);
+                    campo.focus();
+
+                    // Obtém o label do campo
+                    const label = document.querySelector(`label[for="${campoId}"]`);
+                    const nomeCampo = label ? label.textContent.replace('*', '').trim() : campoId;
+
+                    Utils.Notificacao.erro(`O campo "${nomeCampo}" é obrigatório`);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    },
+
+    /**
+     * Navega para uma aba específica
+     */
+    navegarParaAba(nomeAba) {
+        // Remove active de todas as abas
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // Ativa a aba desejada
+        const botaoAba = document.querySelector(`.tab-button[data-tab="${nomeAba}"]`);
+        const conteudoAba = document.getElementById('tab' + nomeAba.charAt(0).toUpperCase() + nomeAba.slice(1));
+
+        if (botaoAba) botaoAba.classList.add('active');
+        if (conteudoAba) conteudoAba.classList.add('active');
+    },
+
+    /**
      * Salva a venda
      */
     async salvar(e) {
         e.preventDefault();
 
         try {
+            // Validação de campos obrigatórios
+            if (!this.validarCamposObrigatorios()) {
+                return;
+            }
+
             // Validação básica
             if (this.state.itens.length === 0) {
+                this.navegarParaAba('itens');
                 Utils.Notificacao.erro('Adicione pelo menos um item à venda');
                 return;
             }
 
             if (this.state.pagamentos.length === 0) {
+                this.navegarParaAba('pagamentos');
                 Utils.Notificacao.erro('Adicione pelo menos uma forma de pagamento');
                 return;
             }
