@@ -43,11 +43,17 @@ class MiddlewareCsrf
         // Remove query string para obter apenas o path
         $path = parse_url($requestUri, PHP_URL_PATH);
 
-        // Remove prefixos comuns para normalizar a rota
-        // Suporta instalações em subdiretórios (ex: /ecletech_v2/public_html/api/...)
-        // Também suporta instalação na raiz (/public_html/api/...)
-        $path = preg_replace('#^/[^/]*/public_html/api#', '', $path); // Remove /qualquer-coisa/public_html/api
-        $path = preg_replace('#^/public_html/api#', '', $path);        // Remove /public_html/api (fallback)
+        // Remove tudo até /public_html/api (inclusive) usando regex
+        // Funciona independente do que vier antes:
+        // - /ecletech_v2/public_html/api/auth/login → /auth/login
+        // - /qualquer/coisa/public_html/api/auth/login → /auth/login
+        // - /public_html/api/auth/login → /auth/login
+        $path = preg_replace('#^.*?/public_html/api#', '', $path);
+
+        // Se ainda não começar com /, adiciona (para casos onde não há /public_html/api)
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
 
         // Normaliza path removendo trailing slash (exceto para root)
         if ($path !== '/' && str_ends_with($path, '/')) {
