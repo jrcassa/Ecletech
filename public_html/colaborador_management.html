@@ -162,12 +162,12 @@
                             </div>
                         </div>
 
-                        <div id="loadingPermissions" class="loading-container">
+                        <div id="loadingPermissoes" class="loading-container">
                             <div class="spinner"></div>
                         </div>
 
-                        <div id="errorPermissions" style="display: none;">
-                            <div class="error-message" id="errorMessagePermissions"></div>
+                        <div id="errorPermissoes" style="display: none;">
+                            <div class="error-message" id="errorMessagePermissoes"></div>
                         </div>
 
                         <table id="tablePermissoes" style="display: none;">
@@ -297,29 +297,37 @@
 
                 <div class="form-group">
                     <label for="permissaoNome">Nome *</label>
-                    <input type="text" id="permissaoNome" required placeholder="ex: colaboradores.view">
+                    <input type="text" id="permissaoNome" required placeholder="Nome da permissão">
+                </div>
+
+                <div class="form-group">
+                    <label for="permissaoCodigo">Código *</label>
+                    <input type="text" id="permissaoCodigo" required placeholder="ex: colaboradores.view">
                 </div>
 
                 <div class="form-group">
                     <label for="permissaoDescricao">Descrição</label>
-                    <textarea id="permissaoDescricao" rows="3"></textarea>
+                    <textarea id="permissaoDescricao" rows="3" placeholder="Descrição da permissão"></textarea>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="permissaoRecurso">Recurso *</label>
-                        <input type="text" id="permissaoRecurso" required placeholder="ex: colaboradores">
+                        <label for="permissaoModulo">Módulo</label>
+                        <select id="permissaoModulo">
+                            <option value="geral">Geral</option>
+                            <option value="vendas">Vendas</option>
+                            <option value="financeiro">Financeiro</option>
+                            <option value="estoque">Estoque</option>
+                            <option value="rh">RH</option>
+                            <option value="relatorios">Relatórios</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="permissaoAcao">Ação *</label>
-                        <select id="permissaoAcao" required>
-                            <option value="">Selecione...</option>
-                            <option value="view">Visualizar</option>
-                            <option value="create">Criar</option>
-                            <option value="edit">Editar</option>
-                            <option value="delete">Deletar</option>
-                            <option value="manage">Gerenciar</option>
+                        <label for="permissaoAtivo">Status</label>
+                        <select id="permissaoAtivo">
+                            <option value="1">Ativo</option>
+                            <option value="0">Inativo</option>
                         </select>
                     </div>
                 </div>
