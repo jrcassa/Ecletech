@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS vendas (
     CONSTRAINT fk_vendas_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_vendedor FOREIGN KEY (vendedor_id) REFERENCES colaboradores(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_tecnico FOREIGN KEY (tecnico_id) REFERENCES colaboradores(id) ON DELETE SET NULL,
-    CONSTRAINT fk_vendas_situacao FOREIGN KEY (situacao_venda_id) REFERENCES situacao_venda(id) ON DELETE SET NULL,
+    CONSTRAINT fk_vendas_situacao FOREIGN KEY (situacao_venda_id) REFERENCES situacoes_vendas(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_transportadora FOREIGN KEY (transportadora_id) REFERENCES transportadoras(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_centro_custo FOREIGN KEY (centro_custo_id) REFERENCES centro_custo(id) ON DELETE SET NULL,
     CONSTRAINT fk_vendas_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE SET NULL,
