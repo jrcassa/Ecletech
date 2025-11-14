@@ -56,15 +56,18 @@ const API = {
     },
 
     getCsrfToken() {
-        return sessionStorage.getItem(this.csrfTokenKey);
+        // Mudança de sessionStorage para localStorage para compartilhar entre tabs
+        return localStorage.getItem(this.csrfTokenKey);
     },
 
     setCsrfToken(token) {
-        sessionStorage.setItem(this.csrfTokenKey, token);
+        // Mudança de sessionStorage para localStorage para compartilhar entre tabs
+        localStorage.setItem(this.csrfTokenKey, token);
     },
 
     deleteCsrfToken() {
-        sessionStorage.removeItem(this.csrfTokenKey);
+        // Mudança de sessionStorage para localStorage para compartilhar entre tabs
+        localStorage.removeItem(this.csrfTokenKey);
     },
 
     async fetchCsrfToken() {
@@ -172,9 +175,18 @@ const API = {
                     return false;
                 }
 
+                // Retry automático para erros CSRF
                 if (response.status === 403 && data && data.erro &&
                     (data.erro.includes('CSRF') || data.erro.includes('csrf'))) {
                     this.deleteCsrfToken();
+
+                    // Tentar novamente uma vez com novo token
+                    const retryAttempt = options._csrfRetry || 0;
+                    if (retryAttempt < 1) {
+                        console.log('Erro CSRF detectado. Tentando novamente com novo token...');
+                        const newOptions = { ...options, _csrfRetry: retryAttempt + 1 };
+                        return this.request(endpoint, newOptions);
+                    }
                 }
 
                 // Erros 422 (validação) não mostram toast aqui - deixa o código chamador tratar
@@ -294,9 +306,18 @@ const API = {
                     data
                 };
 
+                // Retry automático para erros CSRF
                 if (response.status === 403 && data && data.erro &&
                     (data.erro.includes('CSRF') || data.erro.includes('csrf'))) {
                     this.deleteCsrfToken();
+
+                    // Tentar novamente uma vez com novo token
+                    const retryAttempt = options._csrfRetry || 0;
+                    if (retryAttempt < 1) {
+                        console.log('Erro CSRF detectado em FormData. Tentando novamente com novo token...');
+                        const newOptions = { ...options, _csrfRetry: retryAttempt + 1 };
+                        return this.postFormData(endpoint, formData, newOptions);
+                    }
                 }
 
                 throw error;
@@ -417,6 +438,16 @@ const API = {
         });
     }
 };
+
+// Sincronização automática de tokens CSRF entre tabs
+window.addEventListener('storage', (event) => {
+    // Detecta quando o token CSRF foi atualizado em outra tab
+    if (event.key === API.csrfTokenKey && event.newValue !== event.oldValue) {
+        console.log('Token CSRF atualizado em outra tab. Sincronizando...');
+        // O token já foi atualizado no localStorage automaticamente
+        // Este evento apenas notifica para possíveis ações adicionais
+    }
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (API.isAuthenticated()) {
