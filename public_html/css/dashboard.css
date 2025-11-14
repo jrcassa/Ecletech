@@ -7,27 +7,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     background: var(--bg-secondary, #fff);
-    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    border-bottom: 1px solid var(--border-color, #e0e6ed);
     gap: 1rem;
     flex-wrap: wrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .header-left {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: center;
     flex: 1;
 }
 
 .header-left h1 {
     margin: 0;
-    font-size: 1.5rem;
-    color: var(--text-primary, #333);
+    font-size: 1.25rem;
+    color: var(--text-primary, #2c3e50);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-weight: 600;
 }
 
 .dashboard-selector {
@@ -47,43 +49,44 @@
 
 /* GridStack Container */
 .grid-stack {
-    padding: 2rem;
-    min-height: calc(100vh - 200px);
-    background: var(--bg-primary, #f5f5f5);
+    padding: 1.25rem;
+    min-height: calc(100vh - 150px);
+    background: var(--bg-primary, #f7f8fa);
 }
 
 /* Widget Base */
 .widget {
     background: var(--bg-secondary, #fff);
-    border: 1px solid var(--border-color, #e0e0e0);
+    border: 1px solid var(--border-color, #e0e6ed);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    transition: box-shadow 0.2s;
+    transition: all 0.25s ease;
 }
 
 .widget:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border-color: #cbd5e0;
 }
 
 .widget-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color, #f0f2f5);
     cursor: move;
-    background: var(--bg-tertiary, #fafafa);
+    background: var(--bg-tertiary, #fafbfc);
 }
 
 .widget-header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: var(--text-primary, #333);
+    color: var(--text-primary, #2c3e50);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -103,15 +106,17 @@
     justify-content: center;
     border: none;
     background: transparent;
-    color: var(--text-secondary, #666);
+    color: var(--text-secondary, #8492a6);
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.2s;
+    font-size: 0.85rem;
 }
 
 .widget-actions .btn-icon:hover {
-    background: var(--bg-primary, #f0f0f0);
+    background: var(--bg-primary, #f0f3f7);
     color: var(--primary-color, #3498db);
+    transform: scale(1.05);
 }
 
 .widget-body {
@@ -169,10 +174,10 @@
 
 .widget-footer {
     padding: 0.5rem 1rem;
-    border-top: 1px solid var(--border-color, #e0e0e0);
-    font-size: 0.85rem;
-    color: var(--text-muted, #999);
-    background: var(--bg-tertiary, #fafafa);
+    border-top: 1px solid var(--border-color, #f0f2f5);
+    font-size: 0.7rem;
+    color: var(--text-muted, #95a5a6);
+    background: var(--bg-tertiary, #fafbfc);
 }
 
 /* Catálogo Sidebar */

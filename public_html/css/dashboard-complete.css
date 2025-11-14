@@ -7,43 +7,47 @@
 .btn-primary,
 .btn-secondary,
 .btn-icon {
-    padding: 0.625rem 1.25rem;
+    padding: 0.5rem 1rem;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     transition: all 0.2s;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     text-decoration: none;
 }
 
 .btn-primary {
     background: #3498db;
     color: white;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
 }
 
 .btn-primary:hover {
     background: #2980b9;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .btn-secondary {
     background: #95a5a6;
     color: white;
+    box-shadow: 0 2px 4px rgba(149, 165, 166, 0.2);
 }
 
 .btn-secondary:hover {
     background: #7f8c8d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
 
 .btn-icon {
     padding: 0.5rem;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     justify-content: center;
 }
 
@@ -130,7 +134,7 @@ input[type="color"].form-control {
 .main-content {
     margin-left: 0;
     min-height: 100vh;
-    background: #f5f5f5;
+    background: #f7f8fa;
     transition: margin-left 0.3s;
 }
 
@@ -138,6 +142,20 @@ input[type="color"].form-control {
     .main-content {
         margin-left: 260px;
     }
+}
+
+/* Melhorias no GridStack para melhor aproveitamento de espaço */
+.grid-stack {
+    gap: 1rem;
+}
+
+.grid-stack > .grid-stack-item {
+    min-width: 8.33%;
+}
+
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+    inset: 0;
+    overflow: visible;
 }
 
 /* Loading State */
@@ -169,30 +187,34 @@ input[type="color"].form-control {
     font-size: 0.9rem;
 }
 
-/* Ajustes CSS Variables Fallback */
+/* Ajustes CSS Variables Fallback - Paleta Profissional */
 :root {
-    --bg-primary: #f5f5f5;
+    --bg-primary: #f7f8fa;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #fafafa;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --text-muted: #999999;
-    --border-color: #e0e0e0;
+    --bg-tertiary: #fafbfc;
+    --text-primary: #2c3e50;
+    --text-secondary: #6c7a89;
+    --text-muted: #95a5a6;
+    --border-color: #e0e6ed;
+    --border-light: #f0f2f5;
     --primary-color: #3498db;
+    --primary-dark: #2980b9;
     --danger-color: #e74c3c;
-    --success-color: #2ecc71;
+    --success-color: #27ae60;
     --warning-color: #f39c12;
+    --info-color: #3498db;
 }
 
 /* Dark Theme Support */
 [data-theme="dark"] {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --bg-tertiary: #242424;
-    --text-primary: #e0e0e0;
-    --text-secondary: #b0b0b0;
-    --text-muted: #808080;
-    --border-color: #3d3d3d;
+    --bg-primary: #1a1d23;
+    --bg-secondary: #252a31;
+    --bg-tertiary: #2d3139;
+    --text-primary: #e4e7eb;
+    --text-secondary: #b8c2cc;
+    --text-muted: #8492a6;
+    --border-color: #3d4450;
+    --border-light: #353b45;
 }
 
 /* Melhorias de Acessibilidade */
