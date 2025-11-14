@@ -127,6 +127,10 @@ $router->grupo([
     $rotasSituacaoVenda = require __DIR__ . '/situacao_venda.php';
     $rotasSituacaoVenda($router);
 
+    // Inclui rotas de vendas
+    $rotasVenda = require __DIR__ . '/venda.php';
+    $rotasVenda($router);
+
     // Inclui rotas de tipos de endereços
     $rotasTipoEndereco = require __DIR__ . '/tipo_endereco.php';
     $rotasTipoEndereco($router);
