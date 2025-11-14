@@ -124,11 +124,11 @@ class ControllerRole extends BaseController
 
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
-                'nome' => ['obrigatorio', 'string', 'max:100'],
-                'codigo' => ['obrigatorio', 'string', 'max:50'],
-                'descricao' => ['string'],
-                'nivel_id' => ['obrigatorio', 'inteiro'],
-                'ativo' => ['inteiro']
+                'nome' => 'obrigatorio|string|max:100',
+                'codigo' => 'obrigatorio|string|max:50',
+                'descricao' => 'string',
+                'nivel_id' => 'obrigatorio|inteiro',
+                'ativo' => 'inteiro'
             ]);
 
             if (!empty($erros)) {
@@ -174,11 +174,11 @@ class ControllerRole extends BaseController
 
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
-                'nome' => ['string', 'max:100'],
-                'codigo' => ['string', 'max:50'],
-                'descricao' => ['string'],
-                'nivel_id' => ['inteiro'],
-                'ativo' => ['inteiro']
+                'nome' => 'string|max:100',
+                'codigo' => 'string|max:50',
+                'descricao' => 'string',
+                'nivel_id' => 'inteiro',
+                'ativo' => 'inteiro'
             ]);
 
             if (!empty($erros)) {

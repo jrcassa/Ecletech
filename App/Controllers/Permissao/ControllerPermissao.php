@@ -101,11 +101,11 @@ class ControllerPermissao extends BaseController
 
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
-                'nome' => ['obrigatorio', 'string', 'max:100'],
-                'codigo' => ['obrigatorio', 'string', 'max:100'],
-                'descricao' => ['string'],
-                'modulo' => ['string', 'max:50'],
-                'ativo' => ['inteiro']
+                'nome' => 'obrigatorio|string|max:100',
+                'codigo' => 'obrigatorio|string|max:100',
+                'descricao' => 'string',
+                'modulo' => 'string|max:50',
+                'ativo' => 'inteiro'
             ]);
 
             if (!empty($erros)) {
@@ -150,11 +150,11 @@ class ControllerPermissao extends BaseController
 
             // Validação
             $erros = AuxiliarValidacao::validar($dados, [
-                'nome' => ['string', 'max:100'],
-                'codigo' => ['string', 'max:100'],
-                'descricao' => ['string'],
-                'modulo' => ['string', 'max:50'],
-                'ativo' => ['inteiro']
+                'nome' => 'string|max:100',
+                'codigo' => 'string|max:100',
+                'descricao' => 'string',
+                'modulo' => 'string|max:50',
+                'ativo' => 'inteiro'
             ]);
 
             if (!empty($erros)) {
