@@ -157,7 +157,7 @@ const PagamentoManager = {
                 API.get('/cliente?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/fornecedor?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/transportadora?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
-                API.get('/colaborador?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
+                API.get('/colaboradores?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/plano-de-contas?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/centro-de-custo?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
                 API.get('/conta-bancaria?ativo=1&por_pagina=1000').catch(() => ({ dados: { itens: [] } })),
