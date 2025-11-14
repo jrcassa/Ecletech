@@ -177,6 +177,12 @@ const API = {
                     this.deleteCsrfToken();
                 }
 
+                // Erros 422 (validação) não mostram toast aqui - deixa o código chamador tratar
+                if (response.status === 422) {
+                    // Retornar os dados para que o código chamador possa tratar os erros de validação
+                    return data;
+                }
+
                 if (data && data.erro) {
                     this.showError(data.erro);
                 } else if (data && data.mensagem) {
@@ -332,6 +338,8 @@ const API = {
                 return 'Acesso negado.';
             case 404:
                 return 'Recurso não encontrado.';
+            case 422:
+                return 'Erro de validação. Verifique os campos.';
             case 500:
                 return 'Erro no servidor. Tente novamente mais tarde.';
             default:
@@ -339,12 +347,74 @@ const API = {
         }
     },
 
+    createToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) {
+            // Fallback para alert se não houver container
+            alert(message);
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info} toast-icon"></i>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close">&times;</button>
+        `;
+
+        container.appendChild(toast);
+
+        // Animar entrada
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Fechar ao clicar no X
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => this.closeToast(toast));
+
+        // Auto fechar após 5 segundos
+        setTimeout(() => this.closeToast(toast), 5000);
+    },
+
+    closeToast(toast) {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    },
+
     showSuccess(message) {
-        alert(message); // Pode ser substituído por um toast mais elaborado
+        this.createToast(message, 'success');
     },
 
     showError(message) {
-        alert(message); // Pode ser substituído por um toast mais elaborado
+        this.createToast(message, 'error');
+    },
+
+    showWarning(message) {
+        this.createToast(message, 'warning');
+    },
+
+    showInfo(message) {
+        this.createToast(message, 'info');
+    },
+
+    showValidationErrors(errors) {
+        if (!errors || typeof errors !== 'object') return;
+
+        // Mostrar cada erro de validação
+        Object.entries(errors).forEach(([field, messages]) => {
+            const errorMessages = Array.isArray(messages) ? messages : [messages];
+            errorMessages.forEach(msg => {
+                this.showError(msg);
+            });
+        });
     }
 };
 
