@@ -33,5 +33,9 @@ return function($router) {
         // POST /venda/{id}/situacao-financeira - Atualizar situação financeira
         $router->post('/{id}/situacao-financeira', [ControllerVenda::class, 'atualizarSituacaoFinanceira'])
             ->middleware(MiddlewareAcl::requer('venda.editar'));
+
+        // POST /venda/{id}/recalcular-totais - Recalcular totais da venda
+        $router->post('/{id}/recalcular-totais', [ControllerVenda::class, 'recalcularTotais'])
+            ->middleware(MiddlewareAcl::requer('venda.editar'));
     });
 };
