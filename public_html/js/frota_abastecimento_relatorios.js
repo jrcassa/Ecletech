@@ -135,7 +135,8 @@ async function carregarConfiguracoes() {
         const response = await API.get('/frota-abastecimento-relatorios/minhas-configuracoes');
 
         if (response.sucesso) {
-            AppState.configuracoes = response.dados || [];
+            // Garantir que sempre seja um array
+            AppState.configuracoes = Array.isArray(response.dados) ? response.dados : [];
             renderizarConfiguracoes();
         } else {
             throw new Error(response.mensagem || 'Erro ao carregar configurações');
@@ -354,7 +355,8 @@ async function carregarHistorico(pagina = 1) {
         const response = await API.get(`/frota-abastecimento-relatorios/historico?${params}`);
 
         if (response.sucesso) {
-            AppState.historico = response.dados || [];
+            // Garantir que sempre seja um array
+            AppState.historico = Array.isArray(response.dados) ? response.dados : [];
             AppState.paginaAtual = response.paginacao?.pagina_atual || 1;
             AppState.totalItens = response.paginacao?.total || 0;
             renderizarHistorico();
@@ -585,7 +587,8 @@ async function carregarSnapshots() {
         const response = await API.get(`/frota-abastecimento-relatorios/snapshots?${params}`);
 
         if (response.sucesso) {
-            AppState.snapshots = response.dados || [];
+            // Garantir que sempre seja um array
+            AppState.snapshots = Array.isArray(response.dados) ? response.dados : [];
             renderizarSnapshots();
         } else {
             throw new Error(response.mensagem || 'Erro ao carregar snapshots');
@@ -933,9 +936,36 @@ function renderizarStatusBadge(status) {
 }
 
 function showNotification(message, type = 'info') {
-    // Implementação simples de notificação
-    // Você pode substituir por uma biblioteca de toast/notification
-    alert(message);
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+
+    const icon = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    }[type] || 'fa-info-circle';
+
+    notification.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    // Adicionar ao body
+    document.body.appendChild(notification);
+
+    // Animação de entrada
+    setTimeout(() => notification.classList.add('show'), 10);
+
+    // Remover automaticamente após 5 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
 }
 
 // Fechar modais ao clicar fora
