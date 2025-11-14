@@ -8,15 +8,15 @@
 -- PERMISSÕES DO MÓDULO VENDAS
 -- ========================================
 
-INSERT INTO colaborador_permissions (modulo, acao, descricao, ativo) VALUES
-('venda', 'listar', 'Listar vendas', 1),
-('venda', 'visualizar', 'Visualizar detalhes de uma venda', 1),
-('venda', 'criar', 'Criar nova venda', 1),
-('venda', 'atualizar', 'Atualizar venda existente', 1),
-('venda', 'deletar', 'Deletar venda', 1),
-('venda', 'exportar', 'Exportar vendas para Excel/PDF', 1),
-('venda', 'imprimir', 'Imprimir venda/pedido', 1),
-('venda', 'importar', 'Importar vendas de sistema externo', 1)
+INSERT INTO colaborador_permissions (nome, codigo, descricao, modulo, ativo, criado_em) VALUES
+('Listar Vendas', 'venda.listar', 'Listar vendas', 'venda', 1, NOW()),
+('Visualizar Venda', 'venda.visualizar', 'Visualizar detalhes de uma venda', 'venda', 1, NOW()),
+('Criar Venda', 'venda.criar', 'Criar nova venda', 'venda', 1, NOW()),
+('Editar Venda', 'venda.editar', 'Atualizar venda existente', 'venda', 1, NOW()),
+('Deletar Venda', 'venda.deletar', 'Deletar venda', 'venda', 1, NOW()),
+('Exportar Vendas', 'venda.exportar', 'Exportar vendas para Excel/PDF', 'venda', 1, NOW()),
+('Imprimir Venda', 'venda.imprimir', 'Imprimir venda/pedido', 'venda', 1, NOW()),
+('Importar Vendas', 'venda.importar', 'Importar vendas de sistema externo', 'venda', 1, NOW())
 ON DUPLICATE KEY UPDATE
     descricao = VALUES(descricao),
     ativo = VALUES(ativo);
