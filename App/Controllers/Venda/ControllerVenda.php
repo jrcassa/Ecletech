@@ -92,7 +92,7 @@ class ControllerVenda extends BaseController
             }
 
             // Obtém ID do usuário autenticado
-            $usuarioId = $this->obterUsuarioId();
+            $usuarioId = $this->obterIdUsuarioAutenticado();
 
             // Delega para o Service (validações complexas + transação)
             $venda = $this->service->criarVendaCompleta($dados, $usuarioId);
@@ -116,7 +116,7 @@ class ControllerVenda extends BaseController
             $dados = $this->obterDados();
 
             // Obtém ID do usuário autenticado
-            $usuarioId = $this->obterUsuarioId();
+            $usuarioId = $this->obterIdUsuarioAutenticado();
 
             // Delega para o Service
             $venda = $this->service->atualizarVendaCompleta((int) $id, $dados, $usuarioId);
@@ -138,7 +138,7 @@ class ControllerVenda extends BaseController
             }
 
             // Obtém ID do usuário autenticado
-            $usuarioId = $this->obterUsuarioId();
+            $usuarioId = $this->obterIdUsuarioAutenticado();
 
             // Deleta via Service
             $this->service->deletarVenda((int) $id, $usuarioId);

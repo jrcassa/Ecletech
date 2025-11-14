@@ -509,11 +509,11 @@
                         </div>
 
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="clienteId">Cliente</label>
-                                <select id="clienteId">
-                                    <option value="">Selecione...</option>
-                                </select>
+                            <div class="form-group" style="position: relative;">
+                                <label for="clienteNome">Cliente</label>
+                                <input type="text" id="clienteNome" placeholder="Digite para buscar..." autocomplete="off">
+                                <input type="hidden" id="clienteId">
+                                <div id="clienteAutocompleteList" class="autocomplete-list" style="display: none; position: absolute; z-index: 1000; background: var(--card-bg); border: 1px solid var(--border-color); max-height: 200px; overflow-y: auto; width: calc(100% - 24px); border-radius: 6px; box-shadow: 0 4px 12px var(--shadow-color); margin-top: 4px;"></div>
                             </div>
                             <div class="form-group">
                                 <label for="vendedorId">Vendedor</label>
