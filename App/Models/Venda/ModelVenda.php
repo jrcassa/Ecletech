@@ -375,7 +375,13 @@ class ModelVenda
             }
         }
 
+        // Log para debug
+        error_log("ModelVenda::atualizar (id=$id) - Dados a atualizar: " . json_encode($dadosUpdate));
+
         $sucesso = $this->db->atualizar('vendas', $dadosUpdate, "id = ?", [$id]);
+
+        // Log para debug
+        error_log("ModelVenda::atualizar (id=$id) - Sucesso: " . ($sucesso ? 'true' : 'false'));
 
         if ($sucesso) {
             // Registra auditoria
@@ -516,6 +522,9 @@ class ModelVenda
         $descontoValor = (float) ($venda['desconto_valor'] ?? 0);
 
         $valorTotal = $valorProdutos + $valorServicos + $valorFrete - $descontoValor;
+
+        // Log para debug
+        error_log("calcularTotais (venda_id=$vendaId): produtos=$valorProdutos, servicos=$valorServicos, frete=$valorFrete, desconto=$descontoValor, total=$valorTotal");
 
         return [
             'valor_produtos' => $valorProdutos,

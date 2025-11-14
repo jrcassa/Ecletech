@@ -470,11 +470,17 @@ class ServiceVenda
     {
         $totais = $this->vendaModel->calcularTotais($vendaId);
 
-        $this->vendaModel->atualizar($vendaId, [
+        // Log para debug
+        error_log("Recalculando venda ID $vendaId - Totais calculados: " . json_encode($totais));
+
+        $resultado = $this->vendaModel->atualizar($vendaId, [
             'valor_produtos' => $totais['valor_produtos'],
             'valor_servicos' => $totais['valor_servicos'],
             'valor_total' => $totais['valor_total']
         ]);
+
+        // Log para debug
+        error_log("Atualização retornou: " . ($resultado ? 'true' : 'false'));
 
         return $totais;
     }

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Vendas</title>
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .debug-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+        }
+        pre {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        input, button {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        button {
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug de Vendas</h1>
+
+    <div>
+        <label>ID da Venda: </label>
+        <input type="number" id="vendaId" value="1" min="1">
+        <button onclick="debugarVenda()">Debugar</button>
+        <button onclick="listarTodasVendas()">Listar Todas</button>
+    </div>
+
+    <div id="resultado"></div>
+
+    <script>
+        async function debugarVenda() {
+            const vendaId = document.getElementById('vendaId').value;
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '<p>Carregando...</p>';
+
+            if (!AuthAPI.isAuthenticated()) {
+                alert('Você precisa estar autenticado');
+                window.location.href = './auth.html';
+                return;
+            }
+
+            let html = '';
+
+            try {
+                // 1. Busca venda completa
+                html += '<div class="debug-section">';
+                html += '<h3>1. Dados da Venda Completa (GET /venda/' + vendaId + ')</h3>';
+
+                const vendaResponse = await API.get(`/venda/${vendaId}`);
+
+                if (!vendaResponse.sucesso) {
+                    html += '<p class="error">❌ Erro ao buscar venda: ' + vendaResponse.mensagem + '</p>';
+                    html += '<pre>' + JSON.stringify(vendaResponse, null, 2) + '</pre>';
+                } else {
+                    const venda = vendaResponse.dados;
+                    html += '<p class="success">✓ Venda encontrada</p>';
+                    html += '<p><strong>Código:</strong> ' + venda.codigo + '</p>';
+                    html += '<p><strong>valor_total no banco:</strong> R$ ' + parseFloat(venda.valor_total || 0).toFixed(2) + '</p>';
+                    html += '<p><strong>valor_frete:</strong> R$ ' + parseFloat(venda.valor_frete || 0).toFixed(2) + '</p>';
+                    html += '<p><strong>desconto_valor:</strong> R$ ' + parseFloat(venda.desconto_valor || 0).toFixed(2) + '</p>';
+                    html += '<p><strong>Número de itens:</strong> ' + (venda.itens ? venda.itens.length : 0) + '</p>';
+
+                    // Calcula total dos itens
+                    if (venda.itens && venda.itens.length > 0) {
+                        html += '<h4>Itens:</h4>';
+                        let totalItens = 0;
+                        venda.itens.forEach((item, idx) => {
+                            const valorTotal = parseFloat(item.valor_total || 0);
+                            totalItens += valorTotal;
+                            html += '<p>Item ' + (idx + 1) + ': ' + (item.nome || '-') +
+                                   ' - Qtd: ' + item.quantidade +
+                                   ' - Unit: R$ ' + parseFloat(item.valor_venda || 0).toFixed(2) +
+                                   ' - Total: R$ ' + valorTotal.toFixed(2) + '</p>';
+                        });
+
+                        const valorCalculado = totalItens + parseFloat(venda.valor_frete || 0) - parseFloat(venda.desconto_valor || 0);
+
+                        html += '<p><strong>CÁLCULO MANUAL:</strong></p>';
+                        html += '<p>Soma dos itens: R$ ' + totalItens.toFixed(2) + '</p>';
+                        html += '<p>+ Frete: R$ ' + parseFloat(venda.valor_frete || 0).toFixed(2) + '</p>';
+                        html += '<p>- Desconto: R$ ' + parseFloat(venda.desconto_valor || 0).toFixed(2) + '</p>';
+                        html += '<p><strong>= Valor esperado: R$ ' + valorCalculado.toFixed(2) + '</strong></p>';
+
+                        if (Math.abs(parseFloat(venda.valor_total) - valorCalculado) > 0.01) {
+                            html += '<p class="error">❌ DIVERGÊNCIA! O valor_total no banco está diferente do calculado!</p>';
+                        } else {
+                            html += '<p class="success">✓ Valores conferem!</p>';
+                        }
+                    } else {
+                        html += '<p class="warning">⚠️ Nenhum item encontrado!</p>';
+                    }
+
+                    html += '<details><summary>Ver JSON completo</summary>';
+                    html += '<pre>' + JSON.stringify(venda, null, 2) + '</pre>';
+                    html += '</details>';
+                }
+                html += '</div>';
+
+                // 2. Testa recálculo
+                html += '<div class="debug-section">';
+                html += '<h3>2. Teste de Recálculo (POST /venda/' + vendaId + '/recalcular-totais)</h3>';
+
+                try {
+                    const recalculoResponse = await API.post(`/venda/${vendaId}/recalcular-totais`, {});
+
+                    if (!recalculoResponse.sucesso) {
+                        html += '<p class="error">❌ Erro ao recalcular: ' + recalculoResponse.mensagem + '</p>';
+                    } else {
+                        const totais = recalculoResponse.dados;
+                        html += '<p class="success">✓ Recálculo executado</p>';
+                        html += '<p><strong>valor_produtos:</strong> R$ ' + parseFloat(totais.valor_produtos || 0).toFixed(2) + '</p>';
+                        html += '<p><strong>valor_servicos:</strong> R$ ' + parseFloat(totais.valor_servicos || 0).toFixed(2) + '</p>';
+                        html += '<p><strong>valor_total:</strong> R$ ' + parseFloat(totais.valor_total || 0).toFixed(2) + '</p>';
+                    }
+                    html += '<pre>' + JSON.stringify(recalculoResponse, null, 2) + '</pre>';
+                } catch (error) {
+                    html += '<p class="error">❌ Erro: ' + error.message + '</p>';
+                }
+                html += '</div>';
+
+                // 3. Busca novamente para verificar se atualizou
+                html += '<div class="debug-section">';
+                html += '<h3>3. Verificação Pós-Recálculo (GET /venda/' + vendaId + ')</h3>';
+
+                const vendaResponse2 = await API.get(`/venda/${vendaId}`);
+
+                if (!vendaResponse2.sucesso) {
+                    html += '<p class="error">❌ Erro ao buscar venda</p>';
+                } else {
+                    const venda2 = vendaResponse2.dados;
+                    html += '<p><strong>valor_total APÓS recálculo:</strong> R$ ' + parseFloat(venda2.valor_total || 0).toFixed(2) + '</p>';
+
+                    if (vendaResponse.sucesso) {
+                        const valorAntes = parseFloat(vendaResponse.dados.valor_total || 0);
+                        const valorDepois = parseFloat(venda2.valor_total || 0);
+
+                        if (Math.abs(valorAntes - valorDepois) > 0.01) {
+                            html += '<p class="success">✓ Valor foi atualizado! (' + valorAntes.toFixed(2) + ' → ' + valorDepois.toFixed(2) + ')</p>';
+                        } else {
+                            html += '<p class="warning">⚠️ Valor não foi alterado (continua ' + valorDepois.toFixed(2) + ')</p>';
+                        }
+                    }
+                }
+                html += '</div>';
+
+            } catch (error) {
+                html += '<div class="debug-section">';
+                html += '<h3 class="error">Erro Fatal</h3>';
+                html += '<p class="error">' + error.message + '</p>';
+                html += '<pre>' + JSON.stringify(error, null, 2) + '</pre>';
+                html += '</div>';
+            }
+
+            resultadoDiv.innerHTML = html;
+        }
+
+        async function listarTodasVendas() {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '<p>Carregando...</p>';
+
+            if (!AuthAPI.isAuthenticated()) {
+                alert('Você precisa estar autenticado');
+                window.location.href = './auth.html';
+                return;
+            }
+
+            try {
+                const response = await API.get('/venda?por_pagina=100');
+
+                if (!response.sucesso) {
+                    resultadoDiv.innerHTML = '<p class="error">Erro ao listar vendas</p>';
+                    return;
+                }
+
+                const vendas = response.dados.itens || [];
+
+                let html = '<div class="debug-section">';
+                html += '<h3>Todas as Vendas</h3>';
+                html += '<table border="1" cellpadding="8" style="width: 100%; border-collapse: collapse;">';
+                html += '<tr><th>ID</th><th>Código</th><th>valor_total</th><th>Itens</th><th>Ações</th></tr>';
+
+                vendas.forEach(venda => {
+                    const valorTotal = parseFloat(venda.valor_total || 0);
+                    const classe = valorTotal === 0 ? 'error' : (valorTotal < 0.01 ? 'warning' : 'success');
+
+                    html += '<tr>';
+                    html += '<td>' + venda.id + '</td>';
+                    html += '<td>' + venda.codigo + '</td>';
+                    html += '<td class="' + classe + '">R$ ' + valorTotal.toFixed(2) + '</td>';
+                    html += '<td>-</td>';
+                    html += '<td><button onclick="document.getElementById(\'vendaId\').value=' + venda.id + '; debugarVenda();">Debug</button></td>';
+                    html += '</tr>';
+                });
+
+                html += '</table>';
+                html += '</div>';
+
+                resultadoDiv.innerHTML = html;
+
+            } catch (error) {
+                resultadoDiv.innerHTML = '<p class="error">Erro: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>
