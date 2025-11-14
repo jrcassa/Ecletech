@@ -3,7 +3,6 @@
  * Gerencia a visualização detalhada de uma venda
  */
 
-const API_URL = '/api';
 let vendaAtual = null;
 
 // Obtém ID da venda da URL
@@ -14,6 +13,12 @@ function obterVendaId() {
 
 // Carrega dados da venda
 async function carregarVenda() {
+    // Verifica autenticação
+    if (!AuthAPI.isAuthenticated()) {
+        window.location.href = './auth.html';
+        return;
+    }
+
     const vendaId = obterVendaId();
 
     if (!vendaId) {
@@ -24,30 +29,21 @@ async function carregarVenda() {
     try {
         mostrarLoading(true);
 
-        const response = await fetch(`${API_URL}/venda/${vendaId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
+        const response = await API.get(`/venda/${vendaId}`);
 
-        if (!response.ok) {
-            throw new Error('Erro ao carregar venda');
-        }
-
-        const data = await response.json();
-
-        if (data.sucesso) {
-            vendaAtual = data.dados;
+        if (response.sucesso && response.dados) {
+            vendaAtual = response.dados;
             renderizarVenda(vendaAtual);
         } else {
-            throw new Error(data.mensagem || 'Erro ao carregar venda');
+            throw new Error(response.mensagem || 'Erro ao carregar venda');
         }
 
     } catch (error) {
         console.error('Erro:', error);
-        mostrarErro(error.message);
+        const mensagemErro = error.data ?
+            Utils.Errors.formatarMensagem(error.data) :
+            (error.message || 'Erro ao carregar venda');
+        mostrarErro(mensagemErro);
     } finally {
         mostrarLoading(false);
     }
