@@ -2274,16 +2274,37 @@
                             <input type="text" id="inputCodigo" placeholder="Ex: 001">
                         </div>
 
-                        <!-- Entidade sempre Cliente (escondido) -->
-                        <input type="hidden" id="inputEntidade" value="C">
+                        <div class="form-group">
+                            <label for="selectEntidadeForm">Tipo <span class="required">*</span></label>
+                            <select id="selectEntidadeForm" required>
+                                <option value="">Selecione...</option>
+                                <option value="C">Cliente</option>
+                                <option value="F">Fornecedor</option>
+                                <option value="T">Transportadora</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Cliente (apenas contas a receber) -->
-                    <div class="form-group">
+                    <!-- Campos de entidades (mostrados condicionalmente) -->
+                    <div id="divCliente" class="form-group" style="display: none;">
                         <label for="inputClienteBusca">Cliente <span class="required">*</span></label>
                         <input type="text" id="inputClienteBusca" placeholder="Digite para buscar..." autocomplete="off">
                         <input type="hidden" id="inputClienteId">
                         <div id="clienteSugestoes" class="autocomplete-suggestions" style="display: none;"></div>
+                    </div>
+
+                    <div id="divFornecedor" class="form-group" style="display: none;">
+                        <label for="inputFornecedorBusca">Fornecedor <span class="required">*</span></label>
+                        <input type="text" id="inputFornecedorBusca" placeholder="Digite para buscar..." autocomplete="off">
+                        <input type="hidden" id="inputFornecedorId">
+                        <div id="fornecedorSugestoes" class="autocomplete-suggestions" style="display: none;"></div>
+                    </div>
+
+                    <div id="divTransportadora" class="form-group" style="display: none;">
+                        <label for="inputTransportadoraBusca">Transportadora <span class="required">*</span></label>
+                        <input type="text" id="inputTransportadoraBusca" placeholder="Digite para buscar..." autocomplete="off">
+                        <input type="hidden" id="inputTransportadoraId">
+                        <div id="transportadoraSugestoes" class="autocomplete-suggestions" style="display: none;"></div>
                     </div>
 
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
