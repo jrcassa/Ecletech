@@ -33,7 +33,7 @@ const RecebimentoManager = {
         },
         editandoId: null,
         recebimentoParaDeletar: null,
-        recebimentoParaLiquidar: null
+        recebimentoParaBaixar: null
     },
 
     elements: {
@@ -50,8 +50,8 @@ const RecebimentoManager = {
         formRecebimento: document.getElementById('formRecebimento'),
         modalConfirm: document.getElementById('modalConfirm'),
         btnConfirmDelete: document.getElementById('btnConfirmDelete'),
-        modalLiquidar: document.getElementById('modalLiquidar'),
-        btnConfirmLiquidar: document.getElementById('btnConfirmLiquidar'),
+        modalBaixar: document.getElementById('modalBaixar'),
+        btnConfirmBaixar: document.getElementById('btnConfirmBaixar'),
         btnFiltrar: document.getElementById('btnFiltrar'),
         btnPrevious: document.getElementById('btnPrevious'),
         btnNext: document.getElementById('btnNext'),
@@ -104,7 +104,7 @@ const RecebimentoManager = {
         this.elements.btnCancelar?.addEventListener('click', () => this.fecharModal());
         this.elements.btnSalvar?.addEventListener('click', () => this.salvar());
         this.elements.btnConfirmDelete?.addEventListener('click', () => this.confirmarDeletar());
-        this.elements.btnConfirmLiquidar?.addEventListener('click', () => this.confirmarLiquidar());
+        this.elements.btnConfirmBaixar?.addEventListener('click', () => this.confirmarBaixar());
         this.elements.btnPrevious?.addEventListener('click', () => this.paginaAnterior());
         this.elements.btnNext?.addEventListener('click', () => this.proximaPagina());
 
@@ -289,7 +289,7 @@ const RecebimentoManager = {
                 acoes += '<button class="btn btn-sm btn-primary" onclick="RecebimentoManager.editar(' + pag.id + ')" title="Editar"><i class="fas fa-edit"></i></button>';
             }
             if (this.state.permissoes.baixar && pag.liquidado == 0) {
-                acoes += '<button class="btn btn-sm btn-primary" onclick="RecebimentoManager.abrirModalLiquidar(' + pag.id + ')" title="Liquidar"><i class="fas fa-check"></i></button>';
+                acoes += '<button class="btn btn-sm btn-primary" onclick="RecebimentoManager.abrirModalBaixar(' + pag.id + ')" title="Baixar"><i class="fas fa-check"></i></button>';
             }
             if (this.state.permissoes.deletar) {
                 acoes += '<button class="btn btn-sm btn-danger" onclick="RecebimentoManager.deletar(' + pag.id + ')" title="Excluir"><i class="fas fa-trash"></i></button>';
@@ -422,24 +422,24 @@ const RecebimentoManager = {
         }
     },
 
-    abrirModalLiquidar(id) {
+    abrirModalBaixar(id) {
         if (!this.state.permissoes.baixar) {
             API.showError('Você não tem permissão para baixar recebimentos');
             return;
         }
 
-        this.state.recebimentoParaLiquidar = id;
+        this.state.recebimentoParaBaixar = id;
         document.getElementById('inputDataLiquidacaoModal').value = new Date().toISOString().split('T')[0];
-        this.elements.modalLiquidar.classList.add('show');
+        this.elements.modalBaixar.classList.add('show');
     },
 
-    fecharModalLiquidar() {
-        this.elements.modalLiquidar.classList.remove('show');
-        this.state.recebimentoParaLiquidar = null;
+    fecharModalBaixar() {
+        this.elements.modalBaixar.classList.remove('show');
+        this.state.recebimentoParaBaixar = null;
     },
 
-    async confirmarLiquidar() {
-        if (!this.state.recebimentoParaLiquidar) return;
+    async confirmarBaixar() {
+        if (!this.state.recebimentoParaBaixar) return;
 
         const dataLiquidacao = document.getElementById('inputDataLiquidacaoModal').value;
         if (!dataLiquidacao) {
@@ -448,13 +448,13 @@ const RecebimentoManager = {
         }
 
         try {
-            const response = await API.post('/recebimento/' + this.state.recebimentoParaLiquidar + '/baixar', {
+            const response = await API.post('/recebimento/' + this.state.recebimentoParaBaixar + '/baixar', {
                 data_liquidacao: dataLiquidacao
             });
 
             if (response.sucesso) {
-                API.showSuccess('Recebimento liquidado com sucesso');
-                this.fecharModalLiquidar();
+                API.showSuccess('Recebimento baixado com sucesso');
+                this.fecharModalBaixar();
                 this.carregarDados();
             } else {
                 API.showError(response.mensagem || 'Erro ao baixar recebimento');
