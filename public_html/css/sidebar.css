@@ -1811,3 +1811,113 @@ form {
         justify-content: center;
     }
 }
+
+/* ============================================================================
+   ESTILOS ESPECÍFICOS PARA MODAIS DE CONTEÚDO
+   ============================================================================ */
+
+.modal-content #detalhesContent,
+.modal-content > div:not(.modal-header) {
+    padding: 24px;
+}
+
+.modal-content #detalhesContent {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* ============================================================================
+   CORREÇÃO PARA TABELAS DENTRO DE TAB-CONTENT
+   ============================================================================ */
+
+.tab-content .card {
+    margin-bottom: 0;
+}
+
+.tab-content .table-container {
+    margin-top: 20px;
+}
+
+/* ============================================================================
+   ESTILOS PARA AUDITORIA
+   ============================================================================ */
+
+.stats-grid {
+    margin-top: 20px;
+}
+
+/* ============================================================================
+   FIX PARA ELEMENTOS HIDDEN/VISIBLE
+   ============================================================================ */
+
+[style*="display: none"] {
+    display: none !important;
+}
+
+[style*="display: block"],
+[style*="display: flex"] {
+    display: block;
+}
+
+.show {
+    display: block;
+}
+
+/* ============================================================================
+   INFO ITEMS (para detalhes de modais)
+   ============================================================================ */
+
+.info-item {
+    background: var(--info-item-bg);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-light);
+}
+
+.info-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
+    display: inline-block;
+    min-width: 140px;
+}
+
+.info-item span {
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   CODE BLOCKS (para JSON e código)
+   ============================================================================ */
+
+pre {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+pre code {
+    display: block;
+    line-height: 1.6;
+}
+
+/* ============================================================================
+   HIDDEN/VISIBLE UTILITIES
+   ============================================================================ */
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
