@@ -486,6 +486,42 @@ class ServiceVenda
     }
 
     /**
+     * Corrige valores de frete/desconto que possam estar zerados incorretamente
+     */
+    public function corrigirValoresVenda(int $vendaId, ?int $usuarioId = null): array
+    {
+        // Busca venda atual
+        $venda = $this->vendaModel->buscarPorId($vendaId);
+        if (!$venda) {
+            throw new \Exception('Venda não encontrada');
+        }
+
+        // Se frete ou desconto estiverem NULL, define como 0
+        $valorFrete = $venda['valor_frete'] ?? 0;
+        $descontoValor = $venda['desconto_valor'] ?? 0;
+
+        // Garante que sejam numéricos
+        $valorFrete = is_numeric($valorFrete) ? (float)$valorFrete : 0;
+        $descontoValor = is_numeric($descontoValor) ? (float)$descontoValor : 0;
+
+        // Atualiza para garantir que os valores não sejam NULL
+        $this->vendaModel->atualizar($vendaId, [
+            'valor_frete' => $valorFrete,
+            'desconto_valor' => $descontoValor
+        ], $usuarioId);
+
+        // Recalcula os totais
+        $totais = $this->recalcularTotaisVenda($vendaId);
+
+        return [
+            'venda_id' => $vendaId,
+            'valor_frete_corrigido' => $valorFrete,
+            'desconto_valor_corrigido' => $descontoValor,
+            'totais' => $totais
+        ];
+    }
+
+    /**
      * Atualiza situação financeira da venda
      */
     public function atualizarSituacaoFinanceira(int $vendaId): void

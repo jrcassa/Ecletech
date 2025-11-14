@@ -378,13 +378,17 @@ class ModelVenda
         // Log para debug
         error_log("ModelVenda::atualizar (id=$id) - Dados a atualizar: " . json_encode($dadosUpdate));
 
-        $sucesso = $this->db->atualizar('vendas', $dadosUpdate, "id = ?", [$id]);
+        $rowsAfetadas = $this->db->atualizar('vendas', $dadosUpdate, "id = ?", [$id]);
 
         // Log para debug
-        error_log("ModelVenda::atualizar (id=$id) - Sucesso: " . ($sucesso ? 'true' : 'false'));
+        error_log("ModelVenda::atualizar (id=$id) - Linhas afetadas: $rowsAfetadas");
 
-        if ($sucesso) {
-            // Registra auditoria
+        // rowsAfetadas = 0 não é erro, significa que os valores já estavam corretos
+        // Considera sucesso se executou sem exception
+        $sucesso = true;
+
+        if ($rowsAfetadas > 0) {
+            // Registra auditoria apenas se houve mudança
             $this->auditoria->registrar(
                 'atualizar',
                 'venda',

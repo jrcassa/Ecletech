@@ -184,4 +184,23 @@ class ControllerVenda extends BaseController
             $this->tratarErro($e);
         }
     }
+
+    /**
+     * Corrige valores de frete/desconto zerados e recalcula
+     */
+    public function corrigirValores(string $id): void
+    {
+        try {
+            if (!$this->validarId($id, 'Venda')) {
+                return;
+            }
+
+            $usuarioId = $this->obterIdUsuarioAutenticado();
+            $resultado = $this->service->corrigirValoresVenda((int) $id, $usuarioId);
+
+            $this->sucesso($resultado, 'Valores corrigidos com sucesso');
+        } catch (\Exception $e) {
+            $this->tratarErro($e);
+        }
+    }
 }

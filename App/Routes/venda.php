@@ -37,5 +37,9 @@ return function($router) {
         // POST /venda/{id}/recalcular-totais - Recalcular totais da venda
         $router->post('/{id}/recalcular-totais', [ControllerVenda::class, 'recalcularTotais'])
             ->middleware(MiddlewareAcl::requer('venda.editar'));
+
+        // POST /venda/{id}/corrigir-valores - Corrige frete/desconto e recalcula
+        $router->post('/{id}/corrigir-valores', [ControllerVenda::class, 'corrigirValores'])
+            ->middleware(MiddlewareAcl::requer('venda.editar'));
     });
 };
