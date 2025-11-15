@@ -251,6 +251,16 @@ const CrmManager = {
         this.elements.formIntegracao.reset();
         this.elements.formIntegracao.ativo.checked = true;
         this.elements.connectionTest.style.display = 'none';
+
+        // Esconde campos de credenciais inicialmente
+        document.getElementById('credenciaisGestaoClick').style.display = 'none';
+        document.getElementById('credenciaisGenericas').style.display = 'none';
+
+        // Limpa valores dos campos de credenciais
+        document.getElementById('access_token').value = '';
+        document.getElementById('secret_access_token').value = '';
+        document.getElementById('api_token').value = '';
+
         this.elements.modalIntegracao.classList.add('show');
     },
 
@@ -276,12 +286,7 @@ const CrmManager = {
         const camposGestaoClick = document.getElementById('credenciaisGestaoClick');
         const camposGenericos = document.getElementById('credenciaisGenericas');
 
-        // Limpa campos ao trocar provider
-        document.getElementById('access_token').value = '';
-        document.getElementById('secret_access_token').value = '';
-        document.getElementById('api_token').value = '';
-
-        // Mostra campos apropriados
+        // Mostra campos apropriados (NÃO limpa valores para preservar o que foi digitado)
         if (provider === 'gestao_click') {
             camposGestaoClick.style.display = 'block';
             camposGenericos.style.display = 'none';
@@ -372,28 +377,34 @@ const CrmManager = {
             const accessToken = document.getElementById('access_token').value.trim();
             const secretToken = document.getElementById('secret_access_token').value.trim();
 
+            // Na criação, tokens são SEMPRE obrigatórios
+            if (!this.state.editando && (!accessToken || !secretToken)) {
+                this.showError('Preencha os dois tokens para o GestãoClick');
+                return;
+            }
+
+            // Só envia credenciais se ambos estiverem preenchidos
             if (accessToken && secretToken) {
                 dados.credenciais = {
                     access_token: accessToken,
                     secret_access_token: secretToken
                 };
-            } else if (!this.state.editando) {
-                // Na criação, tokens são obrigatórios
-                this.showError('Preencha os dois tokens para o GestãoClick');
-                return;
             }
         } else {
             // Outros providers usam token único
             const apiToken = document.getElementById('api_token').value.trim();
 
+            // Na criação, token é SEMPRE obrigatório
+            if (!this.state.editando && !apiToken) {
+                this.showError('Preencha o token da API');
+                return;
+            }
+
+            // Só envia se preenchido
             if (apiToken) {
                 dados.credenciais = {
                     api_token: apiToken
                 };
-            } else if (!this.state.editando) {
-                // Na criação, token é obrigatório
-                this.showError('Preencha o token da API');
-                return;
             }
         }
 
