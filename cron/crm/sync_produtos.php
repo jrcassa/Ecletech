@@ -2,7 +2,7 @@
 
 /**
  * Cron para importação de PRODUTOS do CRM
- * Busca todos os produtos do CRM e enfileira para importação no Ecletech
+ * Busca todos os produtos do CRM e importa diretamente para o Ecletech
  */
 
 // Carrega autoloader
@@ -27,8 +27,8 @@ spl_autoload_register(function ($classe) {
 });
 
 use App\Core\CarregadorEnv;
-use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
+use App\Models\Produtos\ModelProdutos;
 use App\Services\ServiceCrm;
 
 try {
@@ -36,24 +36,30 @@ try {
     $carregadorEnv = CarregadorEnv::obterInstancia();
     $carregadorEnv->carregar(__DIR__ . '/../../.env');
 
-    $modelQueue = new ModelCrmSyncQueue();
     $modelIntegracao = new ModelCrmIntegracao();
+    $modelProduto = new ModelProdutos();
     $serviceCrm = new ServiceCrm();
 
     // Busca todas as integrações ativas
     $integracoes = $modelIntegracao->listarAtivas();
 
-    $totalEnfileirado = 0;
+    $totalImportado = 0;
+    $totalCriados = 0;
+    $totalAtualizados = 0;
+    $totalErros = 0;
 
     foreach ($integracoes as $integracao) {
         $idLoja = $integracao['id_loja'];
 
-        echo "Loja {$idLoja}: Buscando produtos do CRM...\n";
+        echo "Loja {$idLoja}: Importando produtos do CRM...\n";
+
+        // Obtém o provider configurado
+        $provider = $serviceCrm->obterProvider($idLoja);
+        $handler = $provider->obterHandler('produto');
 
         // Busca produtos do CRM via API (paginado)
         $pagina = 1;
         $limite = 100;
-        $totalPagina = 0;
 
         do {
             try {
@@ -63,26 +69,56 @@ try {
                     break;
                 }
 
-                // Enfileira cada produto do CRM
-                foreach ($resultado['data'] as $produto) {
-                    // ID do produto no CRM externo
-                    $externalId = $produto['id'] ?? null;
+                $totalPagina = count($resultado['data']);
+                $criadosPagina = 0;
+                $atualizadosPagina = 0;
+                $errosPagina = 0;
 
-                    if ($externalId) {
-                        $modelQueue->enfileirar(
-                            $idLoja,
-                            'produto',
-                            null, // Não temos ID local ainda
-                            'crm_para_ecletech',
-                            3, // Prioridade média
-                            (string) $externalId
-                        );
-                        $totalEnfileirado++;
-                        $totalPagina++;
+                // Importa cada produto do CRM IMEDIATAMENTE
+                foreach ($resultado['data'] as $produtoCrm) {
+                    try {
+                        // ID do produto no CRM externo
+                        $externalId = (string) ($produtoCrm['id'] ?? null);
+
+                        if (!$externalId) {
+                            echo "    ⚠️ Produto sem ID, pulando...\n";
+                            $errosPagina++;
+                            continue;
+                        }
+
+                        // Transforma dados do CRM para formato Ecletech
+                        $dadosTransformados = $handler->transformarParaInterno($produtoCrm);
+                        $dadosTransformados['external_id'] = $externalId;
+
+                        // Verifica se produto já existe no Ecletech
+                        $produtoExistente = $modelProduto->buscarPorExternalId($externalId);
+
+                        if ($produtoExistente) {
+                            // Atualiza produto existente
+                            $modelProduto->atualizar($produtoExistente['id'], $dadosTransformados);
+                            $atualizadosPagina++;
+                            $totalAtualizados++;
+                        } else {
+                            // Cria novo produto
+                            $modelProduto->criar($dadosTransformados);
+                            $criadosPagina++;
+                            $totalCriados++;
+                        }
+
+                        $totalImportado++;
+
+                    } catch (\Exception $e) {
+                        echo "    ⚠️ Erro ao importar produto ID {$externalId}: " . $e->getMessage() . "\n";
+                        $errosPagina++;
+                        $totalErros++;
                     }
                 }
 
-                echo "  Página {$pagina}: {$totalPagina} produtos enfileirados\n";
+                echo "  Página {$pagina}: {$totalPagina} produtos | ✓ {$criadosPagina} criados | ↻ {$atualizadosPagina} atualizados";
+                if ($errosPagina > 0) {
+                    echo " | ⚠ {$errosPagina} erros";
+                }
+                echo "\n";
 
                 $pagina++;
                 $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
@@ -95,8 +131,17 @@ try {
         } while ($pagina <= $totalPaginas);
     }
 
-    echo "\n✅ Total enfileirado: {$totalEnfileirado} produtos do CRM\n";
-    echo "Os registros serão importados pelo cron principal (crm_sync.php)\n";
+    echo "\n";
+    echo "========================================\n";
+    echo "✅ IMPORTAÇÃO CONCLUÍDA\n";
+    echo "========================================\n";
+    echo "Total processado: {$totalImportado} produtos\n";
+    echo "  ✓ Criados: {$totalCriados}\n";
+    echo "  ↻ Atualizados: {$totalAtualizados}\n";
+    if ($totalErros > 0) {
+        echo "  ⚠ Erros: {$totalErros}\n";
+    }
+    echo "========================================\n";
 
 } catch (\Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";

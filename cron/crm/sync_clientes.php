@@ -27,8 +27,8 @@ spl_autoload_register(function ($classe) {
 });
 
 use App\Core\CarregadorEnv;
-use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
+use App\Models\Cliente\ModelCliente;
 use App\Services\ServiceCrm;
 
 try {
@@ -36,24 +36,30 @@ try {
     $carregadorEnv = CarregadorEnv::obterInstancia();
     $carregadorEnv->carregar(__DIR__ . '/../../.env');
 
-    $modelQueue = new ModelCrmSyncQueue();
     $modelIntegracao = new ModelCrmIntegracao();
+    $modelCliente = new ModelCliente();
     $serviceCrm = new ServiceCrm();
 
     // Busca todas as integrações ativas
     $integracoes = $modelIntegracao->listarAtivas();
 
-    $totalEnfileirado = 0;
+    $totalImportado = 0;
+    $totalCriados = 0;
+    $totalAtualizados = 0;
+    $totalErros = 0;
 
     foreach ($integracoes as $integracao) {
         $idLoja = $integracao['id_loja'];
 
-        echo "Loja {$idLoja}: Buscando clientes do CRM...\n";
+        echo "Loja {$idLoja}: Importando clientes do CRM...\n";
+
+        // Obtém o provider configurado
+        $provider = $serviceCrm->obterProvider($idLoja);
+        $handler = $provider->obterHandler('cliente');
 
         // Busca clientes do CRM via API (paginado)
         $pagina = 1;
         $limite = 100;
-        $totalPagina = 0;
 
         do {
             try {
@@ -63,26 +69,56 @@ try {
                     break;
                 }
 
-                // Enfileira cada cliente do CRM
-                foreach ($resultado['data'] as $cliente) {
-                    // ID do cliente no CRM externo
-                    $externalId = $cliente['id'] ?? null;
+                $totalPagina = count($resultado['data']);
+                $criadosPagina = 0;
+                $atualizadosPagina = 0;
+                $errosPagina = 0;
 
-                    if ($externalId) {
-                        $modelQueue->enfileirar(
-                            $idLoja,
-                            'cliente',
-                            null, // Não temos ID local ainda
-                            'crm_para_ecletech',
-                            3, // Prioridade média
-                            (string) $externalId
-                        );
-                        $totalEnfileirado++;
-                        $totalPagina++;
+                // Importa cada cliente do CRM IMEDIATAMENTE
+                foreach ($resultado['data'] as $clienteCrm) {
+                    try {
+                        // ID do cliente no CRM externo
+                        $externalId = (string) ($clienteCrm['id'] ?? null);
+
+                        if (!$externalId) {
+                            echo "    ⚠️ Cliente sem ID, pulando...\n";
+                            $errosPagina++;
+                            continue;
+                        }
+
+                        // Transforma dados do CRM para formato Ecletech
+                        $dadosTransformados = $handler->transformarParaInterno($clienteCrm);
+                        $dadosTransformados['external_id'] = $externalId;
+
+                        // Verifica se cliente já existe no Ecletech
+                        $clienteExistente = $modelCliente->buscarPorExternalId($externalId);
+
+                        if ($clienteExistente) {
+                            // Atualiza cliente existente
+                            $modelCliente->atualizar($clienteExistente['id'], $dadosTransformados);
+                            $atualizadosPagina++;
+                            $totalAtualizados++;
+                        } else {
+                            // Cria novo cliente
+                            $modelCliente->criar($dadosTransformados);
+                            $criadosPagina++;
+                            $totalCriados++;
+                        }
+
+                        $totalImportado++;
+
+                    } catch (\Exception $e) {
+                        echo "    ⚠️ Erro ao importar cliente ID {$externalId}: " . $e->getMessage() . "\n";
+                        $errosPagina++;
+                        $totalErros++;
                     }
                 }
 
-                echo "  Página {$pagina}: {$totalPagina} clientes enfileirados\n";
+                echo "  Página {$pagina}: {$totalPagina} clientes | ✓ {$criadosPagina} criados | ↻ {$atualizadosPagina} atualizados";
+                if ($errosPagina > 0) {
+                    echo " | ⚠ {$errosPagina} erros";
+                }
+                echo "\n";
 
                 $pagina++;
                 $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
@@ -95,8 +131,17 @@ try {
         } while ($pagina <= $totalPaginas);
     }
 
-    echo "\n✅ Total enfileirado: {$totalEnfileirado} clientes do CRM\n";
-    echo "Os registros serão importados pelo cron principal (crm_sync.php)\n";
+    echo "\n";
+    echo "========================================\n";
+    echo "✅ IMPORTAÇÃO CONCLUÍDA\n";
+    echo "========================================\n";
+    echo "Total processado: {$totalImportado} clientes\n";
+    echo "  ✓ Criados: {$totalCriados}\n";
+    echo "  ↻ Atualizados: {$totalAtualizados}\n";
+    if ($totalErros > 0) {
+        echo "  ⚠ Erros: {$totalErros}\n";
+    }
+    echo "========================================\n";
 
 } catch (\Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";

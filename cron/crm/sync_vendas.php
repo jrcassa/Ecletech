@@ -2,7 +2,7 @@
 
 /**
  * Cron para importação de VENDAS do CRM
- * Busca vendas recentes do CRM e enfileira para importação no Ecletech
+ * Busca vendas recentes do CRM e importa diretamente para o Ecletech
  */
 
 // Carrega autoloader
@@ -27,8 +27,8 @@ spl_autoload_register(function ($classe) {
 });
 
 use App\Core\CarregadorEnv;
-use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
+use App\Models\Venda\ModelVenda;
 use App\Services\ServiceCrm;
 
 try {
@@ -36,25 +36,30 @@ try {
     $carregadorEnv = CarregadorEnv::obterInstancia();
     $carregadorEnv->carregar(__DIR__ . '/../../.env');
 
-    $modelQueue = new ModelCrmSyncQueue();
     $modelIntegracao = new ModelCrmIntegracao();
+    $modelVenda = new ModelVenda();
     $serviceCrm = new ServiceCrm();
 
     // Busca todas as integrações ativas
     $integracoes = $modelIntegracao->listarAtivas();
 
-    $totalEnfileirado = 0;
+    $totalImportado = 0;
+    $totalCriados = 0;
+    $totalAtualizados = 0;
+    $totalErros = 0;
 
     foreach ($integracoes as $integracao) {
         $idLoja = $integracao['id_loja'];
 
-        echo "Loja {$idLoja}: Buscando vendas do CRM...\n";
+        echo "Loja {$idLoja}: Importando vendas do CRM...\n";
+
+        // Obtém o provider configurado
+        $provider = $serviceCrm->obterProvider($idLoja);
+        $handler = $provider->obterHandler('venda');
 
         // Busca vendas do CRM via API (paginado)
-        // Nota: Alguns CRMs permitem filtrar por data, outros não
         $pagina = 1;
         $limite = 100;
-        $totalPagina = 0;
 
         do {
             try {
@@ -64,26 +69,56 @@ try {
                     break;
                 }
 
-                // Enfileira cada venda do CRM
-                foreach ($resultado['data'] as $venda) {
-                    // ID da venda no CRM externo
-                    $externalId = $venda['id'] ?? null;
+                $totalPagina = count($resultado['data']);
+                $criadosPagina = 0;
+                $atualizadosPagina = 0;
+                $errosPagina = 0;
 
-                    if ($externalId) {
-                        $modelQueue->enfileirar(
-                            $idLoja,
-                            'venda',
-                            null, // Não temos ID local ainda
-                            'crm_para_ecletech',
-                            5, // Prioridade alta para vendas
-                            (string) $externalId
-                        );
-                        $totalEnfileirado++;
-                        $totalPagina++;
+                // Importa cada venda do CRM IMEDIATAMENTE
+                foreach ($resultado['data'] as $vendaCrm) {
+                    try {
+                        // ID da venda no CRM externo
+                        $externalId = (string) ($vendaCrm['id'] ?? null);
+
+                        if (!$externalId) {
+                            echo "    ⚠️ Venda sem ID, pulando...\n";
+                            $errosPagina++;
+                            continue;
+                        }
+
+                        // Transforma dados do CRM para formato Ecletech
+                        $dadosTransformados = $handler->transformarParaInterno($vendaCrm);
+                        $dadosTransformados['external_id'] = $externalId;
+
+                        // Verifica se venda já existe no Ecletech
+                        $vendaExistente = $modelVenda->buscarPorExternalId($externalId);
+
+                        if ($vendaExistente) {
+                            // Atualiza venda existente
+                            $modelVenda->atualizar($vendaExistente['id'], $dadosTransformados);
+                            $atualizadosPagina++;
+                            $totalAtualizados++;
+                        } else {
+                            // Cria nova venda
+                            $modelVenda->criar($dadosTransformados);
+                            $criadosPagina++;
+                            $totalCriados++;
+                        }
+
+                        $totalImportado++;
+
+                    } catch (\Exception $e) {
+                        echo "    ⚠️ Erro ao importar venda ID {$externalId}: " . $e->getMessage() . "\n";
+                        $errosPagina++;
+                        $totalErros++;
                     }
                 }
 
-                echo "  Página {$pagina}: {$totalPagina} vendas enfileiradas\n";
+                echo "  Página {$pagina}: {$totalPagina} vendas | ✓ {$criadosPagina} criadas | ↻ {$atualizadosPagina} atualizadas";
+                if ($errosPagina > 0) {
+                    echo " | ⚠ {$errosPagina} erros";
+                }
+                echo "\n";
 
                 $pagina++;
                 $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
@@ -96,8 +131,17 @@ try {
         } while ($pagina <= $totalPaginas);
     }
 
-    echo "\n✅ Total enfileirado: {$totalEnfileirado} vendas do CRM\n";
-    echo "Os registros serão importados pelo cron principal (crm_sync.php)\n";
+    echo "\n";
+    echo "========================================\n";
+    echo "✅ IMPORTAÇÃO CONCLUÍDA\n";
+    echo "========================================\n";
+    echo "Total processado: {$totalImportado} vendas\n";
+    echo "  ✓ Criadas: {$totalCriados}\n";
+    echo "  ↻ Atualizadas: {$totalAtualizados}\n";
+    if ($totalErros > 0) {
+        echo "  ⚠ Erros: {$totalErros}\n";
+    }
+    echo "========================================\n";
 
 } catch (\Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";
