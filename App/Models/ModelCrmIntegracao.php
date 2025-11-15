@@ -109,7 +109,8 @@ class ModelCrmIntegracao
             implode(', ', $sets)
         );
 
-        return $this->db->executar($sql, $valores);
+        $stmt = $this->db->executar($sql, $valores);
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -117,10 +118,11 @@ class ModelCrmIntegracao
      */
     public function deletar(int $id): bool
     {
-        return $this->db->executar(
+        $stmt = $this->db->executar(
             "UPDATE crm_integracoes SET deletado_em = ? WHERE id = ?",
             [date('Y-m-d H:i:s'), $id]
         );
+        return $stmt->rowCount() > 0;
     }
 
     /**
