@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrações CRM - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-layout.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-card.success .value {
+            color: #10b981;
+        }
+
+        .stat-card.error .value {
+            color: #ef4444;
+        }
+
+        .stat-card.warning .value {
+            color: #f59e0b;
+        }
+
+        .stat-card.info .value {
+            color: #3b82f6;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .provider-badge.gestao_click {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .provider-badge.pipedrive {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
+        .provider-badge.bling {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.ativo {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.inativo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge i {
+            font-size: 0.625rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-buttons .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--hover-bg);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .logs-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-item .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .log-item .log-status {
+            font-weight: 600;
+        }
+
+        .log-item .log-status.sucesso {
+            color: #10b981;
+        }
+
+        .log-item .log-status.erro {
+            color: #ef4444;
+        }
+
+        .log-item .log-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .log-item .log-message {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .connection-test {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .connection-test.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .connection-test.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .connection-test.testing {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="main-content" id="mainContent">
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Integrações CRM</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Alternar tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <span id="userDisplayName">Carregando...</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="AuthAPI.logout()">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="alert alert-success" id="successAlert"></div>
+            <div class="alert alert-error" id="errorAlert"></div>
+
+            <!-- Estatísticas -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card info">
+                    <h3>Pendentes na Fila</h3>
+                    <div class="value" id="statPendentes">-</div>
+                </div>
+                <div class="stat-card success">
+                    <h3>Processados Hoje</h3>
+                    <div class="value" id="statProcessadosHoje">-</div>
+                </div>
+                <div class="stat-card error">
+                    <h3>Erros (24h)</h3>
+                    <div class="value" id="statErros24h">-</div>
+                </div>
+                <div class="stat-card warning">
+                    <h3>Taxa de Sucesso</h3>
+                    <div class="value" id="statTaxaSucesso">-%</div>
+                </div>
+            </div>
+
+            <!-- Card Principal -->
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <h2 style="margin: 0;">Configurações CRM</h2>
+                    <button class="btn btn-primary" onclick="CrmManager.abrirModal()">
+                        <i class="fas fa-plus"></i> Nova Integração
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">Carregando integrações...</div>
+
+                <div id="integracoesContainer" style="display: none;">
+                    <!-- Tabela será inserida aqui -->
+                </div>
+
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-link-slash"></i>
+                    <h3>Nenhuma integração configurada</h3>
+                    <p>Clique em "Nova Integração" para começar</p>
+                </div>
+            </div>
+
+            <!-- Logs Recentes -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <h2 style="margin: 0;">Logs Recentes</h2>
+                    <button class="btn btn-secondary" onclick="CrmManager.carregarLogs()">
+                        <i class="fas fa-sync"></i> Atualizar
+                    </button>
+                </div>
+
+                <div id="logsContainer" class="logs-list">
+                    <div class="loading" id="logsLoading">Carregando logs...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Configuração -->
+    <div class="modal" id="modalIntegracao">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nova Integração CRM</h2>
+                <button class="modal-close" onclick="CrmManager.fecharModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="formIntegracao">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="provider">Provider CRM <span class="required">*</span></label>
+                        <select id="provider" name="provider" required>
+                            <option value="">Selecione...</option>
+                            <option value="gestao_click">Gestão Click</option>
+                            <option value="pipedrive">Pipedrive</option>
+                            <option value="bling">Bling</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="api_token">Token da API <span class="required">*</span></label>
+                        <input type="text" id="api_token" name="api_token" required
+                            placeholder="Cole aqui o token da API">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="webhook_url">URL do Webhook (Opcional)</label>
+                        <input type="url" id="webhook_url" name="webhook_url"
+                            placeholder="https://ecletech.com.br/webhook/crm">
+                        <small>URL para receber notificações do CRM</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ativo" name="ativo" checked>
+                            Integração ativa
+                        </label>
+                    </div>
+
+                    <div id="connectionTest" class="connection-test" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="CrmManager.fecharModal()">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="CrmManager.testarConexao()">
+                        <i class="fas fa-plug"></i> Testar Conexão
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/API.js"></script>
+    <script src="js/Auth.js"></script>
+    <script src="js/Utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/CrmIntegracoes.js"></script>
+
+</body>
+
+</html>
