@@ -111,29 +111,52 @@ class ServiceCrmCron
     }
 
     /**
-     * Sincroniza do CRM para Ecletech
+     * Sincroniza do CRM para Ecletech (importação)
      */
     private function sincronizarParaEcletech($provider, array $item): void
     {
-        // Busca dados do Ecletech para obter external_id
         $model = $this->obterModel($item['entidade']);
-        $dadosLocais = $model->buscarPorId($item['id_registro']);
 
-        if (!$dadosLocais || empty($dadosLocais['external_id'])) {
-            throw new CrmException("External ID não encontrado para {$item['entidade']}#{$item['id_registro']}");
+        // Obtém external_id (da fila ou do registro local)
+        $externalId = $item['external_id'] ?? null;
+
+        if (empty($externalId) && !empty($item['id_registro'])) {
+            // Se não tem external_id na fila, tenta pegar do registro local
+            $dadosLocais = $model->buscarPorId($item['id_registro']);
+            $externalId = $dadosLocais['external_id'] ?? null;
+        }
+
+        if (empty($externalId)) {
+            throw new CrmException("External ID não encontrado para sincronização");
         }
 
         // Busca dados do CRM
-        $dadosCrm = $provider->buscar($item['entidade'], $dadosLocais['external_id'], $item['id_loja']);
+        $dadosCrm = $provider->buscar($item['entidade'], $externalId, $item['id_loja']);
 
         // Transforma para formato Ecletech
         $handler = $provider->obterHandler($item['entidade']);
         $dadosTransformados = $handler->transformarParaInterno($dadosCrm);
 
-        // Atualiza no Ecletech
-        $model->atualizar($item['id_registro'], $dadosTransformados);
+        // Adiciona external_id aos dados transformados
+        $dadosTransformados['external_id'] = $externalId;
 
-        $this->registrarLog($item, 'sucesso', ucfirst($item['entidade']) . " sincronizado do CRM");
+        // Verifica se já existe registro com este external_id
+        $registroExistente = $model->buscarPorExternalId($externalId);
+
+        if ($registroExistente) {
+            // Atualiza registro existente
+            $model->atualizar($registroExistente['id'], $dadosTransformados);
+            $acao = 'atualizado';
+        } else {
+            // Cria novo registro
+            $novoId = $model->criar($dadosTransformados);
+            $acao = 'criado';
+
+            // Atualiza a fila com o ID local
+            $this->modelQueue->atualizar($item['id'], ['id_registro' => $novoId]);
+        }
+
+        $this->registrarLog($item, 'sucesso', ucfirst($item['entidade']) . " {$acao} no Ecletech (do CRM)");
     }
 
     /**
