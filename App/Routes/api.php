@@ -171,6 +171,10 @@ $router->grupo([
     $rotasS3 = require __DIR__ . '/s3.php';
     $rotasS3($router);
 
+    // Inclui rotas de CRM
+    $rotasCrm = require __DIR__ . '/crm.php';
+    $rotasCrm($router);
+
     // Inclui rotas de diagnóstico
     $rotasDiagnostico = require __DIR__ . '/diagnostico.php';
     $rotasDiagnostico($router);
