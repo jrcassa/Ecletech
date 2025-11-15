@@ -5,6 +5,8 @@ namespace App\CRM\Providers\GestaoClick\Handlers;
 /**
  * Handler para transformação de dados de Produto
  * Ecletech <-> GestãoClick
+ *
+ * Baseado na estrutura real da API GestãoClick
  */
 class ProdutoHandler
 {
@@ -20,56 +22,55 @@ class ProdutoHandler
      */
     public function transformarParaExterno(array $produto): array
     {
+        // Estrutura real da API GestãoClick (conforme Postman)
         $dados = [
-            'name' => $produto['nome'] ?? '',
-            'code' => $produto['codigo'] ?? null,
-            'description' => $produto['descricao'] ?? null,
-            'price' => (float) ($produto['preco'] ?? $produto['preco_venda'] ?? 0),
-            'cost' => (float) ($produto['custo'] ?? $produto['preco_custo'] ?? 0),
+            'nome' => $produto['nome'] ?? '',
+            'tipo_produto' => $produto['tipo_produto'] ?? '1', // 1 = produto, 2 = serviço
+            'controla_estoque' => isset($produto['controla_estoque']) ? (string) $produto['controla_estoque'] : '1',
+            'categoria_id' => $produto['categoria_id'] ?? '',
+            'marca_id' => $produto['marca_id'] ?? '',
+            'linha_id' => $produto['linha_id'] ?? '',
+            'preco_minimo_venda' => $produto['preco_minimo_venda'] ?? '',
+            'comissao' => $produto['comissao'] ?? '',
+            'unidade_venda' => $produto['unidade_venda'] ?? $produto['unidade'] ?? 'UN',
+            'peso_bruto' => $produto['peso_bruto'] ?? '0',
+            'peso_liquido' => $produto['peso_liquido'] ?? '0',
+            'ncm' => $produto['ncm'] ?? '',
+            'origem' => $produto['origem'] ?? '0',
+            'situacao' => !empty($produto['ativo']) || !empty($produto['situacao']) ? '1' : '0',
+            'referencia' => $produto['referencia'] ?? $produto['codigo'] ?? '',
+            'observacoes' => $produto['observacoes'] ?? '',
+            'codigo_barras' => $produto['codigo_barras'] ?? $produto['ean'] ?? '',
+            'usuario_id' => $produto['usuario_id'] ?? '',
+            'loja_id' => $produto['loja_id'] ?? '',
+            'estoque_inicial' => $produto['estoque_inicial'] ?? $produto['quantidade'] ?? '0',
+            'estoque_minimo' => $produto['estoque_minimo'] ?? '0',
+            'estoque_maximo' => $produto['estoque_maximo'] ?? '0',
+            'preco_custo' => $this->formatarPreco($produto['preco_custo'] ?? $produto['custo'] ?? 0),
+            'preco_venda' => $this->formatarPreco($produto['preco_venda'] ?? $produto['preco'] ?? 0),
         ];
 
-        // Estoque
-        if (isset($produto['estoque'])) {
-            $dados['stock_quantity'] = (int) $produto['estoque'];
+        // Fornecedores (array de objetos)
+        if (!empty($produto['fornecedores']) && is_array($produto['fornecedores'])) {
+            $fornecedores = [];
+            foreach ($produto['fornecedores'] as $forn) {
+                $fornecedores[] = [
+                    'fornecedor_id' => $forn['fornecedor_id'] ?? $forn['id'] ?? '',
+                    'produto_fornecedor' => $forn['produto_fornecedor'] ?? $forn['codigo'] ?? ''
+                ];
+            }
+            $dados['fornecedores'] = $fornecedores;
         }
 
-        // Unidade de medida
-        if (!empty($produto['unidade'])) {
-            $dados['unit'] = $produto['unidade'];
-        }
-
-        // Categoria/Grupo
-        if (!empty($produto['grupo']) || !empty($produto['categoria'])) {
-            $dados['category'] = $produto['grupo'] ?? $produto['categoria'];
-        }
-
-        // Código de barras
-        if (!empty($produto['codigo_barras']) || !empty($produto['ean'])) {
-            $dados['barcode'] = $produto['codigo_barras'] ?? $produto['ean'];
-        }
-
-        // NCM (Nomenclatura Comum do Mercosul)
-        if (!empty($produto['ncm'])) {
-            $dados['ncm'] = $produto['ncm'];
-        }
-
-        // Status
-        if (isset($produto['ativo'])) {
-            $dados['active'] = (bool) $produto['ativo'];
-        }
-
-        // Peso
-        if (!empty($produto['peso'])) {
-            $dados['weight'] = (float) $produto['peso'];
-        }
-
-        // Dimensões
-        if (!empty($produto['largura']) || !empty($produto['altura']) || !empty($produto['comprimento'])) {
-            $dados['dimensions'] = [
-                'width' => (float) ($produto['largura'] ?? 0),
-                'height' => (float) ($produto['altura'] ?? 0),
-                'length' => (float) ($produto['comprimento'] ?? 0)
-            ];
+        // Imagem (base64)
+        if (!empty($produto['imagem'])) {
+            // Se já estiver em base64, usa direto
+            if (strpos($produto['imagem'], 'data:image') === 0) {
+                // Remove o prefixo data:image/xxx;base64,
+                $dados['imagem'] = preg_replace('/^data:image\/[a-z]+;base64,/', '', $produto['imagem']);
+            } else {
+                $dados['imagem'] = $produto['imagem'];
+            }
         }
 
         return $dados;
@@ -82,60 +83,54 @@ class ProdutoHandler
     {
         $dados = [
             'external_id' => (string) $produtoCrm['id'],
-            'nome' => $produtoCrm['name'] ?? '',
-            'codigo' => $produtoCrm['code'] ?? null,
-            'descricao' => $produtoCrm['description'] ?? null,
-            'preco' => (float) ($produtoCrm['price'] ?? 0),
-            'preco_venda' => (float) ($produtoCrm['price'] ?? 0),
-            'custo' => (float) ($produtoCrm['cost'] ?? 0),
-            'preco_custo' => (float) ($produtoCrm['cost'] ?? 0),
+            'nome' => $produtoCrm['nome'] ?? '',
+            'tipo_produto' => $produtoCrm['tipo_produto'] ?? '1',
+            'controla_estoque' => $produtoCrm['controla_estoque'] ?? 1,
+            'categoria_id' => $produtoCrm['categoria_id'] ?? null,
+            'marca_id' => $produtoCrm['marca_id'] ?? null,
+            'linha_id' => $produtoCrm['linha_id'] ?? null,
+            'unidade' => $produtoCrm['unidade_venda'] ?? 'UN',
+            'peso_bruto' => $produtoCrm['peso_bruto'] ?? 0,
+            'peso_liquido' => $produtoCrm['peso_liquido'] ?? 0,
+            'ncm' => $produtoCrm['ncm'] ?? '',
+            'origem' => $produtoCrm['origem'] ?? 0,
+            'ativo' => $produtoCrm['situacao'] === '1' ? 1 : 0,
+            'codigo' => $produtoCrm['referencia'] ?? '',
+            'observacoes' => $produtoCrm['observacoes'] ?? '',
+            'ean' => $produtoCrm['codigo_barras'] ?? '',
+            'quantidade' => $produtoCrm['estoque_atual'] ?? $produtoCrm['estoque_inicial'] ?? 0,
+            'estoque_minimo' => $produtoCrm['estoque_minimo'] ?? 0,
+            'estoque_maximo' => $produtoCrm['estoque_maximo'] ?? 0,
+            'custo' => $this->formatarPreco($produtoCrm['preco_custo'] ?? 0),
+            'preco' => $this->formatarPreco($produtoCrm['preco_venda'] ?? 0),
         ];
 
-        // Estoque
-        if (isset($produtoCrm['stock_quantity'])) {
-            $dados['estoque'] = (int) $produtoCrm['stock_quantity'];
-        }
-
-        // Unidade de medida
-        if (!empty($produtoCrm['unit'])) {
-            $dados['unidade'] = $produtoCrm['unit'];
-        }
-
-        // Categoria/Grupo
-        if (!empty($produtoCrm['category'])) {
-            $dados['grupo'] = $produtoCrm['category'];
-            $dados['categoria'] = $produtoCrm['category'];
-        }
-
-        // Código de barras
-        if (!empty($produtoCrm['barcode'])) {
-            $dados['codigo_barras'] = $produtoCrm['barcode'];
-            $dados['ean'] = $produtoCrm['barcode'];
-        }
-
-        // NCM
-        if (!empty($produtoCrm['ncm'])) {
-            $dados['ncm'] = $produtoCrm['ncm'];
-        }
-
-        // Status
-        if (isset($produtoCrm['active'])) {
-            $dados['ativo'] = (int) $produtoCrm['active'];
-        }
-
-        // Peso
-        if (!empty($produtoCrm['weight'])) {
-            $dados['peso'] = (float) $produtoCrm['weight'];
-        }
-
-        // Dimensões
-        if (!empty($produtoCrm['dimensions'])) {
-            $dims = $produtoCrm['dimensions'];
-            $dados['largura'] = (float) ($dims['width'] ?? 0);
-            $dados['altura'] = (float) ($dims['height'] ?? 0);
-            $dados['comprimento'] = (float) ($dims['length'] ?? 0);
+        // Fornecedores
+        if (!empty($produtoCrm['fornecedores']) && is_array($produtoCrm['fornecedores'])) {
+            $fornecedores = [];
+            foreach ($produtoCrm['fornecedores'] as $forn) {
+                $fornecedores[] = [
+                    'id' => $forn['fornecedor_id'] ?? '',
+                    'codigo' => $forn['produto_fornecedor'] ?? ''
+                ];
+            }
+            $dados['fornecedores'] = $fornecedores;
         }
 
         return $dados;
+    }
+
+    /**
+     * Formata preço para envio (remove formatação, mantém decimal)
+     */
+    private function formatarPreco($preco): string
+    {
+        if (is_string($preco)) {
+            // Remove tudo exceto números e ponto/vírgula
+            $preco = str_replace(['.', ','], ['', '.'], $preco);
+            $preco = preg_replace('/[^0-9.]/', '', $preco);
+        }
+
+        return number_format((float) $preco, 2, '.', '');
     }
 }

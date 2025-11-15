@@ -5,6 +5,8 @@ namespace App\CRM\Providers\GestaoClick\Handlers;
 /**
  * Handler para transformação de dados de Cliente
  * Ecletech <-> GestãoClick
+ *
+ * Baseado na estrutura real da API GestãoClick
  */
 class ClienteHandler
 {
@@ -20,39 +22,82 @@ class ClienteHandler
      */
     public function transformarParaExterno(array $cliente): array
     {
+        // Estrutura real da API GestãoClick (conforme Postman)
         $dados = [
-            'name' => $cliente['nome'] ?? $cliente['razao_social'] ?? '',
-            'email' => $cliente['email'] ?? null,
-            'phone' => $this->formatarTelefone($cliente['telefone'] ?? ''),
+            'tipo_pessoa' => $cliente['tipo_pessoa'] ?? 'PF', // PF, PJ, ES
+            'nome' => $cliente['nome'] ?? '',
+            'razao_social' => $cliente['razao_social'] ?? '',
+            'cnpj' => $this->formatarCnpj($cliente['cnpj'] ?? ''),
+            'cpf' => $this->formatarCpf($cliente['cpf'] ?? ''),
+            'rg' => $cliente['rg'] ?? '',
+            'inscricao_estadual' => $cliente['inscricao_estadual'] ?? '',
+            'inscricao_municipal' => $cliente['inscricao_municipal'] ?? '',
+            'data_nascimento' => $cliente['data_nascimento'] ?? '',
+            'telefone' => $this->formatarTelefone($cliente['telefone'] ?? ''),
+            'celular' => $this->formatarTelefone($cliente['celular'] ?? ''),
+            'fax' => $cliente['fax'] ?? '',
+            'email' => $cliente['email'] ?? '',
+            'ativo' => !empty($cliente['ativo']) ? '1' : '0',
+            'usuario_id' => $cliente['usuario_id'] ?? '',
+            'loja_id' => $cliente['loja_id'] ?? '',
         ];
 
-        // Tipo de pessoa e documento
-        if (!empty($cliente['tipo_pessoa'])) {
-            $dados['person_type'] = $cliente['tipo_pessoa'] === 'PF' ? 'individual' : 'company';
+        // Endereços (array de objetos com estrutura específica)
+        if (!empty($cliente['enderecos']) || isset($cliente['cep'])) {
+            $enderecos = [];
 
-            if ($cliente['tipo_pessoa'] === 'PF' && !empty($cliente['cpf'])) {
-                $dados['document'] = $this->formatarCpf($cliente['cpf']);
-            } elseif ($cliente['tipo_pessoa'] === 'PJ' && !empty($cliente['cnpj'])) {
-                $dados['document'] = $this->formatarCnpj($cliente['cnpj']);
+            // Se vier como array de endereços
+            if (!empty($cliente['enderecos']) && is_array($cliente['enderecos'])) {
+                foreach ($cliente['enderecos'] as $end) {
+                    $enderecos[] = [
+                        'endereco' => [
+                            'cep' => $this->formatarCep($end['cep'] ?? ''),
+                            'logradouro' => $end['logradouro'] ?? $end['endereco'] ?? '',
+                            'numero' => $end['numero'] ?? '',
+                            'complemento' => $end['complemento'] ?? '',
+                            'bairro' => $end['bairro'] ?? '',
+                            'cidade_id' => $end['cidade_id'] ?? '',
+                            'nome_cidade' => $end['nome_cidade'] ?? $end['cidade'] ?? '',
+                            'estado' => $end['estado'] ?? ''
+                        ]
+                    ];
+                }
+            }
+            // Se vier como campos diretos (legado Ecletech)
+            elseif (!empty($cliente['cep'])) {
+                $enderecos[] = [
+                    'endereco' => [
+                        'cep' => $this->formatarCep($cliente['cep']),
+                        'logradouro' => $cliente['logradouro'] ?? $cliente['endereco'] ?? '',
+                        'numero' => $cliente['numero'] ?? '',
+                        'complemento' => $cliente['complemento'] ?? '',
+                        'bairro' => $cliente['bairro'] ?? '',
+                        'cidade_id' => $cliente['cidade_id'] ?? '',
+                        'nome_cidade' => $cliente['cidade'] ?? '',
+                        'estado' => $cliente['estado'] ?? ''
+                    ]
+                ];
+            }
+
+            if (!empty($enderecos)) {
+                $dados['enderecos'] = $enderecos;
             }
         }
 
-        // Endereço
-        if (!empty($cliente['endereco'])) {
-            $dados['address'] = [
-                'street' => $cliente['endereco'] ?? '',
-                'number' => $cliente['numero'] ?? '',
-                'complement' => $cliente['complemento'] ?? '',
-                'district' => $cliente['bairro'] ?? '',
-                'city' => $cliente['cidade'] ?? '',
-                'state' => $cliente['estado'] ?? '',
-                'zip_code' => $this->formatarCep($cliente['cep'] ?? '')
-            ];
-        }
-
-        // Informações adicionais
-        if (!empty($cliente['observacoes'])) {
-            $dados['notes'] = $cliente['observacoes'];
+        // Contatos (array de objetos com estrutura específica)
+        if (!empty($cliente['contatos']) && is_array($cliente['contatos'])) {
+            $contatos = [];
+            foreach ($cliente['contatos'] as $cont) {
+                $contatos[] = [
+                    'contato' => [
+                        'nome' => $cont['nome'] ?? '',
+                        'contato' => $cont['contato'] ?? $cont['email'] ?? $cont['telefone'] ?? '',
+                        'cargo' => $cont['cargo'] ?? '',
+                        'observacao' => $cont['observacao'] ?? ''
+                    ]
+                ];
+            }
+            $dados['contatos'] = $contatos;
         }
 
         return $dados;
@@ -65,38 +110,59 @@ class ClienteHandler
     {
         $dados = [
             'external_id' => (string) $clienteCrm['id'],
-            'nome' => $clienteCrm['name'] ?? '',
-            'email' => $clienteCrm['email'] ?? null,
-            'telefone' => $this->limparTelefone($clienteCrm['phone'] ?? ''),
+            'tipo_pessoa' => $clienteCrm['tipo_pessoa'] ?? 'PF',
+            'nome' => $clienteCrm['nome'] ?? '',
+            'razao_social' => $clienteCrm['razao_social'] ?? '',
+            'cpf' => $this->limparDocumento($clienteCrm['cpf'] ?? ''),
+            'cnpj' => $this->limparDocumento($clienteCrm['cnpj'] ?? ''),
+            'rg' => $clienteCrm['rg'] ?? '',
+            'inscricao_estadual' => $clienteCrm['inscricao_estadual'] ?? '',
+            'inscricao_municipal' => $clienteCrm['inscricao_municipal'] ?? '',
+            'data_nascimento' => $clienteCrm['data_nascimento'] ?? null,
+            'telefone' => $this->limparTelefone($clienteCrm['telefone'] ?? ''),
+            'celular' => $this->limparTelefone($clienteCrm['celular'] ?? ''),
+            'fax' => $clienteCrm['fax'] ?? '',
+            'email' => $clienteCrm['email'] ?? '',
+            'ativo' => $clienteCrm['ativo'] === '1' ? 1 : 0,
         ];
 
-        // Tipo de pessoa e documento
-        if (!empty($clienteCrm['person_type'])) {
-            $dados['tipo_pessoa'] = $clienteCrm['person_type'] === 'individual' ? 'PF' : 'PJ';
+        // Endereços
+        if (!empty($clienteCrm['enderecos']) && is_array($clienteCrm['enderecos'])) {
+            $enderecos = [];
+            foreach ($clienteCrm['enderecos'] as $endObj) {
+                $end = $endObj['endereco'] ?? $endObj;
+                $enderecos[] = [
+                    'cep' => $this->limparCep($end['cep'] ?? ''),
+                    'logradouro' => $end['logradouro'] ?? '',
+                    'numero' => $end['numero'] ?? '',
+                    'complemento' => $end['complemento'] ?? '',
+                    'bairro' => $end['bairro'] ?? '',
+                    'cidade_id' => $end['cidade_id'] ?? '',
+                    'cidade' => $end['nome_cidade'] ?? '',
+                    'estado' => $end['estado'] ?? ''
+                ];
+            }
+            $dados['enderecos'] = $enderecos;
 
-            if ($clienteCrm['person_type'] === 'individual' && !empty($clienteCrm['document'])) {
-                $dados['cpf'] = $this->limparDocumento($clienteCrm['document']);
-            } elseif ($clienteCrm['person_type'] === 'company' && !empty($clienteCrm['document'])) {
-                $dados['cnpj'] = $this->limparDocumento($clienteCrm['document']);
-                $dados['razao_social'] = $clienteCrm['name'] ?? '';
+            // Também adiciona o primeiro endereço como campos diretos (legado)
+            if (!empty($enderecos[0])) {
+                $dados = array_merge($dados, $enderecos[0]);
             }
         }
 
-        // Endereço
-        if (!empty($clienteCrm['address'])) {
-            $address = $clienteCrm['address'];
-            $dados['endereco'] = $address['street'] ?? '';
-            $dados['numero'] = $address['number'] ?? '';
-            $dados['complemento'] = $address['complement'] ?? '';
-            $dados['bairro'] = $address['district'] ?? '';
-            $dados['cidade'] = $address['city'] ?? '';
-            $dados['estado'] = $address['state'] ?? '';
-            $dados['cep'] = $this->limparCep($address['zip_code'] ?? '');
-        }
-
-        // Informações adicionais
-        if (!empty($clienteCrm['notes'])) {
-            $dados['observacoes'] = $clienteCrm['notes'];
+        // Contatos
+        if (!empty($clienteCrm['contatos']) && is_array($clienteCrm['contatos'])) {
+            $contatos = [];
+            foreach ($clienteCrm['contatos'] as $contObj) {
+                $cont = $contObj['contato'] ?? $contObj;
+                $contatos[] = [
+                    'nome' => $cont['nome'] ?? '',
+                    'contato' => $cont['contato'] ?? '',
+                    'cargo' => $cont['cargo'] ?? '',
+                    'observacao' => $cont['observacao'] ?? ''
+                ];
+            }
+            $dados['contatos'] = $contatos;
         }
 
         return $dados;

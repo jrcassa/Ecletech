@@ -2,11 +2,12 @@
 
 /**
  * Configuração do Provider GestãoClick
+ * Baseado na API oficial: https://api.beteltecnologia.com
  */
 
 return [
-    // URL base da API
-    'api_base_url' => 'https://api.gestaoclick.com/v1',
+    // URL base da API (conforme Postman collection)
+    'api_base_url' => 'https://api.beteltecnologia.com',
 
     // Limites de requisições
     'rate_limit' => 100, // requisições por minuto
@@ -15,68 +16,67 @@ return [
     // Timeout de requisições (em segundos)
     'timeout' => 30,
 
-    // Endpoints da API
+    // Endpoints da API (conforme documentação real)
     'endpoints' => [
         'cliente' => [
-            'listar' => '/customers',
-            'criar' => '/customers',
-            'atualizar' => '/customers/{id}',
-            'buscar' => '/customers/{id}',
-            'deletar' => '/customers/{id}'
+            'listar' => '/clientes',
+            'criar' => '/clientes',
+            'atualizar' => '/clientes/{id}',
+            'buscar' => '/clientes/{id}',
+            'deletar' => '/clientes/{id}'
         ],
         'produto' => [
-            'listar' => '/products',
-            'criar' => '/products',
-            'atualizar' => '/products/{id}',
-            'buscar' => '/products/{id}',
-            'deletar' => '/products/{id}'
+            'listar' => '/produtos',
+            'criar' => '/produtos',
+            'atualizar' => '/produtos/{id}',
+            'buscar' => '/produtos/{id}',
+            'deletar' => '/produtos/{id}'
         ],
         'venda' => [
-            'listar' => '/deals',
-            'criar' => '/deals',
-            'atualizar' => '/deals/{id}',
-            'buscar' => '/deals/{id}',
-            'deletar' => '/deals/{id}'
+            'listar' => '/vendas',
+            'criar' => '/vendas',
+            'atualizar' => '/vendas/{id}',
+            'buscar' => '/vendas/{id}',
+            'deletar' => '/vendas/{id}'
         ],
+        // Atividades não estão disponíveis na API, usar orçamentos como alternativa
         'atividade' => [
-            'listar' => '/activities',
-            'criar' => '/activities',
-            'atualizar' => '/activities/{id}',
-            'buscar' => '/activities/{id}',
-            'deletar' => '/activities/{id}'
+            'listar' => '/orcamentos',
+            'criar' => '/orcamentos',
+            'atualizar' => '/orcamentos/{id}',
+            'buscar' => '/orcamentos/{id}',
+            'deletar' => '/orcamentos/{id}'
         ]
+    ],
+
+    // Paginação (conforme API real)
+    'paginacao' => [
+        'page_param' => 'pagina',      // API usa "pagina" não "page"
+        'limit_param' => 'total_registros_pagina',
+        'ordenacao_param' => 'ordenacao',
+        'direcao_param' => 'direcao'
     ],
 
     // Mapeamento de nomes de entidades (Ecletech => GestaoClick)
     'mapeamentos' => [
-        'cliente' => 'customers',
-        'produto' => 'products',
-        'venda' => 'deals',
-        'atividade' => 'activities'
+        'cliente' => 'clientes',
+        'produto' => 'produtos',
+        'venda' => 'vendas',
+        'atividade' => 'orcamentos'
     ],
 
-    // Mapeamento de status
-    'status_venda' => [
-        'pendente' => 'pending',
-        'aprovado' => 'won',
-        'cancelado' => 'lost',
-        'em_andamento' => 'in_progress'
-    ],
-
-    // Mapeamento inverso (GestaoClick => Ecletech)
-    'status_venda_reverso' => [
-        'pending' => 'pendente',
-        'won' => 'aprovado',
-        'lost' => 'cancelado',
-        'in_progress' => 'em_andamento'
+    // Situação (status ativo/inativo)
+    'situacao' => [
+        'ativo' => '1',
+        'inativo' => '0'
     ],
 
     // Campos obrigatórios por entidade
     'campos_obrigatorios' => [
-        'cliente' => ['name', 'document'],
-        'produto' => ['name', 'price'],
-        'venda' => ['customer_id', 'total_value'],
-        'atividade' => ['type', 'subject']
+        'cliente' => ['tipo_pessoa', 'nome', 'ativo'],
+        'produto' => ['nome', 'tipo_produto', 'situacao', 'unidade_venda'],
+        'venda' => ['cliente_id', 'vendedor_id', 'data', 'produtos'],
+        'atividade' => ['cliente_id', 'vendedor_id', 'data', 'produtos']
     ],
 
     // Retry em caso de falha

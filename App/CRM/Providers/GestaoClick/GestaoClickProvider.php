@@ -69,19 +69,23 @@ class GestaoClickProvider implements CrmProviderInterface
     {
         $endpoint = $this->obterEndpoint($entidade, 'listar');
 
+        // GestãoClick usa parâmetros específicos de paginação
+        $paginacao = $this->config['paginacao'];
         $queryParams = [
-            'page' => $pagina,
-            'limit' => $limite
+            $paginacao['page_param'] => $pagina,
+            $paginacao['ordenacao_param'] => 'id',
+            $paginacao['direcao_param'] => 'desc'
         ];
 
         $response = $this->requisicao('GET', $endpoint, $queryParams, $idLoja);
 
+        // A resposta pode variar, adaptar conforme necessário
         return [
-            'data' => $response['data'] ?? [],
+            'data' => $response['data'] ?? $response,
             'pagination' => [
-                'current_page' => $response['current_page'] ?? $pagina,
-                'total_pages' => $response['total_pages'] ?? 1,
-                'total_items' => $response['total_items'] ?? 0,
+                'current_page' => $response['pagina_atual'] ?? $pagina,
+                'total_pages' => $response['total_paginas'] ?? 1,
+                'total_items' => $response['total_registros'] ?? count($response),
                 'per_page' => $limite
             ]
         ];
@@ -140,10 +144,12 @@ class GestaoClickProvider implements CrmProviderInterface
     {
         $url = $this->config['api_base_url'] . $endpoint;
 
+        // GestãoClick usa dois headers de autenticação
         $headers = [
             'Content-Type: application/json',
             'Accept: application/json',
-            'Authorization: Bearer ' . $this->credenciais['api_token']
+            'access-token: ' . $this->credenciais['access_token'],
+            'secret-access-token: ' . $this->credenciais['secret_access_token']
         ];
 
         $ch = curl_init();
@@ -231,8 +237,12 @@ class GestaoClickProvider implements CrmProviderInterface
      */
     private function validarCredenciais(): void
     {
-        if (empty($this->credenciais['api_token'])) {
-            throw new CrmException("Credencial 'api_token' não encontrada para GestaoClick");
+        if (empty($this->credenciais['access_token'])) {
+            throw new CrmException("Credencial 'access_token' não encontrada para GestaoClick");
+        }
+
+        if (empty($this->credenciais['secret_access_token'])) {
+            throw new CrmException("Credencial 'secret_access_token' não encontrada para GestaoClick");
         }
     }
 }
