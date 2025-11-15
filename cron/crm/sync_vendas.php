@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Cron para sincronização manual de VENDAS
- * Enfileira todas as vendas recentes para sincronização
+ * Cron para importação de VENDAS do CRM
+ * Busca vendas recentes do CRM e enfileira para importação no Ecletech
  */
 
 // Carrega autoloader
@@ -29,7 +29,7 @@ spl_autoload_register(function ($classe) {
 use App\Core\CarregadorEnv;
 use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
-use App\Core\BancoDados;
+use App\CRM\ServiceCrm;
 
 try {
     // Carrega variáveis de ambiente
@@ -38,7 +38,7 @@ try {
 
     $modelQueue = new ModelCrmSyncQueue();
     $modelIntegracao = new ModelCrmIntegracao();
-    $db = BancoDados::obterInstancia();
+    $serviceCrm = new ServiceCrm();
 
     // Busca todas as integrações ativas
     $integracoes = $modelIntegracao->listarAtivas();
@@ -48,31 +48,55 @@ try {
     foreach ($integracoes as $integracao) {
         $idLoja = $integracao['id_loja'];
 
-        // Busca vendas dos últimos 30 dias
-        $vendas = $db->buscarTodos(
-            "SELECT id FROM vendas
-             WHERE deletado_em IS NULL
-             AND criado_em >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-             ORDER BY id DESC"
-        );
+        echo "Loja {$idLoja}: Buscando vendas do CRM...\n";
 
-        echo "Loja {$idLoja}: " . count($vendas) . " vendas encontradas (últimos 30 dias)\n";
+        // Busca vendas do CRM via API (paginado)
+        // Nota: Alguns CRMs permitem filtrar por data, outros não
+        $pagina = 1;
+        $limite = 100;
+        $totalPagina = 0;
 
-        // Enfileira cada venda para sincronização
-        foreach ($vendas as $venda) {
-            $modelQueue->enfileirar(
-                $idLoja,
-                'venda',
-                $venda['id'],
-                'ecletech_para_crm',
-                5 // Prioridade alta
-            );
-            $totalEnfileirado++;
-        }
+        do {
+            try {
+                $resultado = $serviceCrm->listar('venda', $idLoja, $pagina, $limite);
+
+                if (!isset($resultado['data']) || !is_array($resultado['data'])) {
+                    break;
+                }
+
+                // Enfileira cada venda do CRM
+                foreach ($resultado['data'] as $venda) {
+                    $externalId = $venda['id'] ?? $venda['external_id'] ?? null;
+
+                    if ($externalId) {
+                        $modelQueue->enfileirar(
+                            $idLoja,
+                            'venda',
+                            null, // Não temos ID local ainda
+                            'crm_para_ecletech',
+                            5, // Prioridade alta para vendas
+                            (string) $externalId
+                        );
+                        $totalEnfileirado++;
+                        $totalPagina++;
+                    }
+                }
+
+                echo "  Página {$pagina}: {$totalPagina} vendas enfileiradas\n";
+
+                $pagina++;
+                $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
+
+            } catch (\Exception $e) {
+                echo "  ⚠️ Erro na página {$pagina}: " . $e->getMessage() . "\n";
+                break;
+            }
+
+        } while ($pagina <= $totalPaginas);
     }
 
-    echo "\n✅ Total enfileirado: {$totalEnfileirado} vendas\n";
-    echo "Os registros serão processados pelo cron principal (crm_sync.php)\n";
+    echo "\n✅ Total enfileirado: {$totalEnfileirado} vendas do CRM\n";
+    echo "Os registros serão importados pelo cron principal (crm_sync.php)\n";
 
 } catch (\Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";

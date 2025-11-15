@@ -339,21 +339,21 @@
             <!-- Sincronização Manual -->
             <div class="card" style="margin-top: 2rem;">
                 <div class="card-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
-                    <h2 style="margin: 0;">Sincronização Manual</h2>
+                    <h2 style="margin: 0;">Importação do CRM</h2>
                     <p style="margin: 0.5rem 0 0; color: var(--text-secondary); font-size: 0.875rem;">
-                        Enfileira registros para sincronização com o CRM. Os itens serão processados pelo cron automaticamente.
+                        Importa dados do CRM para o Ecletech. Busca todos os registros do CRM e enfileira para sincronização automática.
                     </p>
                 </div>
                 <div style="padding: 1.5rem;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                         <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('cliente')" id="btnSyncClientes">
-                            <i class="fas fa-users"></i> Sincronizar Clientes
+                            <i class="fas fa-download"></i> Importar Clientes
                         </button>
                         <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('produto')" id="btnSyncProdutos">
-                            <i class="fas fa-box"></i> Sincronizar Produtos
+                            <i class="fas fa-download"></i> Importar Produtos
                         </button>
                         <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('venda')" id="btnSyncVendas">
-                            <i class="fas fa-shopping-cart"></i> Sincronizar Vendas
+                            <i class="fas fa-download"></i> Importar Vendas
                         </button>
                     </div>
                     <div id="syncResult" style="margin-top: 1rem; display: none;"></div>

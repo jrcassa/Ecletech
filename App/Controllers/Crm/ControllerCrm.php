@@ -512,8 +512,8 @@ class ControllerCrm extends BaseController
     }
 
     /**
-     * Sincronizar entidade completa
-     * Enfileira todos os registros de uma entidade para sincronização manual
+     * Sincronizar entidade completa do CRM para Ecletech
+     * Busca todos os registros do CRM via API e enfileira para importação
      */
     public function sincronizarEntidade(string $entidade): void
     {
@@ -528,54 +528,47 @@ class ControllerCrm extends BaseController
                 return;
             }
 
-            $db = \App\Core\BancoDados::obterInstancia();
-
-            // Busca registros conforme a entidade
-            switch ($entidade) {
-                case 'cliente':
-                    $registros = $db->buscarTodos(
-                        "SELECT id FROM clientes
-                         WHERE deletado_em IS NULL
-                         ORDER BY id ASC"
-                    );
-                    break;
-
-                case 'produto':
-                    $registros = $db->buscarTodos(
-                        "SELECT id FROM produtos
-                         WHERE deletado_em IS NULL
-                         AND ativo = 1
-                         ORDER BY id ASC"
-                    );
-                    break;
-
-                case 'venda':
-                    $registros = $db->buscarTodos(
-                        "SELECT id FROM vendas
-                         WHERE deletado_em IS NULL
-                         AND criado_em >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                         ORDER BY id DESC"
-                    );
-                    break;
-            }
-
-            // Enfileira cada registro
+            // Busca registros do CRM via API (paginado)
             $totalEnfileirado = 0;
-            foreach ($registros as $registro) {
-                $this->modelQueue->enfileirar(
-                    $idLoja,
-                    $entidade,
-                    (int) $registro['id'],
-                    'ecletech_para_crm',
-                    $entidade === 'venda' ? 5 : 3 // Vendas têm prioridade alta
-                );
-                $totalEnfileirado++;
-            }
+            $pagina = 1;
+            $limite = 100;
+
+            do {
+                // Lista registros do CRM
+                $resultado = $this->serviceCrm->listar($entidade, $idLoja, $pagina, $limite);
+
+                if (!isset($resultado['data']) || !is_array($resultado['data'])) {
+                    break;
+                }
+
+                // Enfileira cada registro do CRM para importação
+                foreach ($resultado['data'] as $item) {
+                    // Identifica o external_id (pode variar por provider)
+                    $externalId = $item['id'] ?? $item['external_id'] ?? null;
+
+                    if ($externalId) {
+                        $this->modelQueue->enfileirar(
+                            $idLoja,
+                            $entidade,
+                            null, // Não temos ID local ainda
+                            'crm_para_ecletech', // Direção: importar do CRM
+                            $entidade === 'venda' ? 5 : 3,
+                            (string) $externalId // ID no CRM
+                        );
+                        $totalEnfileirado++;
+                    }
+                }
+
+                // Próxima página
+                $pagina++;
+                $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
+
+            } while ($pagina <= $totalPaginas);
 
             AuxiliarResposta::sucesso([
                 'total' => $totalEnfileirado,
                 'entidade' => $entidade
-            ], "✅ {$totalEnfileirado} registros enfileirados para sincronização");
+            ], "✅ {$totalEnfileirado} registros do CRM enfileirados para importação");
 
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);

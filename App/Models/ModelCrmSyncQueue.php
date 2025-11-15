@@ -50,20 +50,37 @@ class ModelCrmSyncQueue
     public function enfileirar(
         int $idLoja,
         string $entidade,
-        int $idRegistro,
+        ?int $idRegistro,
         string $direcao,
-        int $prioridade = 0
+        int $prioridade = 0,
+        ?string $externalId = null
     ): int {
         // Verifica se já existe item pendente para este registro
-        $existente = $this->db->buscarUm(
-            "SELECT id FROM crm_sync_queue
-             WHERE entidade = ?
-               AND id_registro = ?
-               AND direcao = ?
-               AND processado = 0
-               AND deletado_em IS NULL",
-            [$entidade, $idRegistro, $direcao]
-        );
+        if ($idRegistro) {
+            // Busca por id_registro (Ecletech -> CRM)
+            $existente = $this->db->buscarUm(
+                "SELECT id FROM crm_sync_queue
+                 WHERE entidade = ?
+                   AND id_registro = ?
+                   AND direcao = ?
+                   AND processado = 0
+                   AND deletado_em IS NULL",
+                [$entidade, $idRegistro, $direcao]
+            );
+        } elseif ($externalId) {
+            // Busca por external_id (CRM -> Ecletech)
+            $existente = $this->db->buscarUm(
+                "SELECT id FROM crm_sync_queue
+                 WHERE entidade = ?
+                   AND external_id = ?
+                   AND direcao = ?
+                   AND processado = 0
+                   AND deletado_em IS NULL",
+                [$entidade, $externalId, $direcao]
+            );
+        } else {
+            $existente = null;
+        }
 
         if ($existente) {
             // Atualiza prioridade se for maior
@@ -79,12 +96,13 @@ class ModelCrmSyncQueue
         // Cria novo item na fila
         $this->db->executar(
             "INSERT INTO crm_sync_queue
-             (id_loja, entidade, id_registro, direcao, prioridade, criado_em)
-             VALUES (?, ?, ?, ?, ?, ?)",
+             (id_loja, entidade, id_registro, external_id, direcao, prioridade, criado_em)
+             VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
                 $idLoja,
                 $entidade,
                 $idRegistro,
+                $externalId,
                 $direcao,
                 $prioridade,
                 date('Y-m-d H:i:s')

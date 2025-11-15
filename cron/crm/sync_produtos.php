@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Cron para sincronização manual de PRODUTOS
- * Enfileira todos os produtos ativos para sincronização
+ * Cron para importação de PRODUTOS do CRM
+ * Busca todos os produtos do CRM e enfileira para importação no Ecletech
  */
 
 // Carrega autoloader
@@ -29,7 +29,7 @@ spl_autoload_register(function ($classe) {
 use App\Core\CarregadorEnv;
 use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
-use App\Core\BancoDados;
+use App\CRM\ServiceCrm;
 
 try {
     // Carrega variáveis de ambiente
@@ -38,7 +38,7 @@ try {
 
     $modelQueue = new ModelCrmSyncQueue();
     $modelIntegracao = new ModelCrmIntegracao();
-    $db = BancoDados::obterInstancia();
+    $serviceCrm = new ServiceCrm();
 
     // Busca todas as integrações ativas
     $integracoes = $modelIntegracao->listarAtivas();
@@ -48,31 +48,54 @@ try {
     foreach ($integracoes as $integracao) {
         $idLoja = $integracao['id_loja'];
 
-        // Busca todos os produtos ativos da loja
-        $produtos = $db->buscarTodos(
-            "SELECT id FROM produtos
-             WHERE deletado_em IS NULL
-             AND ativo = 1
-             ORDER BY id ASC"
-        );
+        echo "Loja {$idLoja}: Buscando produtos do CRM...\n";
 
-        echo "Loja {$idLoja}: " . count($produtos) . " produtos encontrados\n";
+        // Busca produtos do CRM via API (paginado)
+        $pagina = 1;
+        $limite = 100;
+        $totalPagina = 0;
 
-        // Enfileira cada produto para sincronização
-        foreach ($produtos as $produto) {
-            $modelQueue->enfileirar(
-                $idLoja,
-                'produto',
-                $produto['id'],
-                'ecletech_para_crm',
-                3 // Prioridade média
-            );
-            $totalEnfileirado++;
-        }
+        do {
+            try {
+                $resultado = $serviceCrm->listar('produto', $idLoja, $pagina, $limite);
+
+                if (!isset($resultado['data']) || !is_array($resultado['data'])) {
+                    break;
+                }
+
+                // Enfileira cada produto do CRM
+                foreach ($resultado['data'] as $produto) {
+                    $externalId = $produto['id'] ?? $produto['external_id'] ?? null;
+
+                    if ($externalId) {
+                        $modelQueue->enfileirar(
+                            $idLoja,
+                            'produto',
+                            null, // Não temos ID local ainda
+                            'crm_para_ecletech',
+                            3, // Prioridade média
+                            (string) $externalId
+                        );
+                        $totalEnfileirado++;
+                        $totalPagina++;
+                    }
+                }
+
+                echo "  Página {$pagina}: {$totalPagina} produtos enfileirados\n";
+
+                $pagina++;
+                $totalPaginas = $resultado['pagination']['total_pages'] ?? 1;
+
+            } catch (\Exception $e) {
+                echo "  ⚠️ Erro na página {$pagina}: " . $e->getMessage() . "\n";
+                break;
+            }
+
+        } while ($pagina <= $totalPaginas);
     }
 
-    echo "\n✅ Total enfileirado: {$totalEnfileirado} produtos\n";
-    echo "Os registros serão processados pelo cron principal (crm_sync.php)\n";
+    echo "\n✅ Total enfileirado: {$totalEnfileirado} produtos do CRM\n";
+    echo "Os registros serão importados pelo cron principal (crm_sync.php)\n";
 
 } catch (\Exception $e) {
     echo "❌ Erro: " . $e->getMessage() . "\n";
