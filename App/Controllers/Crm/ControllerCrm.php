@@ -501,6 +501,77 @@ class ControllerCrm extends BaseController
         }
     }
 
+    /**
+     * Sincronizar entidade completa
+     * Enfileira todos os registros de uma entidade para sincronização manual
+     */
+    public function sincronizarEntidade(string $entidade): void
+    {
+        try {
+            $usuario = $this->obterUsuarioAutenticado();
+            $idLoja = $usuario['id_loja'] ?? 1;
+
+            // Valida entidade
+            $entidadesPermitidas = ['cliente', 'produto', 'venda'];
+            if (!in_array($entidade, $entidadesPermitidas)) {
+                AuxiliarResposta::erro('Entidade inválida', 400);
+                return;
+            }
+
+            $db = \App\Core\BancoDados::obterInstancia();
+
+            // Busca registros conforme a entidade
+            switch ($entidade) {
+                case 'cliente':
+                    $registros = $db->buscarTodos(
+                        "SELECT id FROM clientes
+                         WHERE deletado_em IS NULL
+                         ORDER BY id ASC"
+                    );
+                    break;
+
+                case 'produto':
+                    $registros = $db->buscarTodos(
+                        "SELECT id FROM produtos
+                         WHERE deletado_em IS NULL
+                         AND ativo = 1
+                         ORDER BY id ASC"
+                    );
+                    break;
+
+                case 'venda':
+                    $registros = $db->buscarTodos(
+                        "SELECT id FROM vendas
+                         WHERE deletado_em IS NULL
+                         AND criado_em >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                         ORDER BY id DESC"
+                    );
+                    break;
+            }
+
+            // Enfileira cada registro
+            $totalEnfileirado = 0;
+            foreach ($registros as $registro) {
+                $this->modelQueue->enfileirar(
+                    $idLoja,
+                    $entidade,
+                    (int) $registro['id'],
+                    'ecletech_para_crm',
+                    $entidade === 'venda' ? 5 : 3 // Vendas têm prioridade alta
+                );
+                $totalEnfileirado++;
+            }
+
+            AuxiliarResposta::sucesso([
+                'total' => $totalEnfileirado,
+                'entidade' => $entidade
+            ], "✅ {$totalEnfileirado} registros enfileirados para sincronização");
+
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
     // ===== HELPERS =====
 
     /**
