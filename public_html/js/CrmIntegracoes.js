@@ -408,14 +408,6 @@ const CrmManager = {
             }
         }
 
-        // DEBUG: Log dos dados que serão enviados
-        console.log('=== DEBUG SALVAR INTEGRAÇÃO ===');
-        console.log('Editando:', this.state.editando);
-        console.log('Provider:', dados.provider);
-        console.log('Credenciais:', dados.credenciais);
-        console.log('Dados completos:', JSON.stringify(dados, null, 2));
-        console.log('==============================');
-
         const btnSalvar = document.getElementById('btnSalvar');
         btnSalvar.disabled = true;
         btnSalvar.textContent = 'Salvando...';

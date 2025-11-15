@@ -346,6 +346,32 @@ class AuxiliarValidacao
     }
 
     /**
+     * Obtém valor de um array usando notação de ponto
+     * Ex: obterValorAninhado($dados, 'credenciais.access_token')
+     */
+    private static function obterValorAninhado(array $dados, string $chave): mixed
+    {
+        // Se a chave não contém ponto, acessa diretamente
+        if (strpos($chave, '.') === false) {
+            return $dados[$chave] ?? null;
+        }
+
+        // Divide a chave por pontos
+        $chaves = explode('.', $chave);
+        $valor = $dados;
+
+        // Navega pelo array aninhado
+        foreach ($chaves as $parte) {
+            if (!is_array($valor) || !isset($valor[$parte])) {
+                return null;
+            }
+            $valor = $valor[$parte];
+        }
+
+        return $valor;
+    }
+
+    /**
      * Valida múltiplas regras
      */
     public static function validar(array $dados, array $regras): array
@@ -354,7 +380,7 @@ class AuxiliarValidacao
 
         foreach ($regras as $campo => $regrasString) {
             $regrasList = explode('|', $regrasString);
-            $valor = $dados[$campo] ?? null;
+            $valor = self::obterValorAninhado($dados, $campo);
 
             foreach ($regrasList as $regra) {
                 // Separa a regra do parâmetro (ex: "min:3")

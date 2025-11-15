@@ -86,17 +86,6 @@ class ControllerCrm extends BaseController
         try {
             $dados = $this->obterDados();
 
-            // DEBUG: Log do que está sendo recebido
-            error_log("=== DEBUG CRIAR INTEGRAÇÃO ===");
-            error_log("Content-Type: " . ($_SERVER['CONTENT_TYPE'] ?? 'não definido'));
-            error_log("Dados recebidos (JSON): " . json_encode($dados, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            error_log("Provider: " . ($dados['provider'] ?? 'NÃO DEFINIDO'));
-            error_log("Credenciais existem? " . (isset($dados['credenciais']) ? 'SIM' : 'NÃO'));
-            if (isset($dados['credenciais'])) {
-                error_log("Tipo de credenciais: " . gettype($dados['credenciais']));
-                error_log("Credenciais (JSON): " . json_encode($dados['credenciais'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            }
-
             // Validações básicas
             $erros = AuxiliarValidacao::validar($dados, [
                 'provider' => 'obrigatorio',
