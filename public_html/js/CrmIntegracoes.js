@@ -261,6 +261,46 @@ const CrmManager = {
         this.elements.modalIntegracao.classList.remove('show');
         this.elements.formIntegracao.reset();
         this.elements.connectionTest.style.display = 'none';
+        // Reset dos campos de credenciais
+        document.getElementById('credenciaisGestaoClick').style.display = 'none';
+        document.getElementById('credenciaisGenericas').style.display = 'none';
+    },
+
+    /**
+     * Manipula mudança de provider - mostra campos de credenciais corretos
+     */
+    onProviderChange() {
+        const form = this.elements.formIntegracao;
+        const provider = form.provider.value;
+
+        const camposGestaoClick = document.getElementById('credenciaisGestaoClick');
+        const camposGenericos = document.getElementById('credenciaisGenericas');
+
+        // Limpa campos ao trocar provider
+        document.getElementById('access_token').value = '';
+        document.getElementById('secret_access_token').value = '';
+        document.getElementById('api_token').value = '';
+
+        // Mostra campos apropriados
+        if (provider === 'gestao_click') {
+            camposGestaoClick.style.display = 'block';
+            camposGenericos.style.display = 'none';
+            // Torna campos do GestãoClick obrigatórios
+            document.getElementById('access_token').required = true;
+            document.getElementById('secret_access_token').required = true;
+            document.getElementById('api_token').required = false;
+        } else if (provider) {
+            camposGestaoClick.style.display = 'none';
+            camposGenericos.style.display = 'block';
+            // Torna campo genérico obrigatório
+            document.getElementById('access_token').required = false;
+            document.getElementById('secret_access_token').required = false;
+            document.getElementById('api_token').required = true;
+        } else {
+            // Nenhum provider selecionado
+            camposGestaoClick.style.display = 'none';
+            camposGenericos.style.display = 'none';
+        }
     },
 
     /**
@@ -277,9 +317,18 @@ const CrmManager = {
         // Preenche o formulário
         const form = this.elements.formIntegracao;
         form.provider.value = integracao.provider;
-        form.api_token.value = ''; // Não mostra token por segurança
-        form.api_token.placeholder = 'Digite novo token ou deixe vazio para manter o atual';
         form.ativo.checked = integracao.ativo == 1;
+
+        // Mostra campos de credenciais corretos baseado no provider
+        this.onProviderChange();
+
+        // Configura placeholders para edição (não mostra tokens por segurança)
+        if (integracao.provider === 'gestao_click') {
+            document.getElementById('access_token').placeholder = 'Digite novo access-token ou deixe vazio para manter';
+            document.getElementById('secret_access_token').placeholder = 'Digite novo secret-access-token ou deixe vazio para manter';
+        } else {
+            document.getElementById('api_token').placeholder = 'Digite novo token ou deixe vazio para manter';
+        }
 
         // Preenche configurações se existirem
         if (integracao.configuracoes) {
@@ -317,11 +366,35 @@ const CrmManager = {
             }
         };
 
-        // Se tiver token, adiciona às credenciais
-        if (form.api_token.value.trim()) {
-            dados.credenciais = {
-                api_token: form.api_token.value.trim()
-            };
+        // Coleta credenciais baseado no provider
+        if (form.provider.value === 'gestao_click') {
+            // GestãoClick usa dois tokens
+            const accessToken = document.getElementById('access_token').value.trim();
+            const secretToken = document.getElementById('secret_access_token').value.trim();
+
+            if (accessToken && secretToken) {
+                dados.credenciais = {
+                    access_token: accessToken,
+                    secret_access_token: secretToken
+                };
+            } else if (!this.state.editando) {
+                // Na criação, tokens são obrigatórios
+                this.showError('Preencha os dois tokens para o GestãoClick');
+                return;
+            }
+        } else {
+            // Outros providers usam token único
+            const apiToken = document.getElementById('api_token').value.trim();
+
+            if (apiToken) {
+                dados.credenciais = {
+                    api_token: apiToken
+                };
+            } else if (!this.state.editando) {
+                // Na criação, token é obrigatório
+                this.showError('Preencha o token da API');
+                return;
+            }
         }
 
         const btnSalvar = document.getElementById('btnSalvar');
@@ -390,10 +463,34 @@ const CrmManager = {
      */
     async testarConexao() {
         const form = this.elements.formIntegracao;
+        const provider = form.provider.value;
 
-        if (!form.api_token.value.trim()) {
-            this.showError('Digite o token da API para testar a conexão');
-            return;
+        // Prepara dados para teste baseado no provider
+        const dadosTeste = {
+            provider: provider
+        };
+
+        // Valida e coleta credenciais baseado no provider
+        if (provider === 'gestao_click') {
+            const accessToken = document.getElementById('access_token').value.trim();
+            const secretToken = document.getElementById('secret_access_token').value.trim();
+
+            if (!accessToken || !secretToken) {
+                this.showError('Preencha os dois tokens do GestãoClick para testar a conexão');
+                return;
+            }
+
+            dadosTeste.access_token = accessToken;
+            dadosTeste.secret_access_token = secretToken;
+        } else {
+            const apiToken = document.getElementById('api_token').value.trim();
+
+            if (!apiToken) {
+                this.showError('Digite o token da API para testar a conexão');
+                return;
+            }
+
+            dadosTeste.api_token = apiToken;
         }
 
         const testDiv = this.elements.connectionTest;
@@ -402,10 +499,7 @@ const CrmManager = {
         testDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando conexão...';
 
         try {
-            const response = await API.post('/crm/testar-conexao', {
-                provider: form.provider.value,
-                api_token: form.api_token.value.trim()
-            });
+            const response = await API.post('/crm/testar-conexao', dadosTeste);
 
             if (response.sucesso && response.dados.success) {
                 testDiv.className = 'connection-test success';

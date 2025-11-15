@@ -239,25 +239,35 @@ class ControllerCrm extends BaseController
         try {
             $dados = $this->obterDados();
 
-            $erros = AuxiliarValidacao::validar($dados, [
-                'provider' => 'obrigatorio',
-                'api_token' => 'obrigatorio'
-            ]);
-
-            if (!empty($erros)) {
-                AuxiliarResposta::validacao($erros);
+            // Valida provider
+            if (empty($dados['provider'])) {
+                AuxiliarResposta::erro('Provider é obrigatório', 400);
                 return;
             }
 
-            // Cria configuração temporária
-            $configTemp = [
-                'provider' => $dados['provider'],
-                'credenciais' => ['api_token' => $dados['api_token']],
-                'configuracoes' => []
-            ];
+            // Prepara credenciais baseado no provider
+            $credenciais = [];
 
-            // Testa usando CrmManager diretamente
-            $manager = new CrmManager();
+            if ($dados['provider'] === 'gestao_click') {
+                // GestãoClick usa dois tokens
+                if (empty($dados['access_token']) || empty($dados['secret_access_token'])) {
+                    AuxiliarResposta::erro('access_token e secret_access_token são obrigatórios para GestãoClick', 400);
+                    return;
+                }
+                $credenciais = [
+                    'access_token' => $dados['access_token'],
+                    'secret_access_token' => $dados['secret_access_token']
+                ];
+            } else {
+                // Outros providers usam token único
+                if (empty($dados['api_token'])) {
+                    AuxiliarResposta::erro('api_token é obrigatório', 400);
+                    return;
+                }
+                $credenciais = ['api_token' => $dados['api_token']];
+            }
+
+            // Testa usando provider diretamente
             $classeProvider = $this->converterNomeParaClasse($dados['provider']);
             $providerNamespace = "App\\CRM\\Providers\\{$classeProvider}\\{$classeProvider}Provider";
 
@@ -267,7 +277,7 @@ class ControllerCrm extends BaseController
             }
 
             $provider = new $providerNamespace([
-                'credenciais' => ['api_token' => $dados['api_token']],
+                'credenciais' => $credenciais,
                 'configuracoes' => []
             ]);
 
