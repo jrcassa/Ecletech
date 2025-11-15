@@ -66,7 +66,8 @@ try {
 
                 // Enfileira cada venda do CRM
                 foreach ($resultado['data'] as $venda) {
-                    $externalId = $venda['id'] ?? $venda['external_id'] ?? null;
+                    // ID da venda no CRM externo
+                    $externalId = $venda['id'] ?? null;
 
                     if ($externalId) {
                         $modelQueue->enfileirar(
