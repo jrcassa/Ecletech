@@ -18,6 +18,11 @@ ALTER TABLE `vendas`
 ADD COLUMN `external_id` VARCHAR(50) NULL COMMENT 'ID do sistema externo (CRM)' AFTER `id`,
 ADD UNIQUE KEY `uk_vendas_external_id` (`external_id`);
 
+-- 4. Adiciona external_id na tabela LOJA_INFORMACOES
+ALTER TABLE `loja_informacoes`
+ADD COLUMN `external_id` VARCHAR(50) NULL COMMENT 'ID da loja no sistema externo (CRM)' AFTER `id`,
+ADD UNIQUE KEY `uk_loja_informacoes_external_id` (`external_id`);
+
 -- =====================================================
 -- VERIFICAÇÃO (execute após as alterações acima)
 -- =====================================================
@@ -30,8 +35,8 @@ SELECT
     CHARACTER_MAXIMUM_LENGTH
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
-  AND TABLE_NAME IN ('clientes', 'produtos', 'vendas')
+  AND TABLE_NAME IN ('clientes', 'produtos', 'vendas', 'loja_informacoes')
   AND COLUMN_NAME = 'external_id'
 ORDER BY TABLE_NAME;
 
--- Se retornar 3 linhas, tudo está correto! ✅
+-- Se retornar 4 linhas, tudo está correto! ✅

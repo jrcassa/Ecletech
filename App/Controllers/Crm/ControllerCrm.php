@@ -9,6 +9,7 @@ use App\CRM\Core\CrmException;
 use App\Models\ModelCrmIntegracao;
 use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmSyncLog;
+use App\Models\Loja\ModelLoja;
 use App\Services\ServiceCrm;
 use App\Services\ServiceCrmCron;
 use App\Helpers\AuxiliarResposta;
@@ -22,6 +23,7 @@ class ControllerCrm extends BaseController
     private ModelCrmIntegracao $modelIntegracao;
     private ModelCrmSyncQueue $modelQueue;
     private ModelCrmSyncLog $modelLog;
+    private ModelLoja $modelLoja;
     private CrmConfig $crmConfig;
     private ServiceCrm $serviceCrm;
 
@@ -30,8 +32,26 @@ class ControllerCrm extends BaseController
         $this->modelIntegracao = new ModelCrmIntegracao();
         $this->modelQueue = new ModelCrmSyncQueue();
         $this->modelLog = new ModelCrmSyncLog();
+        $this->modelLoja = new ModelLoja();
         $this->crmConfig = new CrmConfig();
         $this->serviceCrm = new ServiceCrm();
+    }
+
+    /**
+     * Obtém o external_id da loja para integração CRM
+     * Usa id_loja como fallback se external_id não estiver configurado
+     */
+    private function obterLojaId(): int|string
+    {
+        $externalId = $this->modelLoja->obterExternalId();
+
+        if ($externalId !== null && $externalId !== '') {
+            return $externalId;
+        }
+
+        // Fallback: usa id_loja do usuário autenticado
+        $usuario = $this->obterUsuarioAutenticado();
+        return $usuario['id_loja'] ?? 1;
     }
 
     // ===== INTEGRAÇÕES =====
@@ -113,9 +133,8 @@ class ControllerCrm extends BaseController
                 return;
             }
 
-            // Obtém ID da loja do usuário autenticado
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1; // Ajustar conforme estrutura
+            // Obtém ID da loja (external_id se configurado, senão id_loja do usuário)
+            $idLoja = $this->obterLojaId();
 
             // Verifica se já existe integração para esta loja
             $integracaoExistente = $this->modelIntegracao->buscarPorLoja($idLoja);
@@ -447,8 +466,7 @@ class ControllerCrm extends BaseController
                 return;
             }
 
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             $id = $this->modelQueue->enfileirar(
                 $idLoja,
@@ -473,8 +491,7 @@ class ControllerCrm extends BaseController
     {
         try {
             $dados = $this->obterDados();
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             $resultado = $this->serviceCrm->criar($entidade, $dados, $idLoja);
 
@@ -495,8 +512,7 @@ class ControllerCrm extends BaseController
     {
         try {
             $dados = $this->obterDados();
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             $resultado = $this->serviceCrm->atualizar($entidade, $externalId, $dados, $idLoja);
 
@@ -516,8 +532,7 @@ class ControllerCrm extends BaseController
     public function buscar(string $entidade, string $externalId): void
     {
         try {
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             $resultado = $this->serviceCrm->buscar($entidade, $externalId, $idLoja);
 
@@ -537,8 +552,7 @@ class ControllerCrm extends BaseController
     public function deletar(string $entidade, string $externalId): void
     {
         try {
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             $resultado = $this->serviceCrm->deletar($entidade, $externalId, $idLoja);
 
@@ -559,8 +573,7 @@ class ControllerCrm extends BaseController
     public function sincronizarEntidade(string $entidade): void
     {
         try {
-            $usuario = $this->obterUsuarioAutenticado();
-            $idLoja = $usuario['id_loja'] ?? 1;
+            $idLoja = $this->obterLojaId();
 
             // Valida entidade
             $entidadesPermitidas = ['cliente', 'produto', 'venda'];

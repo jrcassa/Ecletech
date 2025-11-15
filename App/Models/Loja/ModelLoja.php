@@ -69,6 +69,7 @@ class ModelLoja
         // Campos que podem ser atualizados
         $camposAtualizaveis = [
             'uuid',
+            'external_id',
             'nome_fantasia',
             'razao_social',
             'cnpj',
@@ -167,6 +168,20 @@ class ModelLoja
         );
 
         return $resultado ? (int) $resultado['id'] : null;
+    }
+
+    /**
+     * Obtém o external_id da loja (para integração CRM)
+     *
+     * @return string|null Retorna o external_id ou null se não configurado
+     */
+    public function obterExternalId(): ?string
+    {
+        $resultado = $this->db->buscarUm(
+            "SELECT external_id FROM loja_informacoes WHERE ativo = 1 AND deletado_em IS NULL LIMIT 1"
+        );
+
+        return $resultado['external_id'] ?? null;
     }
 
     /**
