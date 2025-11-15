@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard CRM - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-layout.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card .icon.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .stat-card .icon.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .stat-card .icon.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stat-card .icon.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .logs-table th {
+            text-align: left;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .logs-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .logs-table tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.running {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .refresh-indicator.active .icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            transition: width 0.3s;
+        }
+
+        .active-syncs {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .sync-item {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .sync-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sync-progress {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Dashboard CRM</h1>
+                <p>Monitoramento em tempo real das sincronizações</p>
+            </div>
+            <div class="refresh-indicator" id="refresh-indicator">
+                <i class="fas fa-sync icon"></i>
+                <span>Atualização automática a cada 10s</span>
+            </div>
+        </div>
+
+        <!-- Estatísticas Gerais -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Total Processados (Hoje)</h3>
+                <div class="value" id="stat-processados">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon info">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Na Fila</h3>
+                <div class="value" id="stat-fila">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon warning">
+                    <i class="fas fa-sync"></i>
+                </div>
+                <h3>Processando</h3>
+                <div class="value" id="stat-processando">0</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Com Erro (Hoje)</h3>
+                <div class="value" id="stat-erros">0</div>
+            </div>
+        </div>
+
+        <!-- Sincronizações Ativas -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2>Sincronizações em Andamento</h2>
+            </div>
+            <div class="card-body">
+                <div id="active-syncs-container" class="active-syncs">
+                    <!-- Será preenchido via JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Agendamentos Ativos -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2>Agendamentos Ativos</h2>
+            </div>
+            <div class="card-body">
+                <table class="logs-table" id="schedules-table">
+                    <thead>
+                        <tr>
+                            <th>Entidade</th>
+                            <th>Direção</th>
+                            <th>Frequência</th>
+                            <th>Próxima Execução</th>
+                            <th>Total Execuções</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedules-tbody">
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Logs Recentes -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Logs Recentes</h2>
+            </div>
+            <div class="card-body">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Entidade</th>
+                            <th>Direção</th>
+                            <th>Total</th>
+                            <th>Processados</th>
+                            <th>Criados</th>
+                            <th>Atualizados</th>
+                            <th>Erros</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-tbody">
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/sidebar.js"></script>
+    <script src="js/helpers.js"></script>
+    <script>
+        let autoRefreshInterval = null;
+
+        // Carrega dados ao iniciar
+        document.addEventListener('DOMContentLoaded', function () {
+            carregarDados();
+            iniciarAutoRefresh();
+        });
+
+        function iniciarAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                const indicator = document.getElementById('refresh-indicator');
+                indicator.classList.add('active');
+
+                carregarDados().finally(() => {
+                    setTimeout(() => {
+                        indicator.classList.remove('active');
+                    }, 500);
+                });
+            }, 10000); // 10 segundos
+        }
+
+        async function carregarDados() {
+            await Promise.all([
+                carregarEstatisticas(),
+                carregarSincsAtivos(),
+                carregarAgendamentosAtivos(),
+                carregarLogsRecentes()
+            ]);
+        }
+
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('/api/crm/estatisticas', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const stats = result.data || {};
+
+                    document.getElementById('stat-processados').textContent = stats.total_processados || 0;
+                    document.getElementById('stat-fila').textContent = stats.pending || 0;
+                    document.getElementById('stat-processando').textContent = stats.processing || 0;
+                    document.getElementById('stat-erros').textContent = stats.failed || 0;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function carregarSincsAtivos() {
+            try {
+                const response = await fetch('/api/crm/logs/em-andamento', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const sincs = result.data || [];
+
+                    const container = document.getElementById('active-syncs-container');
+
+                    if (sincs.length === 0) {
+                        container.innerHTML = `
+                            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                Nenhuma sincronização em andamento
+                            </p>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = sincs.map(sync => {
+                        const progress = sync.total_registros > 0
+                            ? (sync.registros_processados / sync.total_registros) * 100
+                            : 0;
+
+                        return `
+                            <div class="sync-item">
+                                <div class="sync-header">
+                                    <div class="sync-title">
+                                        <i class="fas fa-${getEntidadeIcon(sync.entidade)}"></i>
+                                        ${capitalize(sync.entidade)} - ${formatarDirecao(sync.direcao)}
+                                    </div>
+                                    <span class="badge running">Em andamento</span>
+                                </div>
+                                <div class="sync-progress">
+                                    ${sync.registros_processados || 0} de ${sync.total_registros || 0} processados
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="fill" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar sincs ativos:', error);
+            }
+        }
+
+        async function carregarAgendamentosAtivos() {
+            try {
+                const response = await fetch('/api/crm/schedules', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const schedules = (result.data || []).filter(s => s.ativo);
+
+                    const tbody = document.getElementById('schedules-tbody');
+
+                    if (schedules.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    Nenhum agendamento ativo
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    tbody.innerHTML = schedules.map(schedule => `
+                        <tr>
+                            <td>
+                                <i class="fas fa-${getEntidadeIcon(schedule.entidade)}"></i>
+                                ${capitalize(schedule.entidade)}
+                            </td>
+                            <td>${formatarDirecao(schedule.direcao)}</td>
+                            <td>A cada ${schedule.frequencia_minutos} min</td>
+                            <td>${formatarData(schedule.proxima_execucao)}</td>
+                            <td>${schedule.total_execucoes || 0}</td>
+                            <td>
+                                <span class="badge ${schedule.executando ? 'running' : 'success'}">
+                                    ${schedule.executando ? 'Executando' : 'Ativo'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar agendamentos:', error);
+            }
+        }
+
+        async function carregarLogsRecentes() {
+            try {
+                const response = await fetch('/api/crm/logs?limit=20', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const logs = result.data || [];
+
+                    const tbody = document.getElementById('logs-tbody');
+
+                    if (logs.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    Nenhum log encontrado
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    tbody.innerHTML = logs.map(log => `
+                        <tr>
+                            <td>${formatarData(log.criado_em)}</td>
+                            <td>
+                                <i class="fas fa-${getEntidadeIcon(log.entidade)}"></i>
+                                ${capitalize(log.entidade)}
+                            </td>
+                            <td>${formatarDirecao(log.direcao)}</td>
+                            <td>${log.total_registros || 0}</td>
+                            <td>${log.registros_processados || 0}</td>
+                            <td>${log.registros_criados || 0}</td>
+                            <td>${log.registros_atualizados || 0}</td>
+                            <td style="color: ${log.registros_com_erro > 0 ? '#ef4444' : 'inherit'}">
+                                ${log.registros_com_erro || 0}
+                            </td>
+                            <td>
+                                <span class="badge ${getStatusBadgeClass(log.status)}">
+                                    ${formatarStatus(log.status)}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar logs:', error);
+            }
+        }
+
+        function getEntidadeIcon(entidade) {
+            const icons = {
+                'cliente': 'users',
+                'produto': 'box',
+                'venda': 'shopping-cart'
+            };
+            return icons[entidade] || 'question';
+        }
+
+        function formatarDirecao(direcao) {
+            const direcoes = {
+                'crm_para_ecletech': 'CRM → Ecletech',
+                'ecletech_para_crm': 'Ecletech → CRM',
+                'bidirecional': 'Bidirecional'
+            };
+            return direcoes[direcao] || direcao;
+        }
+
+        function formatarStatus(status) {
+            const statuses = {
+                'running': 'Em andamento',
+                'completed': 'Concluído',
+                'failed': 'Falhou'
+            };
+            return statuses[status] || status;
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'running': 'running',
+                'completed': 'success',
+                'failed': 'danger'
+            };
+            return classes[status] || 'info';
+        }
+
+        function capitalize(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function formatarData(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Limpa interval ao sair da página
+        window.addEventListener('beforeunload', function () {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        });
+    </script>
+</body>
+
+</html>

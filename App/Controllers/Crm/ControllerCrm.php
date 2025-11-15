@@ -9,9 +9,11 @@ use App\CRM\Core\CrmException;
 use App\Models\ModelCrmIntegracao;
 use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmSyncLog;
+use App\Models\ModelCrmSyncSchedule;
 use App\Models\Loja\ModelLoja;
 use App\Services\ServiceCrm;
 use App\Services\ServiceCrmCron;
+use App\Services\ServiceCrmScheduler;
 use App\Helpers\AuxiliarResposta;
 use App\Helpers\AuxiliarValidacao;
 
@@ -23,18 +25,22 @@ class ControllerCrm extends BaseController
     private ModelCrmIntegracao $modelIntegracao;
     private ModelCrmSyncQueue $modelQueue;
     private ModelCrmSyncLog $modelLog;
+    private ModelCrmSyncSchedule $modelSchedule;
     private ModelLoja $modelLoja;
     private CrmConfig $crmConfig;
     private ServiceCrm $serviceCrm;
+    private ServiceCrmScheduler $serviceScheduler;
 
     public function __construct()
     {
         $this->modelIntegracao = new ModelCrmIntegracao();
         $this->modelQueue = new ModelCrmSyncQueue();
         $this->modelLog = new ModelCrmSyncLog();
+        $this->modelSchedule = new ModelCrmSyncSchedule();
         $this->modelLoja = new ModelLoja();
         $this->crmConfig = new CrmConfig();
         $this->serviceCrm = new ServiceCrm();
+        $this->serviceScheduler = new ServiceCrmScheduler();
     }
 
     /**
@@ -624,6 +630,266 @@ class ControllerCrm extends BaseController
                 'entidade' => $entidade
             ], "✅ {$totalEnfileirado} registros do CRM enfileirados para importação");
 
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    // ===== AGENDAMENTOS =====
+
+    /**
+     * Lista todos os agendamentos
+     */
+    public function listarAgendamentos(): void
+    {
+        try {
+            $idLoja = $this->obterLojaId();
+            $agendamentos = $this->modelSchedule->listarPorLoja($idLoja);
+
+            AuxiliarResposta::sucesso($agendamentos, 'Agendamentos obtidos com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtém um agendamento específico
+     */
+    public function obterAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            AuxiliarResposta::sucesso($agendamento, 'Agendamento obtido com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Cria novo agendamento
+     */
+    public function criarAgendamento(): void
+    {
+        try {
+            $dados = $this->obterDados();
+
+            // Validações
+            $erros = AuxiliarValidacao::validar($dados, [
+                'entidade' => 'obrigatorio',
+                'direcao' => 'obrigatorio'
+            ]);
+
+            if (!empty($erros)) {
+                AuxiliarResposta::validacao($erros);
+                return;
+            }
+
+            // Valida entidade
+            $entidadesPermitidas = ['cliente', 'produto', 'venda'];
+            if (!in_array($dados['entidade'], $entidadesPermitidas)) {
+                AuxiliarResposta::erro('Entidade inválida. Use: cliente, produto ou venda', 400);
+                return;
+            }
+
+            // Valida direção
+            $direcoesPermitidas = ['crm_para_ecletech', 'ecletech_para_crm', 'bidirecional'];
+            if (!in_array($dados['direcao'], $direcoesPermitidas)) {
+                AuxiliarResposta::erro('Direção inválida', 400);
+                return;
+            }
+
+            $idLoja = $this->obterLojaId();
+
+            $dadosAgendamento = [
+                'id_loja' => $idLoja,
+                'entidade' => $dados['entidade'],
+                'direcao' => $dados['direcao'],
+                'batch_size' => $dados['batch_size'] ?? 10,
+                'frequencia_minutos' => $dados['frequencia_minutos'] ?? 5,
+                'horario_inicio' => $dados['horario_inicio'] ?? null,
+                'horario_fim' => $dados['horario_fim'] ?? null,
+                'prioridade' => $dados['prioridade'] ?? 5,
+                'ativo' => $dados['ativo'] ?? true
+            ];
+
+            $id = $this->modelSchedule->criar($dadosAgendamento);
+
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            AuxiliarResposta::sucesso($agendamento, 'Agendamento criado com sucesso', 201);
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Atualiza agendamento
+     */
+    public function atualizarAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $dados = $this->obterDados();
+
+            // Valida entidade se fornecida
+            if (isset($dados['entidade'])) {
+                $entidadesPermitidas = ['cliente', 'produto', 'venda'];
+                if (!in_array($dados['entidade'], $entidadesPermitidas)) {
+                    AuxiliarResposta::erro('Entidade inválida', 400);
+                    return;
+                }
+            }
+
+            // Valida direção se fornecida
+            if (isset($dados['direcao'])) {
+                $direcoesPermitidas = ['crm_para_ecletech', 'ecletech_para_crm', 'bidirecional'];
+                if (!in_array($dados['direcao'], $direcoesPermitidas)) {
+                    AuxiliarResposta::erro('Direção inválida', 400);
+                    return;
+                }
+            }
+
+            $this->modelSchedule->atualizar($id, $dados);
+
+            $agendamentoAtualizado = $this->modelSchedule->buscarPorId($id);
+
+            AuxiliarResposta::sucesso($agendamentoAtualizado, 'Agendamento atualizado com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Deleta agendamento
+     */
+    public function deletarAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $this->modelSchedule->deletar($id);
+
+            AuxiliarResposta::sucesso(null, 'Agendamento excluído com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Ativa agendamento
+     */
+    public function ativarAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $this->modelSchedule->alterarStatus($id, true);
+
+            AuxiliarResposta::sucesso(null, 'Agendamento ativado com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Desativa agendamento
+     */
+    public function desativarAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $this->modelSchedule->alterarStatus($id, false);
+
+            AuxiliarResposta::sucesso(null, 'Agendamento desativado com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtém status e estatísticas de um agendamento
+     */
+    public function obterStatusAgendamento(int $id): void
+    {
+        try {
+            $status = $this->serviceScheduler->obterStatusAgendamento($id);
+
+            AuxiliarResposta::sucesso($status, 'Status obtido com sucesso');
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Executa agendamento manualmente (fora do cron)
+     */
+    public function executarAgendamentoManual(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $resultado = $this->serviceScheduler->executarAgendamento($agendamento);
+
+            if ($resultado['sucesso']) {
+                AuxiliarResposta::sucesso($resultado, 'Agendamento executado com sucesso');
+            } else {
+                AuxiliarResposta::erro($resultado['erro'] ?? 'Erro ao executar agendamento', 500);
+            }
+        } catch (\Exception $e) {
+            AuxiliarResposta::erro($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtém logs de um agendamento
+     */
+    public function obterLogsAgendamento(int $id): void
+    {
+        try {
+            $agendamento = $this->modelSchedule->buscarPorId($id);
+
+            if (!$agendamento) {
+                AuxiliarResposta::naoEncontrado('Agendamento não encontrado');
+                return;
+            }
+
+            $limit = $this->obterParametro('limit', 50);
+            $logs = $this->modelLog->buscarPorSchedule($id, (int) $limit);
+
+            AuxiliarResposta::sucesso($logs, 'Logs obtidos com sucesso');
         } catch (\Exception $e) {
             AuxiliarResposta::erro($e->getMessage(), 500);
         }

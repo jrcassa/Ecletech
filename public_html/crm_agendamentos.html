@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos CRM - Ecletech</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CSS Centralizado -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modern-layout.css">
+    <style>
+        .schedules-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .schedule-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .schedule-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .schedule-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .schedule-info label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .schedule-info .value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .schedule-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .direction-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .direction-badge.crm_para_ecletech {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .direction-badge.ecletech_para_crm {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
+        .direction-badge.bidirecional {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            background: var(--card-bg);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Agendamentos CRM</h1>
+                <p>Gerencie sincronizações automatizadas entre CRM e Ecletech</p>
+            </div>
+            <button class="btn btn-primary" onclick="abrirModalNovoAgendamento()">
+                <i class="fas fa-plus"></i> Novo Agendamento
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2>Filtros</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Entidade</label>
+                        <select id="filtro-entidade" onchange="aplicarFiltros()">
+                            <option value="">Todas</option>
+                            <option value="cliente">Clientes</option>
+                            <option value="produto">Produtos</option>
+                            <option value="venda">Vendas</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Status</label>
+                        <select id="filtro-status" onchange="aplicarFiltros()">
+                            <option value="">Todos</option>
+                            <option value="1">Ativos</option>
+                            <option value="0">Inativos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Agendamentos -->
+        <div id="schedules-container" class="schedules-grid">
+            <!-- Será preenchido via JavaScript -->
+        </div>
+    </div>
+
+    <!-- Modal Novo/Editar Agendamento -->
+    <div id="modal-agendamento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title">Novo Agendamento</h3>
+                <button class="btn-icon" onclick="fecharModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-agendamento">
+                    <input type="hidden" id="agendamento-id">
+
+                    <div class="form-group">
+                        <label>Entidade *</label>
+                        <select id="entidade" required>
+                            <option value="">Selecione...</option>
+                            <option value="cliente">Clientes</option>
+                            <option value="produto">Produtos</option>
+                            <option value="venda">Vendas</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Direção *</label>
+                        <select id="direcao" required>
+                            <option value="">Selecione...</option>
+                            <option value="crm_para_ecletech">CRM → Ecletech (Importar)</option>
+                            <option value="ecletech_para_crm">Ecletech → CRM (Exportar)</option>
+                            <option value="bidirecional">Bidirecional</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tamanho do Lote *</label>
+                            <input type="number" id="batch_size" value="10" min="1" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Frequência (min) *</label>
+                            <input type="number" id="frequencia_minutos" value="5" min="1" max="1440" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Horário Início</label>
+                            <input type="time" id="horario_inicio">
+                        </div>
+                        <div class="form-group">
+                            <label>Horário Fim</label>
+                            <input type="time" id="horario_fim">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <select id="prioridade">
+                            <option value="0">Muito Baixa</option>
+                            <option value="3">Baixa</option>
+                            <option value="5" selected>Normal</option>
+                            <option value="7">Alta</option>
+                            <option value="10">Muito Alta</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ativo" checked>
+                            Ativar agendamento
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarAgendamento()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/sidebar.js"></script>
+    <script src="js/helpers.js"></script>
+    <script>
+        let schedules = [];
+        let editingScheduleId = null;
+
+        // Carrega agendamentos ao iniciar
+        document.addEventListener('DOMContentLoaded', function () {
+            carregarAgendamentos();
+        });
+
+        async function carregarAgendamentos() {
+            try {
+                const response = await fetch('/api/crm/schedules', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    schedules = result.data || [];
+                    renderizarAgendamentos();
+                } else {
+                    mostrarNotificacao('Erro ao carregar agendamentos', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao carregar agendamentos', 'error');
+            }
+        }
+
+        function renderizarAgendamentos() {
+            const container = document.getElementById('schedules-container');
+
+            if (!schedules || schedules.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-body" style="text-align: center; padding: 3rem;">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                            <p>Nenhum agendamento configurado.</p>
+                            <button class="btn btn-primary" onclick="abrirModalNovoAgendamento()">
+                                Criar Primeiro Agendamento
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = schedules.map(schedule => `
+                <div class="schedule-card">
+                    <div class="schedule-header">
+                        <div class="schedule-title">
+                            <i class="fas fa-${getEntidadeIcon(schedule.entidade)}"></i>
+                            ${capitalize(schedule.entidade)}
+                        </div>
+                        <span class="badge ${schedule.ativo ? 'success' : 'danger'}">
+                            ${schedule.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </div>
+
+                    <div class="schedule-body">
+                        <div class="schedule-info">
+                            <label>Direção</label>
+                            <div class="value">
+                                <span class="direction-badge ${schedule.direcao}">
+                                    ${formatarDirecao(schedule.direcao)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="schedule-info">
+                            <label>Frequência</label>
+                            <div class="value">A cada ${schedule.frequencia_minutos} min</div>
+                        </div>
+
+                        <div class="schedule-info">
+                            <label>Lote</label>
+                            <div class="value">${schedule.batch_size} registros</div>
+                        </div>
+
+                        <div class="schedule-info">
+                            <label>Horário</label>
+                            <div class="value">
+                                ${schedule.horario_inicio && schedule.horario_fim
+                                    ? `${schedule.horario_inicio} - ${schedule.horario_fim}`
+                                    : '24h'
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    ${schedule.total_execucoes > 0 ? `
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <div class="label">Execuções</div>
+                                <div class="value">${schedule.total_execucoes || 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="label">Processados</div>
+                                <div class="value">${schedule.total_registros_processados || 0}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="label">Erros</div>
+                                <div class="value" style="color: #ef4444;">${schedule.total_erros || 0}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="schedule-actions" style="margin-top: 1rem;">
+                        ${schedule.ativo
+                            ? `<button class="btn btn-sm btn-warning" onclick="toggleStatus(${schedule.id}, false)">
+                                <i class="fas fa-pause"></i> Desativar
+                            </button>`
+                            : `<button class="btn btn-sm btn-success" onclick="toggleStatus(${schedule.id}, true)">
+                                <i class="fas fa-play"></i> Ativar
+                            </button>`
+                        }
+                        <button class="btn btn-sm btn-primary" onclick="executarManual(${schedule.id})">
+                            <i class="fas fa-sync"></i> Executar Agora
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="editarAgendamento(${schedule.id})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deletarAgendamento(${schedule.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getEntidadeIcon(entidade) {
+            const icons = {
+                'cliente': 'users',
+                'produto': 'box',
+                'venda': 'shopping-cart'
+            };
+            return icons[entidade] || 'question';
+        }
+
+        function formatarDirecao(direcao) {
+            const direcoes = {
+                'crm_para_ecletech': 'CRM → Ecletech',
+                'ecletech_para_crm': 'Ecletech → CRM',
+                'bidirecional': 'Bidirecional'
+            };
+            return direcoes[direcao] || direcao;
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function abrirModalNovoAgendamento() {
+            editingScheduleId = null;
+            document.getElementById('modal-title').textContent = 'Novo Agendamento';
+            document.getElementById('form-agendamento').reset();
+            document.getElementById('agendamento-id').value = '';
+            document.getElementById('batch_size').value = '10';
+            document.getElementById('frequencia_minutos').value = '5';
+            document.getElementById('prioridade').value = '5';
+            document.getElementById('ativo').checked = true;
+            document.getElementById('modal-agendamento').classList.add('show');
+        }
+
+        function editarAgendamento(id) {
+            const schedule = schedules.find(s => s.id === id);
+            if (!schedule) return;
+
+            editingScheduleId = id;
+            document.getElementById('modal-title').textContent = 'Editar Agendamento';
+            document.getElementById('agendamento-id').value = schedule.id;
+            document.getElementById('entidade').value = schedule.entidade;
+            document.getElementById('direcao').value = schedule.direcao;
+            document.getElementById('batch_size').value = schedule.batch_size;
+            document.getElementById('frequencia_minutos').value = schedule.frequencia_minutos;
+            document.getElementById('horario_inicio').value = schedule.horario_inicio || '';
+            document.getElementById('horario_fim').value = schedule.horario_fim || '';
+            document.getElementById('prioridade').value = schedule.prioridade || 5;
+            document.getElementById('ativo').checked = schedule.ativo;
+
+            document.getElementById('modal-agendamento').classList.add('show');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-agendamento').classList.remove('show');
+        }
+
+        async function salvarAgendamento() {
+            const id = document.getElementById('agendamento-id').value;
+            const dados = {
+                entidade: document.getElementById('entidade').value,
+                direcao: document.getElementById('direcao').value,
+                batch_size: parseInt(document.getElementById('batch_size').value),
+                frequencia_minutos: parseInt(document.getElementById('frequencia_minutos').value),
+                horario_inicio: document.getElementById('horario_inicio').value || null,
+                horario_fim: document.getElementById('horario_fim').value || null,
+                prioridade: parseInt(document.getElementById('prioridade').value),
+                ativo: document.getElementById('ativo').checked
+            };
+
+            try {
+                const url = id ? `/api/crm/schedules/${id}` : '/api/crm/schedules';
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    mostrarNotificacao(
+                        id ? 'Agendamento atualizado com sucesso' : 'Agendamento criado com sucesso',
+                        'success'
+                    );
+                    fecharModal();
+                    carregarAgendamentos();
+                } else {
+                    const error = await response.json();
+                    mostrarNotificacao(error.message || 'Erro ao salvar agendamento', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao salvar agendamento', 'error');
+            }
+        }
+
+        async function toggleStatus(id, ativo) {
+            try {
+                const endpoint = ativo ? 'ativar' : 'desativar';
+                const response = await fetch(`/api/crm/schedules/${id}/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    mostrarNotificacao(
+                        ativo ? 'Agendamento ativado' : 'Agendamento desativado',
+                        'success'
+                    );
+                    carregarAgendamentos();
+                } else {
+                    mostrarNotificacao('Erro ao alterar status', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao alterar status', 'error');
+            }
+        }
+
+        async function executarManual(id) {
+            if (!confirm('Deseja executar este agendamento agora?')) return;
+
+            try {
+                const response = await fetch(`/api/crm/schedules/${id}/executar`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarNotificacao(
+                        `Sincronização iniciada! ${result.data.registros_enfileirados || 0} registros enfileirados`,
+                        'success'
+                    );
+                    carregarAgendamentos();
+                } else {
+                    mostrarNotificacao('Erro ao executar agendamento', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao executar agendamento', 'error');
+            }
+        }
+
+        async function deletarAgendamento(id) {
+            if (!confirm('Deseja realmente excluir este agendamento?')) return;
+
+            try {
+                const response = await fetch(`/api/crm/schedules/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    mostrarNotificacao('Agendamento excluído com sucesso', 'success');
+                    carregarAgendamentos();
+                } else {
+                    mostrarNotificacao('Erro ao excluir agendamento', 'error');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarNotificacao('Erro ao excluir agendamento', 'error');
+            }
+        }
+
+        function aplicarFiltros() {
+            // TODO: Implementar filtros
+            carregarAgendamentos();
+        }
+
+        function mostrarNotificacao(mensagem, tipo) {
+            // TODO: Implementar sistema de notificações
+            alert(mensagem);
+        }
+    </script>
+</body>
+
+</html>
