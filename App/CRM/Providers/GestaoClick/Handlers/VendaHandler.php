@@ -5,6 +5,8 @@ namespace App\CRM\Providers\GestaoClick\Handlers;
 /**
  * Handler para transformação de dados de Venda
  * Ecletech <-> GestãoClick
+ *
+ * Baseado na estrutura real da API GestãoClick
  */
 class VendaHandler
 {
@@ -20,43 +22,54 @@ class VendaHandler
      */
     public function transformarParaExterno(array $venda): array
     {
+        // Estrutura real da API GestãoClick (conforme Postman)
         $dados = [
-            'title' => $venda['titulo'] ?? "Venda #{$venda['id']}",
-            'customer_id' => $venda['external_id_cliente'] ?? null,
-            'total_value' => (float) ($venda['valor_total'] ?? 0),
-            'status' => $this->mapearStatus($venda['status'] ?? 'pendente'),
+            'cliente_id' => $venda['cliente_id'] ?? $venda['external_id_cliente'] ?? '',
+            'vendedor_id' => $venda['vendedor_id'] ?? $venda['id_vendedor'] ?? '',
+            'data' => $venda['data'] ?? $venda['data_venda'] ?? date('Y-m-d'),
+            'observacoes' => $venda['observacoes'] ?? '',
+            'usuario_id' => $venda['usuario_id'] ?? '',
+            'loja_id' => $venda['loja_id'] ?? '',
         ];
 
-        // Data da venda
-        if (!empty($venda['data_venda'])) {
-            $dados['date'] = $venda['data_venda'];
-        } elseif (!empty($venda['created_at'])) {
-            $dados['date'] = $venda['created_at'];
+        // Produtos (array de objetos com estrutura específica)
+        if (!empty($venda['produtos']) && is_array($venda['produtos'])) {
+            $produtos = [];
+            foreach ($venda['produtos'] as $prod) {
+                $produtos[] = [
+                    'produto' => [
+                        'id' => $prod['id'] ?? $prod['produto_id'] ?? '',
+                        'quantidade' => $prod['quantidade'] ?? '1',
+                        'valor_unitario' => $this->formatarPreco($prod['valor_unitario'] ?? $prod['preco'] ?? 0),
+                        'valor_desconto' => $this->formatarPreco($prod['valor_desconto'] ?? $prod['desconto'] ?? 0),
+                        'valor_desconto_percentual' => $prod['valor_desconto_percentual'] ?? '',
+                        'valor_acrescimo' => $prod['valor_acrescimo'] ?? '',
+                        'valor_acrescimo_percentual' => $prod['valor_acrescimo_percentual'] ?? '',
+                        'valor_frete' => $prod['valor_frete'] ?? '',
+                        'valor_seguro' => $prod['valor_seguro'] ?? '',
+                        'outras_despesas' => $prod['outras_despesas'] ?? '',
+                        'valor_total' => $this->formatarPreco($prod['valor_total'] ?? 0)
+                    ]
+                ];
+            }
+            $dados['produtos'] = $produtos;
         }
 
-        // Desconto
-        if (isset($venda['desconto']) && $venda['desconto'] > 0) {
-            $dados['discount'] = (float) $venda['desconto'];
-        }
-
-        // Itens da venda
-        if (!empty($venda['itens'])) {
-            $dados['items'] = $this->transformarItens($venda['itens']);
-        }
-
-        // Observações
-        if (!empty($venda['observacoes'])) {
-            $dados['notes'] = $venda['observacoes'];
-        }
-
-        // Forma de pagamento
-        if (!empty($venda['forma_pagamento'])) {
-            $dados['payment_method'] = $venda['forma_pagamento'];
-        }
-
-        // Vendedor
-        if (!empty($venda['vendedor']) || !empty($venda['id_vendedor'])) {
-            $dados['salesperson'] = $venda['vendedor'] ?? $venda['id_vendedor'];
+        // Parcelas (array de objetos com estrutura específica)
+        if (!empty($venda['parcelas']) && is_array($venda['parcelas'])) {
+            $parcelas = [];
+            foreach ($venda['parcelas'] as $parc) {
+                $parcelas[] = [
+                    'parcela' => [
+                        'data_vencimento' => $parc['data_vencimento'] ?? '',
+                        'conta_id' => $parc['conta_id'] ?? '',
+                        'valor' => $this->formatarPreco($parc['valor'] ?? 0),
+                        'forma_pagamento_id' => $parc['forma_pagamento_id'] ?? '',
+                        'situacao' => $parc['situacao'] ?? '0' // 0 = aberto, 1 = pago
+                    ]
+                ];
+            }
+            $dados['parcelas'] = $parcelas;
         }
 
         return $dados;
@@ -69,88 +82,63 @@ class VendaHandler
     {
         $dados = [
             'external_id' => (string) $vendaCrm['id'],
-            'titulo' => $vendaCrm['title'] ?? '',
-            'valor_total' => (float) ($vendaCrm['total_value'] ?? 0),
-            'status' => $this->mapearStatusInterno($vendaCrm['status'] ?? 'pending'),
+            'cliente_id' => $vendaCrm['cliente_id'] ?? null,
+            'vendedor_id' => $vendaCrm['vendedor_id'] ?? null,
+            'data_venda' => $vendaCrm['data'] ?? null,
+            'observacoes' => $vendaCrm['observacoes'] ?? '',
+            'valor_total' => 0, // Será calculado a partir dos produtos
         ];
 
-        // Data da venda
-        if (!empty($vendaCrm['date'])) {
-            $dados['data_venda'] = $vendaCrm['date'];
+        // Produtos
+        if (!empty($vendaCrm['produtos']) && is_array($vendaCrm['produtos'])) {
+            $produtos = [];
+            $valorTotal = 0;
+
+            foreach ($vendaCrm['produtos'] as $prodObj) {
+                $prod = $prodObj['produto'] ?? $prodObj;
+                $produtos[] = [
+                    'produto_id' => $prod['id'] ?? '',
+                    'quantidade' => $prod['quantidade'] ?? 1,
+                    'preco' => $this->formatarPreco($prod['valor_unitario'] ?? 0),
+                    'desconto' => $this->formatarPreco($prod['valor_desconto'] ?? 0),
+                    'total' => $this->formatarPreco($prod['valor_total'] ?? 0)
+                ];
+
+                $valorTotal += (float) ($prod['valor_total'] ?? 0);
+            }
+
+            $dados['produtos'] = $produtos;
+            $dados['valor_total'] = $valorTotal;
         }
 
-        // Desconto
-        if (isset($vendaCrm['discount']) && $vendaCrm['discount'] > 0) {
-            $dados['desconto'] = (float) $vendaCrm['discount'];
-        }
-
-        // Observações
-        if (!empty($vendaCrm['notes'])) {
-            $dados['observacoes'] = $vendaCrm['notes'];
-        }
-
-        // Forma de pagamento
-        if (!empty($vendaCrm['payment_method'])) {
-            $dados['forma_pagamento'] = $vendaCrm['payment_method'];
-        }
-
-        // Vendedor
-        if (!empty($vendaCrm['salesperson'])) {
-            $dados['vendedor'] = $vendaCrm['salesperson'];
-        }
-
-        // Cliente (external_id)
-        if (!empty($vendaCrm['customer_id'])) {
-            $dados['external_id_cliente'] = (string) $vendaCrm['customer_id'];
+        // Parcelas
+        if (!empty($vendaCrm['parcelas']) && is_array($vendaCrm['parcelas'])) {
+            $parcelas = [];
+            foreach ($vendaCrm['parcelas'] as $parcObj) {
+                $parc = $parcObj['parcela'] ?? $parcObj;
+                $parcelas[] = [
+                    'data_vencimento' => $parc['data_vencimento'] ?? '',
+                    'valor' => $this->formatarPreco($parc['valor'] ?? 0),
+                    'forma_pagamento_id' => $parc['forma_pagamento_id'] ?? '',
+                    'situacao' => $parc['situacao'] ?? '0'
+                ];
+            }
+            $dados['parcelas'] = $parcelas;
         }
 
         return $dados;
     }
 
     /**
-     * Transforma itens da venda para formato externo
+     * Formata preço para envio (remove formatação, mantém decimal)
      */
-    private function transformarItens(array $itens): array
+    private function formatarPreco($preco): string
     {
-        return array_map(function ($item) {
-            return [
-                'product_id' => $item['external_id_produto'] ?? null,
-                'product_name' => $item['nome_produto'] ?? '',
-                'quantity' => (int) ($item['quantidade'] ?? 1),
-                'unit_price' => (float) ($item['preco_unitario'] ?? 0),
-                'total_price' => (float) ($item['preco_total'] ?? 0),
-                'discount' => (float) ($item['desconto'] ?? 0)
-            ];
-        }, $itens);
-    }
+        if (is_string($preco)) {
+            $preco = str_replace(['.', ','], ['', '.'], $preco);
+            $preco = preg_replace('/[^0-9.]/', '', $preco);
+        }
 
-    /**
-     * Mapeia status do Ecletech para GestaoClick
-     */
-    private function mapearStatus(string $status): string
-    {
-        $mapa = $this->config['status_venda'] ?? [
-            'pendente' => 'pending',
-            'aprovado' => 'won',
-            'cancelado' => 'lost',
-            'em_andamento' => 'in_progress'
-        ];
-
-        return $mapa[$status] ?? 'pending';
-    }
-
-    /**
-     * Mapeia status do GestaoClick para Ecletech
-     */
-    private function mapearStatusInterno(string $status): string
-    {
-        $mapa = $this->config['status_venda_reverso'] ?? [
-            'pending' => 'pendente',
-            'won' => 'aprovado',
-            'lost' => 'cancelado',
-            'in_progress' => 'em_andamento'
-        ];
-
-        return $mapa[$status] ?? 'pendente';
+        return number_format((float) $preco, 2, '.', '');
     }
 }
