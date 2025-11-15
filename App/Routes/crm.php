@@ -76,6 +76,12 @@ return function($router) {
         $router->post('/fila', [ControllerCrm::class, 'enfileirar'])
             ->middleware(MiddlewareAcl::requer('crm.gerenciar'));
 
+        // ===== Sincronização Manual por Entidade =====
+
+        // POST /crm/sincronizar/:entidade - Sincronizar entidade completa
+        $router->post('/sincronizar/{entidade}', [ControllerCrm::class, 'sincronizarEntidade'])
+            ->middleware(MiddlewareAcl::requer('crm.gerenciar'));
+
         // ===== Operações CRUD no CRM =====
 
         // POST /crm/:entidade - Criar no CRM

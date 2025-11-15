@@ -463,6 +463,76 @@ const CrmManager = {
     },
 
     /**
+     * Sincronizar entidade específica
+     */
+    async sincronizarEntidade(entidade) {
+        const nomes = {
+            'cliente': 'Clientes',
+            'produto': 'Produtos',
+            'venda': 'Vendas'
+        };
+
+        const btnId = `btnSync${nomes[entidade].replace(/\s/g, '')}`;
+        const btn = document.getElementById(btnId);
+        const resultDiv = document.getElementById('syncResult');
+
+        if (!confirm(`Deseja sincronizar todos os ${nomes[entidade].toLowerCase()}?\n\nIsso enfileirá todos os registros ativos para sincronização com o CRM.`)) {
+            return;
+        }
+
+        // Desabilita botão e mostra loading
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando...`;
+
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'connection-test testing';
+        resultDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Buscando ${nomes[entidade].toLowerCase()} para enfileirar...`;
+
+        try {
+            const response = await API.post(`/crm/sincronizar/${entidade}`);
+
+            if (response.sucesso) {
+                resultDiv.className = 'connection-test success';
+                resultDiv.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <strong>✅ ${nomes[entidade]} enfileirados com sucesso!</strong><br>
+                    <span style="font-size: 0.875rem;">
+                        Total: ${response.dados.total || 0} registros<br>
+                        Os itens serão processados automaticamente pelo cron.
+                    </span>
+                `;
+
+                // Atualiza estatísticas
+                await this.carregarEstatisticas();
+
+                // Esconde após 10 segundos
+                setTimeout(() => {
+                    resultDiv.style.display = 'none';
+                }, 10000);
+            } else {
+                throw new Error(response.mensagem || 'Erro ao sincronizar');
+            }
+        } catch (error) {
+            console.error(`Erro ao sincronizar ${entidade}:`, error);
+            resultDiv.className = 'connection-test error';
+            resultDiv.innerHTML = `
+                <i class="fas fa-times-circle"></i>
+                <strong>Erro ao sincronizar ${nomes[entidade].toLowerCase()}</strong><br>
+                <span style="font-size: 0.875rem;">${error.message || 'Erro desconhecido'}</span>
+            `;
+        } finally {
+            // Reabilita botão
+            btn.disabled = false;
+            const icons = {
+                'cliente': 'users',
+                'produto': 'box',
+                'venda': 'shopping-cart'
+            };
+            btn.innerHTML = `<i class="fas fa-${icons[entidade]}"></i> Sincronizar ${nomes[entidade]}`;
+        }
+    },
+
+    /**
      * Formata nome do provider
      */
     formatarProvider(provider) {

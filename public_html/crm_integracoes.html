@@ -336,6 +336,30 @@
                 </div>
             </div>
 
+            <!-- Sincronização Manual -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header" style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <h2 style="margin: 0;">Sincronização Manual</h2>
+                    <p style="margin: 0.5rem 0 0; color: var(--text-secondary); font-size: 0.875rem;">
+                        Enfileira registros para sincronização com o CRM. Os itens serão processados pelo cron automaticamente.
+                    </p>
+                </div>
+                <div style="padding: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('cliente')" id="btnSyncClientes">
+                            <i class="fas fa-users"></i> Sincronizar Clientes
+                        </button>
+                        <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('produto')" id="btnSyncProdutos">
+                            <i class="fas fa-box"></i> Sincronizar Produtos
+                        </button>
+                        <button class="btn btn-primary" onclick="CrmManager.sincronizarEntidade('venda')" id="btnSyncVendas">
+                            <i class="fas fa-shopping-cart"></i> Sincronizar Vendas
+                        </button>
+                    </div>
+                    <div id="syncResult" style="margin-top: 1rem; display: none;"></div>
+                </div>
+            </div>
+
             <!-- Logs Recentes -->
             <div class="card" style="margin-top: 2rem;">
                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
