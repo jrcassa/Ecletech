@@ -29,7 +29,7 @@ spl_autoload_register(function ($classe) {
 use App\Core\CarregadorEnv;
 use App\Models\ModelCrmSyncQueue;
 use App\Models\ModelCrmIntegracao;
-use App\CRM\ServiceCrm;
+use App\Services\ServiceCrm;
 
 try {
     // Carrega variáveis de ambiente
