@@ -63,7 +63,7 @@ class ModelCrmSyncLog
      */
     public function buscarPorRegistro(string $entidade, int $idRegistro, int $limit = 50): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT * FROM crm_sync_log
              WHERE entidade = ?
                AND id_registro = ?
@@ -78,7 +78,7 @@ class ModelCrmSyncLog
      */
     public function buscarPorLoja(int $idLoja, int $limit = 100): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT * FROM crm_sync_log
              WHERE id_loja = ?
              ORDER BY criado_em DESC
@@ -92,7 +92,7 @@ class ModelCrmSyncLog
      */
     public function buscarErros(int $limit = 100): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT * FROM crm_sync_log
              WHERE status = 'erro'
              ORDER BY criado_em DESC
@@ -106,7 +106,7 @@ class ModelCrmSyncLog
      */
     public function buscarRecentes(int $limit = 100): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT * FROM crm_sync_log
              WHERE criado_em >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
              ORDER BY criado_em DESC

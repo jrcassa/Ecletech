@@ -21,7 +21,7 @@ class ModelCrmSyncQueue
      */
     public function buscarPendentes(int $limit = 100): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT *
              FROM crm_sync_queue
              WHERE processado = 0

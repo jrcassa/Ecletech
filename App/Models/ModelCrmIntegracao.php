@@ -43,7 +43,7 @@ class ModelCrmIntegracao
      */
     public function listarAtivas(): array
     {
-        return $this->db->buscar(
+        return $this->db->buscarTodos(
             "SELECT * FROM crm_integracoes WHERE ativo = 1 AND deletado_em IS NULL ORDER BY id_loja"
         );
     }
