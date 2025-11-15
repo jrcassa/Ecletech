@@ -86,12 +86,27 @@ class ControllerCrm extends BaseController
         try {
             $dados = $this->obterDados();
 
-            // Validações
+            // Validações básicas
             $erros = AuxiliarValidacao::validar($dados, [
                 'provider' => 'obrigatorio',
-                'credenciais' => 'obrigatorio',
-                'credenciais.api_token' => 'obrigatorio'
+                'credenciais' => 'obrigatorio'
             ]);
+
+            // Validações específicas por provider
+            if (isset($dados['provider']) && $dados['provider'] === 'gestao_click') {
+                // GestãoClick requer dois tokens
+                $errosGestao = AuxiliarValidacao::validar($dados, [
+                    'credenciais.access_token' => 'obrigatorio',
+                    'credenciais.secret_access_token' => 'obrigatorio'
+                ]);
+                $erros = array_merge($erros, $errosGestao);
+            } else {
+                // Outros providers requerem api_token único
+                $errosGenerico = AuxiliarValidacao::validar($dados, [
+                    'credenciais.api_token' => 'obrigatorio'
+                ]);
+                $erros = array_merge($erros, $errosGenerico);
+            }
 
             if (!empty($erros)) {
                 AuxiliarResposta::validacao($erros);
@@ -146,6 +161,32 @@ class ControllerCrm extends BaseController
             }
 
             $dados = $this->obterDados();
+
+            // Validação de credenciais se fornecidas
+            if (isset($dados['credenciais']) && !empty($dados['credenciais'])) {
+                $provider = $dados['provider'] ?? $integracao['provider'];
+                $erros = [];
+
+                if ($provider === 'gestao_click') {
+                    // GestãoClick requer dois tokens
+                    $errosGestao = AuxiliarValidacao::validar($dados, [
+                        'credenciais.access_token' => 'obrigatorio',
+                        'credenciais.secret_access_token' => 'obrigatorio'
+                    ]);
+                    $erros = array_merge($erros, $errosGestao);
+                } else {
+                    // Outros providers requerem api_token único
+                    $errosGenerico = AuxiliarValidacao::validar($dados, [
+                        'credenciais.api_token' => 'obrigatorio'
+                    ]);
+                    $erros = array_merge($erros, $errosGenerico);
+                }
+
+                if (!empty($erros)) {
+                    AuxiliarResposta::validacao($erros);
+                    return;
+                }
+            }
 
             // Monta dados de atualização
             $dadosAtualizacao = [];
